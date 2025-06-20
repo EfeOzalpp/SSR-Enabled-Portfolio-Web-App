@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import './font+theme.css';
 import Frontpage from './FrontPage';
 import reportWebVitals from './reportWebVitals';
+import './fonts/fonts1.css';
+import './fonts/fonts2.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
