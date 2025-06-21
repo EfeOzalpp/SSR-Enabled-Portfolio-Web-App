@@ -1,12 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './font+theme.css';
-import Frontpage from './FrontPage';
+import './styles/font+theme.css';
+import Frontpage from './FrontPage.js';
 import reportWebVitals from './reportWebVitals';
 import './fonts/fonts1.css';
-import './fonts/fonts2.css';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById('Efe Ozalps Portfolio lol'));
 root.render(
   <React.StrictMode>
     <Frontpage  />
