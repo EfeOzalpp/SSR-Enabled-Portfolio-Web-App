@@ -4,6 +4,7 @@ import './styles/font+theme.css';
 import Frontpage from './FrontPage.js';
 import reportWebVitals from './reportWebVitals';
 import './fonts/fonts1.css';
+import './fonts/cabinet-grotesk.css';
 
 const root = ReactDOM.createRoot(document.getElementById('Efe Ozalps Portfolio lol'));
 root.render(
