@@ -1,0 +1,31 @@
+.view-project-wrapper {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+.view-project-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  background-color: #ffffff10;
+  color: #f0f0f0;
+  border: 1px solid #ffffff22;
+  border-radius: 9999px;
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.view-project-btn:hover {
+  background-color: #ffffff20;
+}
+
+.view-project-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}

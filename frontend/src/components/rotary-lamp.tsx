@@ -1,3 +1,4 @@
+// Rotary Lamp Project
 import { useEffect, useRef, useState } from 'react'
 import client from '../utils/sanity'
 
@@ -17,7 +18,7 @@ interface MediaBlock {
   tags?: string[]
 }
 
-const PendantLamp = () => {
+const RotaryLamp = () => {
   const [data, setData] = useState<MediaBlock | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -26,8 +27,6 @@ const PendantLamp = () => {
     client
       .fetch(
         `*[_type == "mediaBlock" && title match "Rotary Lamp"][0]{
-          title,
-          subtitle,
           mediaOne { alt, asset->{url, _type} },
           mediaTwo { alt, asset->{url, _type} },
           tags
@@ -43,7 +42,7 @@ const PendantLamp = () => {
     }
   }, [data]) // rerun when data is ready
 
-  if (!data) return <p className="pendant-loading">Loading...</p>
+  if (!data) return null;
 
   const isVideo =
     data.mediaTwo?.asset._type === 'sanity.fileAsset' &&
@@ -57,9 +56,6 @@ const PendantLamp = () => {
           alt={data.mediaOne?.alt}
           className="media-item-1"
         />
-        <div className="header-1">
-          <h2 className="title-1">{data.title}</h2>
-        </div>
       </div>
 
       <div className="media-content-2">
@@ -82,7 +78,6 @@ const PendantLamp = () => {
             className="media-item-2"
           />
         )}
-
         <div className="subheader-1">
           {data.tags?.length > 0 && (
             <div className="tags-1">
@@ -96,8 +91,23 @@ const PendantLamp = () => {
           {data.subtitle && <h3 className="subtitle-1">{data.subtitle}</h3>}
         </div>
       </div>
+   {/*
+    <div className="project-reveal">
+      <h3 className="project-view">Expand Project</h3>
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="expand-icon"
+      >
+        <rect width="24" height="24" fill="#ccc" />
+      </svg>
+    </div> 
+        */}
     </section>
   )
 }
 
-export default PendantLamp
+export default RotaryLamp
