@@ -1,7 +1,7 @@
 body { background-color: #151515; font-family: 'Poppins', sans-serif; font-size: clamp(0.8rem, 1vw, 1rem); line-height: 1.6; color: #e0e0e0; margin: 0; padding: 0; }
 .HereGoesNothing {overflow: hidden;}
 
-h1, h2, h3 { font-family: 'Heebo', sans-serif;}
+h1, h2, h3 { font-family: 'Epilogue-Variable', sans-serif;}
 
 h1 { font-size: clamp(2rem, 5vw, 3rem); color: #ffffff; }
 h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); color: #f0f0f0; }

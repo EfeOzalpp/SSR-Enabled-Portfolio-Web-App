@@ -48,7 +48,7 @@ const RotaryLamp = () => {
     data.mediaTwo?.asset.url.match(/\.(mp4|webm|ogg)$/)
 
   return (
-    <section className="block-type-1">
+    <section className="block-type-1" id="block-r">
       <div className="media-content-1">
         <img
           id="rotary-media-1"
