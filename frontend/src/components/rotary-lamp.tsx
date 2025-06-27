@@ -20,7 +20,6 @@ interface MediaBlock {
 
 const RotaryLamp = () => {
   const [data, setData] = useState<MediaBlock | null>(null)
-
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -40,7 +39,7 @@ const RotaryLamp = () => {
       videoRef.current.muted = true
       videoRef.current.play().catch(() => {})
     }
-  }, [data]) // rerun when data is ready
+  }, [data])
 
   if (!data) return null;
 
@@ -52,6 +51,7 @@ const RotaryLamp = () => {
     <section className="block-type-1">
       <div className="media-content-1">
         <img
+          id="rotary-media-1"
           src={data.mediaOne?.asset.url}
           alt={data.mediaOne?.alt}
           className="media-item-1"
@@ -60,25 +60,27 @@ const RotaryLamp = () => {
 
       <div className="media-content-2">
         {isVideo ? (
-        <video
-          ref={videoRef}
-          src={data.mediaTwo.asset.url}
-          className="media-item-2"
-          loop
-          autoPlay
-          playsInline
-          muted
-          preload="auto"
-          style={{ pointerEvents: 'all' }}
-        />
+          <video
+            id="rotary-media-2"
+            ref={videoRef}
+            src={data.mediaTwo.asset.url}
+            className="media-item-2"
+            loop
+            autoPlay
+            playsInline
+            muted
+            preload="auto"
+            style={{ pointerEvents: 'all' }}
+          />
         ) : (
           <img
+            id="rotary-media-2"
             src={data.mediaTwo?.asset.url}
             alt={data.mediaTwo?.alt}
-            className="media-item-2"
+            className="media-item media-item-2"
           />
         )}
-       {/*
+       {/* 
         <div className="subheader-1">
           {data.tags?.length > 0 && (
             <div className="tags-1">
@@ -90,23 +92,24 @@ const RotaryLamp = () => {
             </div>
           )}
           {data.subtitle && <h3 className="subtitle-1">{data.subtitle}</h3>}
-        </div> */}
-      </div>
-   {/*
-    <div className="project-reveal">
-      <h3 className="project-view">Expand Project</h3>
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="expand-icon"
-      >
-        <rect width="24" height="24" fill="#ccc" />
-      </svg>
-    </div> 
+        </div> 
         */}
+      </div>
+      {/* 
+      <div className="project-reveal">
+        <h3 className="project-view">Expand Project</h3>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="expand-icon"
+        >
+          <rect width="24" height="24" fill="#ccc" />
+        </svg>
+      </div> 
+      */}
     </section>
   )
 }

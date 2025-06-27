@@ -18,9 +18,8 @@ interface MediaBlock {
   tags?: string[]
 }
 
-const PendantLamp = () => {
+const IceCreamScoop = () => {
   const [data, setData] = useState<MediaBlock | null>(null)
-
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -40,7 +39,7 @@ const PendantLamp = () => {
       videoRef.current.muted = true
       videoRef.current.play().catch(() => {})
     }
-  }, [data]) // rerun when data is ready
+  }, [data])
 
   if (!data) return null;
 
@@ -52,6 +51,7 @@ const PendantLamp = () => {
     <section className="block-type-1">
       <div className="media-content-1">
         <img
+          id="icecream-media-1"
           src={data.mediaOne?.asset.url}
           alt={data.mediaOne?.alt}
           className="media-item-1"
@@ -60,22 +60,24 @@ const PendantLamp = () => {
 
       <div className="media-content-2">
         {isVideo ? (
-        <video
-          ref={videoRef}
-          src={data.mediaTwo.asset.url}
-          className="media-item-2"
-          loop
-          autoPlay
-          playsInline
-          muted
-          preload="auto"
-          style={{ pointerEvents: 'all' }}
-        />
+          <video
+            id="icecream-media-2"
+            ref={videoRef}
+            src={data.mediaTwo.asset.url}
+            className="media-item-2"
+            loop
+            autoPlay
+            playsInline
+            muted
+            preload="auto"
+            style={{ pointerEvents: 'all' }}
+          />
         ) : (
           <img
+            id="icecream-media-2"
             src={data.mediaTwo?.asset.url}
             alt={data.mediaTwo?.alt}
-            className="media-item-2"
+            className="media-item media-item-2"
           />
         )}
        {/*
@@ -90,10 +92,11 @@ const PendantLamp = () => {
             </div>
           )}
           {data.subtitle && <h3 className="subtitle-1">{data.subtitle}</h3>}
-        </div> */}
+        </div> 
+        */}
       </div>
     </section>
   )
 }
 
-export default PendantLamp
+export default IceCreamScoop
