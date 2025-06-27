@@ -1,6 +1,6 @@
 /* Block type 1 styles */
 .block-type-1 {
-height: 100dvh;
+height: 98dvh;
 max-width: 100%;
 display: flex;
 flex-wrap: wrap;
@@ -38,7 +38,7 @@ flex-wrap: wrap;
 flex-direction: column;
 justify-content: flex-start;
 background: linear-gradient(to top, rgb(26 26 28) 0%, rgb(26 26 28 / 80%) 4%, rgba(18, 18, 20, 0.3) 12%, transparent 20%);
-margin-top: -106%;
+margin-top: -53dvh;
 z-index: 5;
 pointer-events: none;
 }
@@ -47,10 +47,10 @@ pointer-events: none;
 
 .tags-1 {   
 padding-left: 16px;
+padding-top: 24px;
 display: flex;
 flex-direction: column-reverse;
 flex-wrap: nowrap;
-padding-top: 1.6em;
 align-content: flex-start;
 }
 

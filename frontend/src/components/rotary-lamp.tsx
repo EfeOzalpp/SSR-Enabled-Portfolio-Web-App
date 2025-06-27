@@ -78,6 +78,7 @@ const RotaryLamp = () => {
             className="media-item-2"
           />
         )}
+       {/*
         <div className="subheader-1">
           {data.tags?.length > 0 && (
             <div className="tags-1">
@@ -89,7 +90,7 @@ const RotaryLamp = () => {
             </div>
           )}
           {data.subtitle && <h3 className="subtitle-1">{data.subtitle}</h3>}
-        </div>
+        </div> */}
       </div>
    {/*
     <div className="project-reveal">

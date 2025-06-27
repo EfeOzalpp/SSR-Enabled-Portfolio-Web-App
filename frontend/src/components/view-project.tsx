@@ -22,7 +22,7 @@ export const ViewProject = () => {
   return (
     <div className="view-project-wrapper">
       <button className="view-project-btn">
-        <span>{projects[0]?.title ?? 'View Project'}</span>
+        <h2>{projects[0]?.title ?? 'View Project'}</h2>
         <svg
           className="view-project-icon"
           width="20"
@@ -31,7 +31,7 @@ export const ViewProject = () => {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <rect width="24" height="24" fill="#CCC" />
+          <rect width="24" height="24" fill="#FFF" />
           {/* Replace with real icon */}
         </svg>
       </button>
