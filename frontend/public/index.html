@@ -4,7 +4,16 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+
+    <!-- Set theme-color for all modes -->
+    <meta name="theme-color" content="">
+
+    <!-- Optional: Add dark mode media query if you want different colors based on system -->
+    <!--
+    <meta name="theme-color" content="#121214" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    -->
+
     <meta
       name="description"
       content="Web site created using create-react-app"
@@ -12,7 +21,21 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Portfolio</title>
+
+    <!-- iOS specific PWA status bar settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Set background color immediately -->
+    <style>
+      html, body {
+        background-color: #121214;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
   </head>
+
   <body>
     <noscript>This is captain speaking, enable your javascript, y'all!.</noscript>
     <div id="Efe Ozalps Portfolio lol"></div>

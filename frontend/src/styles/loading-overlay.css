@@ -1,0 +1,18 @@
+/* src/components/loading-overlay.css */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:rgb(24, 24, 26); /* blackish gray */
+  opacity: 1;
+  z-index: 999;
+  transition: opacity 0.2s ease-in;
+}
+
+.loading-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}

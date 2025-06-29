@@ -1,18 +1,44 @@
 // src/components/NavMenu.tsx
+import { useEffect, useRef } from "react";
+import lottie from "lottie-web";
+import animationData from "../svg/efeozalp.json";
+
 const NavMenu = () => {
+  const lottieContainer = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const anim = lottie.loadAnimation({
+      container: lottieContainer.current!,
+      renderer: "svg",
+      loop: false,
+      autoplay: true,
+      animationData: animationData,
+    });
+
+    // Listen to frame updates to pause at frame 165
+    const onEnterFrame = () => {
+      if (anim.currentFrame >= 175) {
+        anim.removeEventListener("enterFrame", onEnterFrame);
+        anim.pause();
+        anim.goToAndStop(175, true);
+      }
+    };
+
+    anim.addEventListener("enterFrame", onEnterFrame);
+
+    return () => {
+      anim.removeEventListener("enterFrame", onEnterFrame);
+      anim.destroy();
+    };
+  }, []);
+
   return (
     <nav className="nav-menu">
       <div className="nav-left">
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 100 100"
-          xmlns="http://www.w3.org/2000/svg"
-          className="logo-svg"
-        >
-          <circle cx="50" cy="50" r="48" fill="#ffffff" />
-          <text x="50%" y="55%" textAnchor="middle" fill="#121212" fontSize="36" fontWeight="bold" fontFamily="sans-serif">EÖ</text>
-        </svg>
+        <div
+          ref={lottieContainer}
+          className="title-lottie"
+        ></div>
       </div>
 
       <div className="nav-right">

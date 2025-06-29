@@ -2,14 +2,14 @@
 import React, { createContext, useState, useContext } from 'react';
 
 interface ProjectVisibilityContextType {
-  activeProject: string;
+  activeProject?: string;
   setActiveProject: (title: string) => void;
 }
 
 const ProjectVisibilityContext = createContext<ProjectVisibilityContextType | undefined>(undefined);
 
 export const ProjectVisibilityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeProject, setActiveProject] = useState('Loading');
+  const [activeProject, setActiveProject] = useState<string | undefined>(undefined);
 
   return (
     <ProjectVisibilityContext.Provider value={{ activeProject, setActiveProject }}>

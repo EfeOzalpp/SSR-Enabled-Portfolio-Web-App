@@ -23,22 +23,45 @@ const ProjectSwitchObserver = () => {
       threshold: Array.from({ length: 101 }, (_, i) => i / 100),
     });
 
-    const timeout = setTimeout(() => {
-      const ids = [
-        '#block-i',
-        '#block-r',
-      ];
+    const ids = [
+      '#block-i',
+      '#block-r',
+    ];
 
+    const checkAndObserve = () => {
       const targets = ids
         .map(id => document.querySelector(id))
         .filter((el): el is HTMLElement => el !== null);
 
-      // console.log(`ProjectSwitchObserver: Observing ${targets.length} project blocks`);
+      if (targets.length < ids.length) {
+        // Not all targets exist yet, retry
+        requestAnimationFrame(checkAndObserve);
+        return;
+      }
+
       targets.forEach(el => observer.observe(el));
-    }, 100);
+
+      // ✅ Force initial title state check
+      targets.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const ratio = Math.min(Math.max(
+          (window.innerHeight - rect.top) / window.innerHeight,
+          0
+        ), 1);
+
+        if (ratio > 0.55) {
+          if (el.id.includes('block-i')) {
+            setActiveProject('Enhanced Scoop');
+          } else if (el.id.includes('block-r')) {
+            setActiveProject('Rotary Lamp');
+          }
+        }
+      });
+    };
+
+    checkAndObserve(); // start initial check
 
     return () => {
-      clearTimeout(timeout);
       observer.disconnect();
     };
   }, [setActiveProject]);
