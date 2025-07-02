@@ -16,8 +16,9 @@ const ProjectSwitchObserver = () => {
             setActiveProject('Enhanced Scoop');
           } else if (target.id.includes('block-r')) {
             setActiveProject('Rotary Lamp');
-          }
-        }
+          } else if (target.id.includes('block-g')) {
+            setActiveProject('Evade the Rock');
+        }}
       });
     }, {
       threshold: Array.from({ length: 101 }, (_, i) => i / 100),
@@ -26,6 +27,7 @@ const ProjectSwitchObserver = () => {
     const ids = [
       '#block-i',
       '#block-r',
+      '#block-g'
     ];
 
     const checkAndObserve = () => {

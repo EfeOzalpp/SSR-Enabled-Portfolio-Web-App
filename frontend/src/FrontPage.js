@@ -9,6 +9,7 @@ import ThemeColorUpdater from './utils/theme-color-updater.tsx';
 
 import { ProjectVisibilityProvider } from './utils/project-visibility.tsx';
 import './styles/block-type-1.css';
+import './styles/block-type-g.css';
 import './styles/general-block.css';
 
 function Frontpage() {
