@@ -47,7 +47,6 @@ padding-bottom: 24px; z-index: 1000;
 .SnappyScrollThingy {
   -ms-overflow-style: none;  /* IE/Edge */
   scrollbar-width: none;     /* Firefox */
-  z-index: 900;
   position: relative;
 }
 

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
-const BlockGOnboarding = ({ onStart, resetTrigger }) => {
+const ExitButton = ({ onExit }) => {
   const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   const handleClick = () => {
-    if (onStart) onStart();
+    if (onExit) onExit();
     setIsFadingOut(true);
   };
 
@@ -13,18 +13,11 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
     if (isFadingOut) {
       const timeout = setTimeout(() => {
         setVisible(false);
-      }, 300);
+      }, 300); // Match CSS transition duration
+
       return () => clearTimeout(timeout);
     }
   }, [isFadingOut]);
-
-  // 🔥 Reset logic
-  useEffect(() => {
-    if (resetTrigger) {
-      setVisible(true);
-      setIsFadingOut(false);
-    }
-  }, [resetTrigger]);
 
   if (!visible) return null;
 
@@ -32,26 +25,23 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
     <div
       onClick={handleClick}
       style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'rgba(0,0,0,0.8)',
+        position: 'fixed',
+        bottom: '20px',
+        left: '20px',
+        background: 'rgba(0,0,0,0.7)',
         color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '2rem',
+        padding: '10px 20px',
+        borderRadius: '4px',
+        fontSize: '1rem',
         cursor: 'pointer',
-        zIndex: 999,
+        zIndex: 10000,
         opacity: isFadingOut ? 0 : 1,
         transition: 'opacity 0.3s ease',
       }}
     >
-      Click to Start
+      Exit
     </div>
   );
 };
 
-export default BlockGOnboarding;
+export default ExitButton;

@@ -40,7 +40,7 @@ const OpacityObserver = () => {
       targets.forEach(el => {
         observer.observe(el);
 
-        // ✅ Force initial opacity application
+        // Force initial opacity application
         const rect = el.getBoundingClientRect();
         const ratio = Math.min(Math.max(
           (window.innerHeight - rect.top) / window.innerHeight,

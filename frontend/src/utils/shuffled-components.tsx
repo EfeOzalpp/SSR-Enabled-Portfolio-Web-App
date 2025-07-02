@@ -1,5 +1,4 @@
 // Shuffling the Projects for randomization
-// Shuffling the Projects for randomization
 import { ReactElement } from 'react';
 import RotaryLamp from '../components/rotary-lamp.tsx';
 import EnhancedScoop from '../components/ice-cream-scoop.tsx';
