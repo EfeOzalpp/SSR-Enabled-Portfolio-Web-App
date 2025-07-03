@@ -26,6 +26,8 @@ const RockEscapade = () => {
   const [showCountdown, setShowCountdown] = useState(false); // Track countdown 
   const [countdown, setCountdown] = useState(3);
 
+  const [gameOverVisible, setGameOverVisible] = useState(false); // Track game over state
+
   // Touch movement
   const touchStartRef = useRef({ x: 0, y: 0 });
   const activeTouchRef = useRef(false);
@@ -40,6 +42,14 @@ const RockEscapade = () => {
     setOverlayVisible(false);
     setBlockGClick(true);
     setShowCountdown(true); // show countdown for 3 seconds
+  };
+
+  const handleRestart = () => {
+  setGameOverVisible(false); // hide overlay
+
+  if (q5InstanceRef.current && q5InstanceRef.current.restartGame) {
+    q5InstanceRef.current.restartGame(); // call internal sketch restart logic
+  }
   };
 
   // Constant resize canvas to fit changes
@@ -94,6 +104,7 @@ const RockEscapade = () => {
       let gameOver = false;
       let fadeAlpha = 0;
       let spawnEnabled = false;
+      let prevGameOver = false; // inside sketch scope
 
       let movingUp = false;
       let movingDown = false;
@@ -101,7 +112,22 @@ const RockEscapade = () => {
       let movingRight = false;
 
       let w, h;
-      
+
+      const restartGame = () => {
+      gameOver = false;
+      fadeAlpha = 0;
+      localCoins = 0;
+      setCoins(0);
+      rectangles = [];
+      octagons = [];
+      particles = [];
+      for (let i = 0; i < maxOctagons; i++) octagons.push(new Shape(p, true, true, verticalMode));
+      circle = new Circle(p, 240, p.height / 2, 33);
+      };
+
+      // attach to p
+      p.restartGame = restartGame;
+
       // Setup the canvas
       p.setup = () => {
 
@@ -168,17 +194,18 @@ const RockEscapade = () => {
         }
 
         // Game over changes
-        if (gameOver) {
-          p.background(25, fadeAlpha);
-          fadeAlpha = p.min(fadeAlpha + 5, 255);
-          p.fill(255, fadeAlpha);
-          p.textAlign(p.CENTER, p.CENTER);
-          p.textSize(64);
-          p.text("GAME OVER", p.width / 2, p.height / 2);
-          p.textSize(32);
-          p.text("Press SPACE to Restart", p.width / 2, p.height / 2 + 100);
-          return;
-        }
+        if (!prevGameOver && gameOver) {
+            // Notify React when game just ended
+            setGameOverVisible(true);
+          }
+
+          prevGameOver = gameOver;
+
+          if (gameOver) {
+            p.background(25, fadeAlpha);
+            fadeAlpha = p.min(fadeAlpha + 5, 255);
+            return; // Freeze gameplay updates
+          }
 
         p.background(25);
 
@@ -202,6 +229,7 @@ const RockEscapade = () => {
           o.update();
           o.display();
 
+        // Create particles and coin gain upon eating octagons
           if (circle.overlaps(o)) {
           localCoins += 20;
           setCoins(prev => prev + 20);
@@ -377,20 +405,7 @@ const RockEscapade = () => {
         if (p.key === 'a' || p.keyCode === p.LEFT_ARROW) movingLeft = false;
         if (p.key === 'd' || p.keyCode === p.RIGHT_ARROW) movingRight = false;
       };
-
-      // Rstart the game puts the gameOver to false position triggering rendering with !displayOverlay
-      const restartGame = () => {
-        gameOver = false;
-        fadeAlpha = 0;
-        localCoins = 0;
-        setCoins(0);
-        rectangles = [];
-        octagons = [];
-        particles = [];
-        for (let i = 0; i < maxOctagons; i++) octagons.push(new Shape(p, true, true, verticalMode));
-        circle = new Circle(p, 240, p.height / 2, 33);
-      };
-
+  
       // Q5.js classes for shapes, user control, and particle effects
       class Circle {
         constructor(p, x, y, r) {
@@ -584,15 +599,20 @@ const RockEscapade = () => {
           return this.lifespan <= 0;
         }
       }
-    };
+    }; // end of sketch
 
-  const q5Instance = new q5(sketch, canvasRef.current);
-  q5InstanceRef.current = q5Instance;
+    const q5Instance = new q5(sketch, canvasRef.current);
+    q5InstanceRef.current = q5Instance;
+
+    if (q5InstanceRef.current && q5InstanceRef.current.p && q5InstanceRef.current.p.restartGame) {
+      q5InstanceRef.current.restartGame = q5InstanceRef.current.p.restartGame;
+    }
     return () => {
       if (q5Instance && q5Instance.remove) q5Instance.remove();
       if (canvasRef.current) canvasRef.current.innerHTML = '';
     };
   }, [initialized, overlayVisible]);
+  
 
   // Countdown for the game started
   useEffect(() => {
@@ -689,6 +709,7 @@ return (
     {!overlayVisible && <ExitButton onExit={handleExit} />}
     {!overlayVisible && <CoinCounter coins={coins} />}
     {showCountdown && <CountdownDisplay countdown={countdown} />}
+    {gameOverVisible && <BlockGGameOver onRestart={handleRestart} />}
   </section>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const BlockGGameOver = ({ onRestart, visibleTrigger }) => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   const handleClick = () => {
