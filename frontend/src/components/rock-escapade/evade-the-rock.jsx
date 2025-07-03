@@ -5,6 +5,7 @@ import BlockGOnboarding from './block-g-onboarding.tsx';
 import ExitButton from './block-g-exit.tsx';
 import CoinCounter from './block-g-coin-counter.tsx';
 import CountdownDisplay from './block-g-countdown.tsx';
+import BlockGGameOver from './block-g-game-over.tsx';
 
 import { isMobile } from 'react-device-detect';
 
@@ -12,60 +13,47 @@ import q5 from 'q5';
 
 const RockEscapade = () => {
   const canvasRef = useRef(null);
+  const q5InstanceRef = useRef(null);
+
   const [initialized, setInitialized] = useState(false);
 
   const [overlayVisible, setOverlayVisible] = useState(true); // track overlay visibility
   const { setBlockGClick } = useProjectVisibility();
 
   const [resetKey, setResetKey] = useState(0); // Reset overlay
-  const [coins, setCoins] = useState(0); // Coins
+  const [coins, setCoins] = useState(0); // Track coins 
 
-  const [showCountdown, setShowCountdown] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false); // Track countdown 
   const [countdown, setCountdown] = useState(3);
 
   // Touch movement
   const touchStartRef = useRef({ x: 0, y: 0 });
   const activeTouchRef = useRef(false);
 
-
-useEffect(() => {
-  const canvas = document.querySelector('.evade-the-rock canvas');
-  if (!canvas) return;
-
-  if (overlayVisible) {
-    canvas.style.pointerEvents = 'auto';
-  } else {
-    canvas.style.pointerEvents = 'auto';
-  }
-
-  return () => {
-    if (canvas) canvas.style.pointerEvents = 'auto';
-  };
-}, [overlayVisible]);
-
+  // Check if thee q5.js canvas is initialized
   useEffect(() => {
     if (!initialized) setInitialized(true);
   }, [initialized]);
 
+  // Onboarding component const
   const handleOnboardingStart = () => {
-    console.log('Overlay clicked – starting game.');
     setOverlayVisible(false);
     setBlockGClick(true);
-
     setShowCountdown(true); // show countdown for 3 seconds
   };
 
-  // Constant Resize
+  // Constant resize canvas to fit changes
   useEffect(() => {
     const handleResize = () => {
       if (q5InstanceRef.current) {
         q5InstanceRef.current.resizeCanvas(window.innerWidth, window.innerHeight);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
+  // Position above others when overlayVisible is false
   useEffect(() => {
       if (!initialized) return;
 
@@ -85,12 +73,13 @@ useEffect(() => {
       }
     }, [initialized, overlayVisible]);
 
-  const q5InstanceRef = useRef(null);
-
+  // Q5.js canvas features
   useEffect(() => {
     if (!initialized) return;
 
     const sketch = (p) => {
+
+      // Declare non-react visible Q5.JS variables
       let verticalMode = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
 
       let rectangles = [];
@@ -111,16 +100,19 @@ useEffect(() => {
       let movingLeft = false;
       let movingRight = false;
 
+      let w, h;
+      
+      // Setup the canvas
       p.setup = () => {
 
+        // Delay spawning for when the gameplay mode, aka overlayVisible is false
         if (!overlayVisible) {
         setTimeout(() => {
         spawnEnabled = true;
         }, 3000); // delay spawning by 3
         }
 
-        let w, h;
-
+        // Match the canvas size to the viewport height + width
         if (!overlayVisible) {
           w = window.innerWidth;
           h = window.innerHeight;
@@ -130,21 +122,19 @@ useEffect(() => {
         }
 
         p.createCanvas(w, h);
-
+        
+        // Max octagon at a time to 1 and spawn rate to 3 for mobile devices
         if (window.innerWidth < 768) {
           maxOctagons = 1;
           rectangleSpawnRate = 3;
         }
+
+        // Render the user circle
         circle = new Circle(p, 240, h / 2, 33);
         q5InstanceRef.current.circle = circle;
+      }; // End of p.setup
 
-        if (overlayVisible) {
-          for (let i = 0; i < maxOctagons; i++) {
-            octagons.push(new Shape(p, true, true, verticalMode));
-          }
-        }
-      };
-
+      // Render inside canvas
       p.draw = () => {
 
         setCoins(localCoins);
@@ -174,10 +164,10 @@ useEffect(() => {
               part.display();
               if (part.isDead()) particles.splice(i, 1);
             }
-
           return;
         }
 
+        // Game over changes
         if (gameOver) {
           p.background(25, fadeAlpha);
           fadeAlpha = p.min(fadeAlpha + 5, 255);
@@ -204,10 +194,7 @@ useEffect(() => {
         updateRectangles(true);
 
         if (p.millis() > 4000) { // wait 4 seconds before spawning octagons
-          if (p.millis() - lastOctagonSpawnTime > 2000 && octagons.length < 5) {
-            if (p.random() < 0.5) octagons.push(new Shape(p, true, true, verticalMode));
-            lastOctagonSpawnTime = p.millis();
-          }
+          spawnOctagons();
         }
 
         for (let i = octagons.length - 1; i >= 0; i--) {
@@ -237,8 +224,9 @@ useEffect(() => {
           part.display();
           if (part.isDead()) particles.splice(i, 1);
         }
-      };
-
+      }; // End of p.draw
+      
+      // Spawn Rectangles
       const spawnRectangles = () => {
         let rectanglesInViewport = rectangles.filter(r => r.x + r.w > 0).length;
         if (rectanglesInViewport < 10) rectangleSpawnRate = 5;
@@ -252,18 +240,29 @@ useEffect(() => {
         }
       };
 
-      const updateRectangles = (enableGameOver) => {
+      // Update Rectanglee
+      const updateRectangles = () => {
         for (let i = rectangles.length - 1; i >= 0; i--) {
           let r = rectangles[i];
           r.update();
           r.display();
 
-          if (enableGameOver && circle.overlaps(r)) gameOver = true;
+          if (circle.overlaps(r)) gameOver = true;
 
           if (verticalMode ? r.y - r.h > p.height : r.x + r.w < 0) rectangles.splice(i, 1);
         }
+
+        // Resolve collisions between rectangles
+        for (let i = 0; i < rectangles.length; i++) {
+          let r1 = rectangles[i];
+          for (let j = i + 1; j < rectangles.length; j++) {
+            let r2 = rectangles[j];
+            if (r1.overlaps(r2)) r1.resolveCollision(r2);
+          }
+        }
       };
 
+      // Spawn octagons
       const spawnOctagons = () => {
         if (p.millis() - lastOctagonSpawnTime > 2000 && octagons.length < maxOctagons) {
           if (p.random() < 0.5) octagons.push(new Shape(p, true, true, verticalMode));
@@ -271,13 +270,14 @@ useEffect(() => {
         }
       };
 
-      const updateOctagons = (enableCollection = true) => {
+      // Update the octagons
+      const updateOctagons = () => {
         for (let i = octagons.length - 1; i >= 0; i--) {
           let o = octagons[i];
           o.update();
           o.display();
 
-          if (enableCollection && circle.overlaps(o)) {
+          if (circle.overlaps(o)) {
             localCoins += 20;
             setCoins(prev => prev + 20);
             for (let j = 0; j < 30; j++) { // increased from 10 to 30
@@ -302,7 +302,7 @@ useEffect(() => {
         }
       };
 
-      // As a preview gameplay
+      // Auto evade the rectangles and seek octagons during preview (overlayDisplay is true)
       const autoEvade = () => {
         let evadeForceX = 0;
         let evadeForceY = 0;
@@ -362,7 +362,7 @@ useEffect(() => {
         }
       };
 
-     // Desktop Navigation
+      // Desktop Navigation
       p.keyPressed = () => {
         if (p.key === 'w' || p.keyCode === p.UP_ARROW) movingUp = true;
         if (p.key === 's' || p.keyCode === p.DOWN_ARROW) movingDown = true;
@@ -378,6 +378,7 @@ useEffect(() => {
         if (p.key === 'd' || p.keyCode === p.RIGHT_ARROW) movingRight = false;
       };
 
+      // Rstart the game puts the gameOver to false position triggering rendering with !displayOverlay
       const restartGame = () => {
         gameOver = false;
         fadeAlpha = 0;
@@ -390,6 +391,7 @@ useEffect(() => {
         circle = new Circle(p, 240, p.height / 2, 33);
       };
 
+      // Q5.js classes for shapes, user control, and particle effects
       class Circle {
         constructor(p, x, y, r) {
           this.p = p;
@@ -472,13 +474,13 @@ useEffect(() => {
           if (this.verticalMode) {
             this.x = this.p.random(this.p.width);
             this.y = startOffScreen ? -this.p.random(60, 120) : this.p.random(this.p.height);
-            this.vx = 0;
+            this.vx = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
             this.vy = this.p.random(1.2, 3);
           } else {
             this.x = startOffScreen ? this.p.width + this.p.random(10, 40) : this.p.random(this.p.width);
             this.y = this.p.random(this.p.height);
             this.vx = this.p.random(-2, -1);
-            this.vy = 0;
+            this.vy = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
           }
           this.rotation = 0;
           this.rotationSpeed = this.p.random(-1, 1);
@@ -592,6 +594,7 @@ useEffect(() => {
     };
   }, [initialized, overlayVisible]);
 
+  // Countdown for the game started
   useEffect(() => {
     if (!showCountdown) return;
 
@@ -609,77 +612,76 @@ useEffect(() => {
     return () => clearInterval(interval);
   }, [showCountdown]);
 
-const handleExit = () => {
-  setOverlayVisible(true);
-  setBlockGClick(false);
-  setResetKey(prev => prev + 1); // trigger onboarding reset
-};
-
-useEffect(() => {
-  if (!initialized) return;
-
-  const attachTouchListeners = () => {
-    const canvas = document.querySelector('.evade-the-rock canvas');
-    if (!canvas) {
-      console.log('Canvas not found yet for touch listener – retrying.');
-      setTimeout(attachTouchListeners, 100);
-      return;
-    }
-
-    console.log('Attaching touch listeners to canvas for impulse-based drag.');
-
-    let lastTouchPosition = null;
-
-    const handleTouchMove = (e) => {
-      if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
-
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const touchX = touch.clientX - rect.left;
-      const touchY = touch.clientY - rect.top;
-
-      const circle = q5InstanceRef.current.circle;
-
-      if (lastTouchPosition) {
-        const dx = touchX - lastTouchPosition.x;
-        const dy = touchY - lastTouchPosition.y;
-
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const forceMultiplier = 1.2; // Adjust for sensitivity
-
-        // Apply as impulse to velocity directly
-        circle.vx += (dx / dist) * forceMultiplier;
-        circle.vy += (dy / dist) * forceMultiplier;
-      }
-
-      lastTouchPosition = { x: touchX, y: touchY };
-
-      e.preventDefault();
-    };
-
-    const handleTouchEnd = () => {
-      console.log('Touch ended.');
-      lastTouchPosition = null;
-      // No velocity reset – friction will decay it naturally
-    };
-
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
-    };
+  // Exit button state changes 
+  const handleExit = () => {
+    setOverlayVisible(true);
+    setBlockGClick(false);
+    setShowCountdown(false);
+    setResetKey(prev => prev + 1); // trigger onboarding reset
   };
 
-  attachTouchListeners();
-}, [initialized, overlayVisible]);
+  // Event handler for touch based interaction
+  useEffect(() => {
+    if (!initialized) return;
 
+    const attachTouchListeners = () => {
+      const canvas = document.querySelector('.evade-the-rock canvas');
+      if (!canvas) {
+        console.log('Canvas not found yet for touch listener – retrying.');
+        setTimeout(attachTouchListeners, 100);
+        return;
+      }
 
+      console.log('Attaching touch listeners to canvas for impulse-based drag.');
 
+      let lastTouchPosition = null;
 
+      const handleTouchMove = (e) => {
+        if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
 
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
 
+        const circle = q5InstanceRef.current.circle;
+
+        if (lastTouchPosition) {
+          const dx = touchX - lastTouchPosition.x;
+          const dy = touchY - lastTouchPosition.y;
+
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const forceMultiplier = 0.4; // Adjust for sensitivity
+
+          // Apply as impulse to velocity directly
+          circle.vx += (dx / dist) * forceMultiplier;
+          circle.vy += (dy / dist) * forceMultiplier;
+        }
+
+        lastTouchPosition = { x: touchX, y: touchY };
+
+        e.preventDefault();
+      };
+
+      const handleTouchEnd = () => {
+        console.log('Touch ended.');
+        lastTouchPosition = null;
+        // No velocity reset – friction will decay it naturally
+      };
+
+      canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+      canvas.addEventListener('touchend', handleTouchEnd);
+
+      return () => {
+        canvas.removeEventListener('touchmove', handleTouchMove);
+        canvas.removeEventListener('touchend', handleTouchEnd);
+      };
+    };
+
+    attachTouchListeners();
+  }, [initialized, overlayVisible]);
+
+  // Return HTML structure
 return (
   <section className="block-type-g" id="block-g" style={{ position: 'relative' }}>
     <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
