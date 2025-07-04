@@ -2,22 +2,17 @@ import React from 'react';
 
 interface CoinCounterProps {
   coins: number;
+  highScore: number;
 }
 
-const CoinCounter: React.FC<CoinCounterProps> = ({ coins }) => {
+const CoinCounter: React.FC<CoinCounterProps> = ({ coins, highScore }) => {
   return (
-    <h2
-      style={{
-        position: 'fixed',
-        top: '20px',
-        left: '20px',
-        color: '#FFD700',
-        zIndex: 10000,
-        pointerEvents: 'none',
-      }}
-    >
-      Coins: {coins}
-    </h2>
+    <div className= "coin-counter" >
+      <h3 className="coin-amount" >Coins: {coins}</h3>
+      <h3 className="high-score">
+        High Score: {highScore}
+      </h3>
+    </div>
   );
 };
 

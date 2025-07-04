@@ -1,17 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProjectVisibility } from '../../utils/project-visibility.tsx';
 
+import { fetchHighScore } from './fetchHighScore.js';
+import { updateHighScore } from './updateHighScore.js';
+import { useHighScoreSubscription } from './subscribeHighScore.js';
+
 import BlockGOnboarding from './block-g-onboarding.tsx';
 import ExitButton from './block-g-exit.tsx';
 import CoinCounter from './block-g-coin-counter.tsx';
 import CountdownDisplay from './block-g-countdown.tsx';
 import BlockGGameOver from './block-g-game-over.tsx';
 
-import { isMobile } from 'react-device-detect';
+import { isMobile, isTablet, isDesktop } from 'react-device-detect';
 
 import q5 from 'q5';
 
 const RockEscapade = () => {
+
+  const highScore = useHighScoreSubscription();
+
   const canvasRef = useRef(null);
   const q5InstanceRef = useRef(null);
 
@@ -90,7 +97,7 @@ const RockEscapade = () => {
     const sketch = (p) => {
 
       // Declare non-react visible Q5.JS variables
-      let verticalMode = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
+      let verticalMode = window.innerWidth <= 1024 && window.innerHeight > window.innerWidth;
 
       let rectangles = [];
       let octagons = [];
@@ -123,6 +130,7 @@ const RockEscapade = () => {
       particles = [];
       for (let i = 0; i < maxOctagons; i++) octagons.push(new Shape(p, true, true, verticalMode));
       circle = new Circle(p, 240, p.height / 2, 33);
+      q5InstanceRef.current.circle = circle;
       };
 
       // attach to p
@@ -195,9 +203,13 @@ const RockEscapade = () => {
 
         // Game over changes
         if (!prevGameOver && gameOver) {
-            // Notify React when game just ended
-            setGameOverVisible(true);
+          setGameOverVisible(true);
+
+          // Check and update high score
+          if (localCoins > highScore) {
+            updateHighScore(localCoins); // write to Sanity
           }
+        }
 
           prevGameOver = gameOver;
 
@@ -490,11 +502,11 @@ const RockEscapade = () => {
             this.x = this.p.random(this.p.width);
             this.y = startOffScreen ? -this.p.random(60, 120) : this.p.random(this.p.height);
             this.vx = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
-            this.vy = this.p.random(1.2, 3);
+            this.vy = this.p.random(1, 3);
           } else {
             this.x = startOffScreen ? this.p.width + this.p.random(10, 40) : this.p.random(this.p.width);
             this.y = this.p.random(this.p.height);
-            this.vx = this.p.random(-2, -1);
+            this.vx = this.p.random(-3, -1);
             this.vy = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
           }
           this.rotation = 0;
@@ -504,8 +516,13 @@ const RockEscapade = () => {
             this.size = 25;
             this.c = this.p.color(255, 245, 50);
           } else {
-            this.w = this.p.random(30, 75);
-            this.h = this.p.random(30, 75);
+            if (this.verticalMode) {
+              this.w = this.p.random(28, 70); // smaller width
+              this.h = this.p.random(28, 70); // smaller height
+            } else {
+              this.w = this.p.random(30, 75);
+              this.h = this.p.random(30, 75);
+            }
             this.c = this.p.color(245, 235, 255);
           }
         }
@@ -657,31 +674,47 @@ const RockEscapade = () => {
       let lastTouchPosition = null;
 
       const handleTouchMove = (e) => {
-        if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
+  if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
 
-        const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const touchX = touch.clientX - rect.left;
-        const touchY = touch.clientY - rect.top;
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const touchX = touch.clientX - rect.left;
+  const touchY = touch.clientY - rect.top;
 
-        const circle = q5InstanceRef.current.circle;
+  const circle = q5InstanceRef.current.circle;
 
-        if (lastTouchPosition) {
-          const dx = touchX - lastTouchPosition.x;
-          const dy = touchY - lastTouchPosition.y;
+  if (lastTouchPosition) {
+    const dx = touchX - lastTouchPosition.x;
+    const dy = touchY - lastTouchPosition.y;
 
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const forceMultiplier = 0.4; // Adjust for sensitivity
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-          // Apply as impulse to velocity directly
-          circle.vx += (dx / dist) * forceMultiplier;
-          circle.vy += (dy / dist) * forceMultiplier;
-        }
+    // Base force multiplier by device
+    let baseMultiplier = 0.4;
 
-        lastTouchPosition = { x: touchX, y: touchY };
+    if (isTablet) {
+      baseMultiplier = 0.6;
+    } else if (isMobile) {
+      baseMultiplier = 0.5;
+    } else if (isDesktop) {
+      baseMultiplier = 0.35;
+    }
 
-        e.preventDefault();
-      };
+    // Calculate speed factor based on distance moved
+    const speedFactor = Math.log2(dist + 1);  
+
+    const forceMultiplier = baseMultiplier * speedFactor;
+
+    // Apply as impulse to velocity directly
+    circle.vx += (dx / dist) * forceMultiplier;
+    circle.vy += (dy / dist) * forceMultiplier;
+  }
+
+  lastTouchPosition = { x: touchX, y: touchY };
+
+  e.preventDefault();
+};
+
 
       const handleTouchEnd = () => {
         console.log('Touch ended.');
@@ -707,7 +740,7 @@ return (
     <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
     <BlockGOnboarding onStart={handleOnboardingStart} resetTrigger={resetKey} />
     {!overlayVisible && <ExitButton onExit={handleExit} />}
-    {!overlayVisible && <CoinCounter coins={coins} />}
+    {!overlayVisible && <CoinCounter coins={coins} highScore={highScore}/>}
     {showCountdown && <CountdownDisplay countdown={countdown} />}
     {gameOverVisible && <BlockGGameOver onRestart={handleRestart} />}
   </section>

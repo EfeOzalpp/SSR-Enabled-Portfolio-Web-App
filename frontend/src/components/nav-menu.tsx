@@ -1,10 +1,14 @@
 // src/components/NavMenu.tsx
 import { useEffect, useRef } from "react";
 import lottie from "lottie-web";
-import animationData from "../svg/efeozalp.json";
+import titleData from "../svg/efeozalp.json";
+import githubData from "../svg/github.json";
+import linkedinData from "../svg/linkedin.json";
 
 const NavMenu = () => {
   const lottieContainer = useRef<HTMLDivElement>(null);
+  const githubContainer = useRef<HTMLDivElement>(null);
+  const linkedinContainer = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const anim = lottie.loadAnimation({
@@ -12,10 +16,9 @@ const NavMenu = () => {
       renderer: "svg",
       loop: false,
       autoplay: true,
-      animationData: animationData,
+      animationData: titleData,
     });
 
-    // Listen to frame updates to pause at frame 165
     const onEnterFrame = () => {
       if (anim.currentFrame >= 175) {
         anim.removeEventListener("enterFrame", onEnterFrame);
@@ -32,6 +35,72 @@ const NavMenu = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const githubAnim = lottie.loadAnimation({
+      container: githubContainer.current!,
+      renderer: "svg",
+      loop: false,
+      autoplay: false,
+      animationData: githubData,
+    });
+
+    githubAnim.goToAndStop(0, true);
+
+    const stopFrame = 32;
+
+    const timeout = setTimeout(() => {
+      githubAnim.play();
+
+      const onGithubEnterFrame = () => {
+        if (githubAnim.currentFrame >= stopFrame) {
+          githubAnim.removeEventListener("enterFrame", onGithubEnterFrame);
+          githubAnim.pause();
+          githubAnim.goToAndStop(stopFrame, true);
+        }
+      };
+
+      githubAnim.addEventListener("enterFrame", onGithubEnterFrame);
+    }, 2200);
+
+    return () => {
+      clearTimeout(timeout);
+      githubAnim.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    const linkedinAnim = lottie.loadAnimation({
+      container: linkedinContainer.current!,
+      renderer: "svg",
+      loop: false,
+      autoplay: false,
+      animationData: linkedinData,
+    });
+
+    linkedinAnim.goToAndStop(0, true);
+
+    const stopFrame = 32;
+
+    const timeout = setTimeout(() => {
+      linkedinAnim.play();
+
+      const onLinkedinEnterFrame = () => {
+        if (linkedinAnim.currentFrame >= stopFrame) {
+          linkedinAnim.removeEventListener("enterFrame", onLinkedinEnterFrame);
+          linkedinAnim.pause();
+          linkedinAnim.goToAndStop(stopFrame, true);
+        }
+      };
+
+      linkedinAnim.addEventListener("enterFrame", onLinkedinEnterFrame);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timeout);
+      linkedinAnim.destroy();
+    };
+  }, []);
+
   return (
     <nav className="nav-menu">
       <div className="nav-left">
@@ -42,35 +111,8 @@ const NavMenu = () => {
       </div>
 
       <div className="nav-right">
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="icon-svg"
-        >
-          <path d="M9 19V6h3v13H9z" />
-          <path d="M16 19V10h3v9h-3z" />
-        </svg>
-
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#ffffff"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="icon-svg"
-        >
-          <path d="M16 8a6 6 0 00-12 0c0 2.67 2.34 5.33 4 7 1.66-1.67 4-4.33 4-7z" />
-          <path d="M12 14s1.5 2 3 2 3-2 3-2" />
-        </svg>
+        <div ref={githubContainer} className="github-lottie"></div>
+        <div ref={linkedinContainer} className="linkedin-lottie"></div>
       </div>
     </nav>
   );

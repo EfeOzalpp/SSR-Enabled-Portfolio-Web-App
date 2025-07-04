@@ -5,7 +5,8 @@ const client = createClient({
   projectId: 'uyghamp6',
   dataset: 'production',
   apiVersion: '2023-01-01',
-  useCdn: true
+  token: process.env.REACT_APP_SANITY_TOKEN,
+  useCdn: false
 })
 
 export default client

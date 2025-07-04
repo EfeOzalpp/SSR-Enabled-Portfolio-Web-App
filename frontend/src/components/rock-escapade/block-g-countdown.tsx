@@ -1,24 +1,9 @@
-import React from "react";
-
+// Countdown for the evade the rock game
 const CountdownDisplay = ({ countdown }) => {
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        color: "white",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "4rem",
-        zIndex: 9999,
-      }}
-    >
-      {countdown}
-    </div>
+<div className="countdown-display">
+  <h1 className="countdown-text">{countdown}</h1>
+</div>
   );
 };
 
