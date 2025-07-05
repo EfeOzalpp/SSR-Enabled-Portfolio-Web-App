@@ -1,6 +1,6 @@
 /* Project Title Switch Observer */
 import { useEffect } from 'react';
-import { useProjectVisibility } from './project-visibility.tsx';
+import { useProjectVisibility } from './project-context.tsx';
 
 const ProjectSwitchObserver = () => {
   const { setActiveProject } = useProjectVisibility();

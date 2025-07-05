@@ -29,27 +29,14 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   if (!visible) return null;
 
   return (
-    <div
+    <div className="block-g-onboarding"
       onClick={handleClick}
       style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'rgba(0,0,0,0.4)',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '2rem',
-        cursor: 'pointer',
-        zIndex: 999,
         opacity: isFadingOut ? 0 : 1,
         transition: 'opacity 0.3s ease',
       }}
     >
-      Click to Start
+     <h1 className="onboarding-text"> Click to Start </h1> 
     </div>
   );
 };

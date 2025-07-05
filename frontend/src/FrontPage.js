@@ -7,7 +7,7 @@ import OpacityObserver from './utils/opacity-observer.tsx';
 import TitleObserver from './utils/title-observer.tsx';
 import ThemeColorUpdater from './utils/theme-color-updater.tsx';  
 
-import { ProjectVisibilityProvider } from './utils/project-visibility.tsx';
+import { ProjectVisibilityProvider } from './utils/project-context.tsx';
 
 import './styles/block-type-1.css'; // Type 1 Project Block
 import './styles/block-type-g.css'; // Evade the Rock

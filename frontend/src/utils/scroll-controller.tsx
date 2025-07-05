@@ -1,12 +1,11 @@
-/* Snappy Scroll Behavior */
-import { useEffect, useRef, useState } from 'react';
-import getShuffledComponents from './shuffled-components.tsx';
+/* Snappy Scroll Behavior for the main grid */
+import { useEffect, useRef } from 'react';
+import { useProjectVisibility } from './project-context.tsx';
 import ViewProject from '../components/view-project.tsx';
 
 const ScrollController = () => {
+  const { currentIndex, setCurrentIndex, projectComponents, scrollContainerRef } = useProjectVisibility();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const projectComponents = getShuffledComponents();
 
   const handleWheel = (e: WheelEvent) => {
     if (e.deltaY > 50) {
@@ -17,16 +16,25 @@ const ScrollController = () => {
   };
 
   useEffect(() => {
-    window.addEventListener('wheel', handleWheel);
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, []);
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('wheel', handleWheel);
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [projectComponents.length]);
 
   return (
-    <div className='SnappyScrollThingy'
-      ref={containerRef}
-      style={{ height: '98dvh', overflowY: 'scroll', scrollSnapType: 'y mandatory', paddingBottom: '2dvh' }}
+    <div 
+      ref={scrollContainerRef}
+      className='SnappyScrollThingy'
+      style={{
+        height: '98dvh',
+        overflowY: 'scroll',
+        scrollSnapType: 'y mandatory',
+        paddingBottom: '2dvh'
+      }}
     >
-      {projectComponents.map((item, i) => (
+      {projectComponents.map((item) => (
         <div key={item.key} style={{ height: '98dvh', scrollSnapAlign: 'start' }}>
           {item.component}
         </div>
@@ -41,4 +49,5 @@ const ScrollController = () => {
 };
 
 export default ScrollController;
+
 

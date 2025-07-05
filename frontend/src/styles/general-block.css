@@ -1,3 +1,19 @@
+.nav-menu {display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%;
+padding-bottom: 24px; z-index: 1000;     
+}
+.nav-left {width: 50%; display: flex; justify-content: flex-start; padding-left: 16px;} 
+.nav-right {padding: 16px; gap: 16px; display: flex; justify-content: flex-end; width: 50%;}
+
+.logo-svg {display: block;
+}
+.icon-svg {cursor: pointer; transition: transform 0.2s ease;
+}
+.icon-svg:hover {transform: scale(1.1);
+}
+
+.title-lottie {width: 12.8em;} 
+.github-lottie, .linkedin-lottie {width: 3em;}
+
 .view-project-wrapper {
     position: fixed;
     bottom: 16px;
@@ -31,4 +47,6 @@
   height: 1.25rem;
 }
 
+.view-project-arrow {width: 3.2em;}
 
+.arrow-svg { filter: drop-shadow(0 0px 8px rgba(0,0,0,0.6));}

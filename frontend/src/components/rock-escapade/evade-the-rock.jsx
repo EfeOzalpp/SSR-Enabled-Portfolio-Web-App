@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useProjectVisibility } from '../../utils/project-visibility.tsx';
+import { useProjectVisibility } from '../../utils/project-context.tsx';
 
 import { fetchHighScore } from './fetchHighScore.js';
 import { updateHighScore } from './updateHighScore.js';
@@ -654,6 +654,7 @@ const RockEscapade = () => {
     setOverlayVisible(true);
     setBlockGClick(false);
     setShowCountdown(false);
+    setGameOverVisible(false);
     setResetKey(prev => prev + 1); // trigger onboarding reset
   };
 

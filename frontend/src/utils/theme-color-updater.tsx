@@ -1,7 +1,7 @@
 // src/components/ThemeColorUpdater.tsx
 
 import { useEffect } from 'react';
-import { useProjectVisibility } from './project-visibility.tsx';
+import { useProjectVisibility } from './project-context.tsx';
 
 const ThemeColorUpdater = () => {
   const { activeProject } = useProjectVisibility();
@@ -18,6 +18,8 @@ const ThemeColorUpdater = () => {
       topColor = 'rgb(18, 19, 19)';
     } else if (activeProject === 'Enhanced Scoop') {
       topColor = 'rgb(18, 17, 17)';
+    } else if (activeProject === 'Evade the Rock') {
+      topColor = 'rgb(25, 25, 25)';
     }
 
     // ✅ Update meta theme-color
