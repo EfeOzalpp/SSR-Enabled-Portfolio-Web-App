@@ -1,4 +1,3 @@
-/* Split control for block-1 */
 import { useRef } from 'react';
 
 const SplitDragHandler = ({ split, setSplit }) => {
@@ -7,18 +6,32 @@ const SplitDragHandler = ({ split, setSplit }) => {
   const handleMouseDown = (e) => {
     e.preventDefault();
 
-    const container = containerRef.current;
-    if (!container) return;
-
-    const rect = container.getBoundingClientRect();
+    const isPortrait = window.innerHeight > window.innerWidth;
 
     const onMouseMove = (e) => {
-      let newSplit = ((e.clientX - rect.left) / rect.width) * 100;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
 
-      // Clamp between 0 and 100
+      let newSplit;
+
+      if (isPortrait) {
+        // Vertical split: mouse Y position maps to % height
+        newSplit = (e.clientY / viewportHeight) * 100;
+      } else {
+        // Horizontal split: mouse X position maps to % width
+        newSplit = (e.clientX / viewportWidth) * 100;
+      }
+
       newSplit = Math.max(0, Math.min(100, newSplit));
 
       setSplit(newSplit);
+
+      // Update CSS variable for immediate handler positioning if used
+      if (isPortrait) {
+        document.documentElement.style.setProperty('--split-height', `${newSplit}%`);
+      } else {
+        document.documentElement.style.setProperty('--split-width', `${newSplit}%`);
+      }
     };
 
     const onMouseUp = () => {
@@ -30,6 +43,8 @@ const SplitDragHandler = ({ split, setSplit }) => {
     window.addEventListener('mouseup', onMouseUp);
   };
 
+  const isPortrait = window.innerHeight > window.innerWidth;
+
   return (
     <div
       ref={containerRef}
@@ -37,15 +52,26 @@ const SplitDragHandler = ({ split, setSplit }) => {
       className="split-drag-handler"
       style={{
         position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: `${split}%`, // stick to split edge dynamically
-        width: '8px',
-        cursor: 'ew-resize',
+        ...(isPortrait
+          ? {
+              left: 0,
+              right: 0,
+              top: `${split}%`,
+              height: '8px',
+              cursor: 'ns-resize',
+              transform: 'translateY(-50%)',
+            }
+          : {
+              top: 0,
+              bottom: 0,
+              left: `${split}%`,
+              width: '8px',
+              cursor: 'ew-resize',
+              transform: 'translateX(-50%)',
+            }),
         zIndex: 1000,
         background: 'rgba(255,255,255,0.2)',
-        transform: 'translateX(-50%)',
-        transition: 'left 0.05s linear, background 0.2s ease'
+        transition: isPortrait ? 'top 0s' : 'left 0s',
       }}
     />
   );
