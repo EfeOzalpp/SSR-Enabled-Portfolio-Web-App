@@ -1,6 +1,7 @@
 // Rotary Lamp Project
 import { useEffect, useRef, useState } from 'react'
 import client from '../utils/sanity'
+import SplitDragHandler from '../utils/split-controller.tsx'
 
 interface MediaAsset {
   alt: string
@@ -21,6 +22,10 @@ interface MediaBlock {
 const RotaryLamp = () => {
   const [data, setData] = useState<MediaBlock | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+
+  const [split, setSplit] = useState(50); // default 50%
+  const leftRef = useRef(null);
+  const rightRef = useRef(null);
 
   useEffect(() => {
     client
@@ -47,71 +52,52 @@ const RotaryLamp = () => {
     data.mediaTwo?.asset._type === 'sanity.fileAsset' &&
     data.mediaTwo?.asset.url.match(/\.(mp4|webm|ogg)$/)
 
-  return (
-    <section className="block-type-1" id="block-r">
-      <div className="media-content-1">
-        <img
-          id="rotary-media-1"
-          src={data.mediaOne?.asset.url}
-          alt={data.mediaOne?.alt}
-          className="media-item-1"
-        />
-      </div>
+return (
+  <section className="block-type-1" id="block-r" style={{ position: 'relative' }}>
+    <div
+      ref={leftRef}
+      className="media-content-1"
+      style={{ width: `${split}%`, transition: 'width 0.2s ease' }}
+    >
+      <img
+        id="rotary-media-1"
+        src={data.mediaOne?.asset.url}
+        alt={data.mediaOne?.alt}
+        className="media-item-1"
+      />
+    </div>
 
-      <div className="media-content-2">
-        {isVideo ? (
-          <video
-            id="rotary-media-2"
-            ref={videoRef}
-            src={data.mediaTwo.asset.url}
-            className="media-item-2"
-            loop
-            autoPlay
-            playsInline
-            muted
-            preload="auto"
-            style={{ pointerEvents: 'all' }}
-          />
-        ) : (
-          <img
-            id="rotary-media-2"
-            src={data.mediaTwo?.asset.url}
-            alt={data.mediaTwo?.alt}
-            className="media-item media-item-2"
-          />
-        )}
-       {/* 
-        <div className="subheader-1">
-          {data.tags?.length > 0 && (
-            <div className="tags-1">
-              {data.tags.map((tag, i) => (
-                <span key={i} className="tag-1">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-          {data.subtitle && <h3 className="subtitle-1">{data.subtitle}</h3>}
-        </div> 
-        */}
-      </div>
-      {/* 
-      <div className="project-reveal">
-        <h3 className="project-view">Expand Project</h3>
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="expand-icon"
-        >
-          <rect width="24" height="24" fill="#ccc" />
-        </svg>
-      </div> 
-      */}
-    </section>
-  )
+    <SplitDragHandler split={split} setSplit={setSplit} />
+
+    <div
+      ref={rightRef}
+      className="media-content-2"
+      style={{ width: `${100 - split}%`, transition: 'width 0.2s ease' }}
+    >
+      {isVideo ? (
+        <video
+          id="rotary-media-2"
+          ref={videoRef}
+          src={data.mediaTwo.asset.url}
+          className="media-item-2"
+          loop
+          autoPlay
+          playsInline
+          muted
+          preload="auto"
+          style={{ pointerEvents: 'all' }}
+        />
+      ) : (
+        <img
+          id="rotary-media-2"
+          src={data.mediaTwo?.asset.url}
+          alt={data.mediaTwo?.alt}
+          className="media-item media-item-2"
+        />
+      )}
+    </div>
+  </section>
+  );
 }
 
 export default RotaryLamp

@@ -123,7 +123,7 @@ const NavMenu = () => {
 
     githubAnim.goToAndStop(0, true);
 
-    const stopFrame = 32;
+    const stopFrame = 26;
 
     const timeout = setTimeout(() => {
       githubAnim.play();
@@ -156,7 +156,7 @@ const NavMenu = () => {
 
     linkedinAnim.goToAndStop(0, true);
 
-    const stopFrame = 32;
+    const stopFrame = 20;
 
     const timeout = setTimeout(() => {
       linkedinAnim.play();

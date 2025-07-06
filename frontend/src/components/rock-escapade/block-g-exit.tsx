@@ -22,25 +22,12 @@ const ExitButton = ({ onExit }) => {
   if (!visible) return null;
 
   return (
-    <div
+    <div className="block-g-exit"
       onClick={handleClick}
       style={{
-        position: 'fixed',
-        bottom: '20px',
-        left: '20px',
-        background: 'rgba(0,0,0,0.7)',
-        color: 'white',
-        padding: '10px 20px',
-        borderRadius: '4px',
-        fontSize: '1rem',
-        cursor: 'pointer',
-        zIndex: 10000,
         opacity: isFadingOut ? 0 : 1,
-        transition: 'opacity 0.3s ease',
-      }}
-    >
-      Exit
-    </div>
+        transition: 'opacity 0.3s ease'
+    }} ><h4> Exit </h4> </div>
   );
 };
 

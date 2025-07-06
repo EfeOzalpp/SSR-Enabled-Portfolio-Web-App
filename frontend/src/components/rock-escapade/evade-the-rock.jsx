@@ -269,12 +269,20 @@ const RockEscapade = () => {
       // Spawn Rectangles
       const spawnRectangles = () => {
         let rectanglesInViewport = rectangles.filter(r => r.x + r.w > 0).length;
-        if (rectanglesInViewport < 10) rectangleSpawnRate = 5;
-        else if (rectanglesInViewport < 13) rectangleSpawnRate = 3;
-        else if (rectanglesInViewport < 18) rectangleSpawnRate = 2;
+
+        // Adjust max count and spawn rate based on device
+        let maxRectangles = 25; // default
+
+        if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
+          maxRectangles = 40; // Increase on desktop landscape
+        }
+
+        if (rectanglesInViewport < 5) rectangleSpawnRate = 5;
+        else if (rectanglesInViewport < 20) rectangleSpawnRate = 3;
+        else if (rectanglesInViewport < 25) rectangleSpawnRate = 2;
         else rectangleSpawnRate = 0;
 
-        if (rectangleSpawnRate > 0 && p.millis() - lastSpawnTime > 2000 / rectangleSpawnRate && rectangles.length < 25) {
+        if (rectangleSpawnRate > 0 && p.millis() - lastSpawnTime > 2000 / rectangleSpawnRate && rectangles.length < maxRectangles) {
           rectangles.push(new Shape(p, true, false, verticalMode));
           lastSpawnTime = p.millis();
         }
@@ -503,27 +511,53 @@ const RockEscapade = () => {
             this.y = startOffScreen ? -this.p.random(60, 120) : this.p.random(this.p.height);
             this.vx = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
             this.vy = this.p.random(1, 3);
+
+            this.w = this.p.random(28, 70);
+            this.h = this.p.random(28, 70);
           } else {
             this.x = startOffScreen ? this.p.width + this.p.random(10, 40) : this.p.random(this.p.width);
             this.y = this.p.random(this.p.height);
             this.vx = this.p.random(-3, -1);
             this.vy = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
+
+            if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
+              this.w = this.p.random(33, 105);
+              this.h = this.p.random(33, 105);
+            } else {
+              this.w = this.p.random(30, 75);
+              this.h = this.p.random(30, 75);
+            }
           }
+
           this.rotation = 0;
           this.rotationSpeed = this.p.random(-1, 1);
 
           if (this.isOctagon) {
             this.size = 25;
-            this.c = this.p.color(255, 245, 50);
-          } else {
-            if (this.verticalMode) {
-              this.w = this.p.random(28, 70); // smaller width
-              this.h = this.p.random(28, 70); // smaller height
-            } else {
-              this.w = this.p.random(30, 75);
-              this.h = this.p.random(30, 75);
+
+            const playfulColors = [
+              this.p.color(255, 215, 0),
+              this.p.color(255, 223, 70),
+              this.p.color(255, 200, 0),
+              this.p.color(255, 170, 50),
+            ];
+            this.c = this.p.random(playfulColors);
+
+            // Base horizontal speed, always negative for right-to-left
+            let baseSpeedX = this.p.random(-1.2, -0.5);
+
+            // Increase horizontal speed for desktop landscape
+            if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
+              baseSpeedX *= 4.5;
             }
-            this.c = this.p.color(245, 235, 255);
+
+            this.vx = baseSpeedX;
+
+            // Small vertical drift
+            this.vy = this.p.random(-0.1, 0.1);
+          }
+          else {
+            this.c = this.p.color(235, 235, 255);
           }
         }
 
@@ -739,7 +773,7 @@ const RockEscapade = () => {
 return (
   <section className="block-type-g" id="block-g" style={{ position: 'relative' }}>
     <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
-    <BlockGOnboarding onStart={handleOnboardingStart} resetTrigger={resetKey} />
+  <BlockGOnboarding key={resetKey} onStart={handleOnboardingStart} resetTrigger={resetKey} />
     {!overlayVisible && <ExitButton onExit={handleExit} />}
     {!overlayVisible && <CoinCounter coins={coins} highScore={highScore}/>}
     {showCountdown && <CountdownDisplay countdown={countdown} />}

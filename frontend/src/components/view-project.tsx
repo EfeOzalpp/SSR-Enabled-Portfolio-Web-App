@@ -111,7 +111,7 @@ useEffect(() => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <h2>{activeProject}</h2>
+        <h2 className="project-view">{activeProject}</h2>
         <div ref={arrowContainer} className="view-project-arrow"></div>
       </button>
     </div>

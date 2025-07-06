@@ -1,13 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import lottie from 'lottie-web';
+import onboardingAnimation from '../../svg/coin.json';
 
 const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const lottieRef = useRef(null);
+  const containerRef = useRef(null);
+  const lottieInstance = useRef(null);
 
   const handleClick = () => {
     if (onStart) onStart();
     setIsFadingOut(true);
   };
+
+  const initializeLottie = () => {
+    if (lottieRef.current) {
+      if (lottieInstance.current) {
+        lottieInstance.current.destroy();
+      }
+
+      lottieInstance.current = lottie.loadAnimation({
+        container: lottieRef.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        animationData: onboardingAnimation,
+      });
+
+      lottieInstance.current.addEventListener('complete', () => {
+        lottieInstance.current.playSegments([41, lottieInstance.current.totalFrames], true);
+        lottieInstance.current.loop = true;
+      });
+    }
+  };
+
+  const destroyLottie = () => {
+    if (lottieInstance.current) {
+      lottieInstance.current.destroy();
+      lottieInstance.current = null;
+    }
+  };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            initializeLottie();
+            if (lottieInstance.current) {
+              lottieInstance.current.stop();
+              lottieInstance.current.playSegments([0, lottieInstance.current.totalFrames], true);
+            }
+          } else {
+            destroyLottie();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+      destroyLottie();
+    };
+  }, [resetTrigger]);
 
   useEffect(() => {
     if (isFadingOut) {
@@ -18,7 +79,6 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
     }
   }, [isFadingOut]);
 
-  // Reset logic
   useEffect(() => {
     if (resetTrigger) {
       setVisible(true);
@@ -29,14 +89,19 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   if (!visible) return null;
 
   return (
-    <div className="block-g-onboarding"
+    <div
+      className="block-g-onboarding"
       onClick={handleClick}
+      ref={containerRef}
       style={{
         opacity: isFadingOut ? 0 : 1,
         transition: 'opacity 0.3s ease',
+        display: 'flex',
+        alignItems: 'center',
       }}
     >
-     <h1 className="onboarding-text"> Click to Start </h1> 
+      <div ref={lottieRef} className="coin"></div>
+      <h1 className="onboarding-text">Click to Play!</h1>
     </div>
   );
 };
