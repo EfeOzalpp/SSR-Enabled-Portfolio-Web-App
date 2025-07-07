@@ -1,28 +1,11 @@
 /* Snappy Scroll Behavior for the main grid */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
 import ViewProject from '../components/view-project.tsx';
 
 const ScrollController = () => {
   const { currentIndex, setCurrentIndex, projectComponents, scrollContainerRef } = useProjectVisibility();
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const [containerStyle, setContainerStyle] = useState({
-    height: '98dvh',
-    paddingBottom: '2dvh',
-  });
-
-  useEffect(() => {
-    const viewportWidth = window.innerWidth;
-
-    if (viewportWidth >= 1025) {
-      setContainerStyle({ height: '96dvh', paddingBottom: '4dvh' });
-    } else if (viewportWidth >= 768 && viewportWidth <= 1024) {
-      setContainerStyle({ height: '97dvh', paddingBottom: '3dvh' });
-    } else {
-      setContainerStyle({ height: '98dvh', paddingBottom: '2dvh' });
-    }
-  }, []);
 
   const handleWheel = (e: WheelEvent) => {
     if (e.deltaY > 50) {
@@ -33,49 +16,26 @@ const ScrollController = () => {
   };
 
   useEffect(() => {
-    const container = scrollContainerRef.current;
+    const container = containerRef.current;
     if (!container) return;
 
     container.addEventListener('wheel', handleWheel);
-
-    const handleScroll = () => {
-      const children = Array.from(container.children);
-      let closestIndex = 0;
-      let minDiff = Infinity;
-
-      children.forEach((child, index) => {
-        const rect = child.getBoundingClientRect();
-        const diff = Math.abs(rect.top);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestIndex = index;
-        }
-      });
-
-      setCurrentIndex(closestIndex);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-
-    return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [projectComponents.length, setCurrentIndex, scrollContainerRef]);
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [projectComponents.length]);
 
   return (
-    <div
+    <div 
       ref={scrollContainerRef}
       className='SnappyScrollThingy'
       style={{
-        height: containerStyle.height,
+        height: '98dvh',
         overflowY: 'scroll',
         scrollSnapType: 'y mandatory',
-        paddingBottom: containerStyle.paddingBottom,
+        paddingBottom: '2dvh'
       }}
     >
       {projectComponents.map((item) => (
-        <div key={item.key} style={{ height: containerStyle.height, scrollSnapAlign: 'start' }}>
+        <div key={item.key} style={{ height: '98dvh', scrollSnapAlign: 'start' }}>
           {item.component}
         </div>
       ))}
@@ -89,3 +49,5 @@ const ScrollController = () => {
 };
 
 export default ScrollController;
+
+

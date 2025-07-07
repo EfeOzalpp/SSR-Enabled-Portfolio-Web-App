@@ -5,13 +5,20 @@ import getShuffledComponents from './shuffled-components.tsx';
 interface ProjectVisibilityContextType {
   activeProject?: string;
   setActiveProject: (title: string) => void;
+
   blockGClick: boolean;
   setBlockGClick: (clicked: boolean) => void;
+
   currentIndex: number;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
+
   projectCount: number;
-  projectComponents: ProjectComponent[]; // ensure ProjectComponent interface is imported
+  projectComponents: ProjectComponent[]; 
+
   scrollContainerRef: React.RefObject<HTMLDivElement>;
+
+  isDragging: boolean; // Split Drag dragging state contxt
+  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>; 
 }
 
 const ProjectVisibilityContext = createContext<ProjectVisibilityContextType | undefined>(undefined);
@@ -24,6 +31,8 @@ export const ProjectVisibilityProvider = ({ children }) => {
   const [projectComponents] = useState(getShuffledComponents());
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const [isDragging, setIsDragging] = useState(false); 
+
   return (
     <ProjectVisibilityContext.Provider value={{
       activeProject,
@@ -34,7 +43,9 @@ export const ProjectVisibilityProvider = ({ children }) => {
       setCurrentIndex,
       projectCount: projectComponents.length,
       projectComponents,
-      scrollContainerRef
+      scrollContainerRef,
+      isDragging, 
+      setIsDragging 
     }}>
       {children}
     </ProjectVisibilityContext.Provider>

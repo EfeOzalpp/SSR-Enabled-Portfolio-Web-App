@@ -1,54 +1,86 @@
-import { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useProjectVisibility } from './project-context.tsx';
 
 const SplitDragHandler = ({ split, setSplit }) => {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const { setIsDragging } = useProjectVisibility();
 
-  const handleMouseDown = (e) => {
-    e.preventDefault();
-
+  useEffect(() => {
     const isPortrait = window.innerHeight > window.innerWidth;
 
-    const onMouseMove = (e) => {
+    const handlePointerMove = (clientX, clientY) => {
+      if (!isDragging.current) return;
+
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      let newSplit;
-
-      if (isPortrait) {
-        // Vertical split: mouse Y position maps to % height
-        newSplit = (e.clientY / viewportHeight) * 100;
-      } else {
-        // Horizontal split: mouse X position maps to % width
-        newSplit = (e.clientX / viewportWidth) * 100;
-      }
+      let newSplit = isPortrait
+        ? (clientY / viewportHeight) * 100
+        : (clientX / viewportWidth) * 100;
 
       newSplit = Math.max(0, Math.min(100, newSplit));
-
       setSplit(newSplit);
+    };
 
-      // Update CSS variable for immediate handler positioning if used
-      if (isPortrait) {
-        document.documentElement.style.setProperty('--split-height', `${newSplit}%`);
-      } else {
-        document.documentElement.style.setProperty('--split-width', `${newSplit}%`);
+    const handleMouseMove = e => handlePointerMove(e.clientX, e.clientY);
+    const handleTouchMove = e => {
+      if (!isDragging.current) return;
+      if (e.touches.length === 1) {
+        e.preventDefault();
+        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
 
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+    const startDragging = e => {
+      e.preventDefault();
+      isDragging.current = true;
+      setIsDragging(true);
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', stopDragging);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', stopDragging);
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-  };
+    const stopDragging = () => {
+      isDragging.current = false;
+      setIsDragging(false);
+
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', stopDragging);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', stopDragging);
+    };
+
+    const handleMouseDown = e => startDragging(e);
+    const handleTouchStart = e => {
+      if (e.touches.length === 1) {
+        startDragging(e);
+      }
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('mousedown', handleMouseDown);
+      container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('mousedown', handleMouseDown);
+        container.removeEventListener('touchstart', handleTouchStart);
+      }
+      // Ensure cleanup if unmounting during drag
+      stopDragging();
+    };
+  }, [setSplit, setIsDragging]);
 
   const isPortrait = window.innerHeight > window.innerWidth;
 
   return (
     <div
       ref={containerRef}
-      onMouseDown={handleMouseDown}
       className="split-drag-handler"
       style={{
         position: 'absolute',
@@ -72,6 +104,8 @@ const SplitDragHandler = ({ split, setSplit }) => {
         zIndex: 1000,
         background: 'rgba(255,255,255,0.2)',
         transition: isPortrait ? 'top 0s' : 'left 0s',
+        pointerEvents: 'all',
+        touchAction: isDragging.current ? 'none' : 'auto', // 👈 only disable touch actions while dragging
       }}
     />
   );
