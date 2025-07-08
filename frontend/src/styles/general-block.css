@@ -1,7 +1,7 @@
-/* Nav mnu */
+/* Nav menu */
 .nav-menu { display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; padding-bottom: 16px; z-index: 1000; }
 .nav-left { width: 50%; display: flex; justify-content: flex-start; padding-left: 16px; }
-.nav-right { padding: 16px; gap: 16px; display: flex; justify-content: flex-end; width: 50%; }
+.nav-right { padding: 24px; gap: 16px; display: flex; justify-content: flex-end; width: 50%; }
 .logo-svg { display: block; }
 .icon-svg { cursor: pointer; transition: transform 0.2s ease; }
 .icon-svg:hover { transform: scale(1.1); }
@@ -10,7 +10,7 @@
 .github-lottie, .linkedin-lottie { width: 2.4em; }
 .github-lottie:hover, .linkedin-lottie:hover { scale: 1.1; }
 
-/* viwprojct */
+/* View Project */
 .view-project-wrapper { position: fixed; bottom: 16px; width: 100%; display: flex; z-index: 1000; flex-direction: row; flex-wrap: wrap; justify-content: center; }
 .view-project-btn { display: flex; align-items: center; gap: 1.25em; padding: 0rem 2rem; background-color: transparent; color: #f0f0f0; border: none; cursor: pointer; transition: background 0.3s ease; }
 .view-project-btn h2 { text-shadow: 0px 0px 24px rgb(29 29 33); }
@@ -21,29 +21,35 @@
 .view-project-arrow:hover { scale: 1.1; }
 .arrow-svg { filter: drop-shadow(0 0px 8px rgba(0,0,0,0.6)); }
 
-/* split handlr */
-.split-drag-handler {
-
+/* Split Handler for block 1 */
+@media (orientation: landscape) { 
+.drag-arrow {padding-left: 1em; padding-right: 1em;};
+}
+@media (orientation: portrait) { 
+.drag-arrow {padding-left: 2em; padding-right: 2em;};
 }
 
-.split-drag-handler:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-/* mdia quris */
+/* Media Queries */
 @media (max-width: 767px) {
   .nav-menu { padding-bottom: 12px; }
   .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6)); }
 }
 
-@media (min-width: 768px) and (max-width: 1024px) {
+@media (orientation: portrait) and (max-width: 1024px) and (min-width: 768px) {
+  .view-project-wrapper { bottom: 40px; }
+}
+
+@media (orientation: landscape) and (max-width: 1024px) and (min-width: 768px) { 
+  .view-project-wrapper { bottom: 24px; }
+}
+
+@media (max-width: 1024px) and (min-width: 768px) {
   .nav-menu { padding-bottom: 8px; }
   .arrow-svg { filter: drop-shadow(0 0px 14px rgba(0,0,0,0.6)); }
-  .view-project-wrapper { bottom: 40px; }
 }
 
 @media (min-width: 1025px) {
   .nav-menu { padding-bottom: 4px; }
-  .nav-right {    padding-right: 28px; }
+  .nav-right { padding-right: 28px; gap: 24px; }
   .arrow-svg { filter: drop-shadow(0 0px 18px rgba(0,0,0,0.6)); }
 }

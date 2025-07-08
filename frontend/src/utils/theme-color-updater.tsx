@@ -5,7 +5,7 @@ import { useProjectVisibility } from './project-context.tsx';
 const ThemeColorUpdater = () => {
   const { activeProject } = useProjectVisibility();
 
-  useEffect(() => {
+  const updateTheme = () => {
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     const navMenu = document.querySelector('.nav-menu') as HTMLElement;
 
@@ -27,10 +27,10 @@ const ThemeColorUpdater = () => {
     if (rgbValues) {
       const [r, g, b] = rgbValues;
 
-      const viewportWidth = window.innerWidth;
+      const isPortrait = window.innerHeight >= window.innerWidth;
       let gradient;
 
-      if (viewportWidth >= 1025) {
+      if (!isPortrait) { // Landscape
         gradient = `
           linear-gradient(
             to bottom,
@@ -41,25 +41,14 @@ const ThemeColorUpdater = () => {
             transparent 100%
           )
         `;
-      } else if (viewportWidth >= 768 && viewportWidth <= 1024) {
-        gradient = `
-          linear-gradient(
-            to bottom,
-            rgba(${r}, ${g}, ${b}, 0.4) 0%,
-            rgba(${r}, ${g}, ${b}, 0.35) 25%,
-            rgba(${r}, ${g}, ${b}, 0.3) 50%,
-            rgba(${r}, ${g}, ${b}, 0.2) 75%,
-            transparent 100%
-          )
-        `;
-      } else {
+      } else { // Portrait
         gradient = `
           linear-gradient(
             to bottom,
             rgba(${r}, ${g}, ${b}, 0.5) 0%,
             rgba(${r}, ${g}, ${b}, 0.4) 25%,
             rgba(${r}, ${g}, ${b}, 0.3) 50%,
-            rgba(${r}, ${g}, ${b}, 0.2) 75%,
+            rgba(${r}, ${g}, ${b}, 0.2) 66%,
             transparent 100%
           )
         `;
@@ -67,6 +56,17 @@ const ThemeColorUpdater = () => {
 
       navMenu.style.background = gradient;
     }
+  };
+
+  useEffect(() => {
+    updateTheme();
+
+    const handleResize = () => {
+      updateTheme();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [activeProject]);
 
   return null;

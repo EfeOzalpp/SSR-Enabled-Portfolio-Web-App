@@ -5,7 +5,7 @@ import { useProjectVisibility } from '../utils/project-context.tsx';
 import arrowData from '../svg/arrow.json';
 
 export const ViewProject = () => {
-  const { activeProject, currentIndex, setCurrentIndex, projectComponents, scrollContainerRef } = useProjectVisibility();
+  const { activeProject, currentIndex, setCurrentIndex, projectComponents, scrollContainerRef, isDragging, setIsDragging } = useProjectVisibility();
   const arrowContainer = useRef<HTMLDivElement>(null);
   const arrowAnimRef = useRef<lottie.AnimationItem | null>(null);
   const touchStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -21,7 +21,7 @@ useEffect(() => {
     animationData: arrowData,
   });
 
-  arrowAnimRef.current = arrowAnim; // ✅ store the instance
+  arrowAnimRef.current = arrowAnim; // store the instance
 
   const stopFrame = 40;
 
@@ -51,6 +51,7 @@ useEffect(() => {
   const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
     const touch = e.touches[0];
     touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    setIsDragging(true);
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
@@ -60,8 +61,9 @@ useEffect(() => {
     const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
 
     if (distance < 10) {
-      // Your intended click action here
+      // Click action to b placd
     }
+    setIsDragging(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
@@ -86,7 +88,7 @@ useEffect(() => {
       }
 
       playArrowWiggle();
-
+      window.dispatchEvent(new CustomEvent('arrowWiggle'));
       lastScrollTime.current = now;
       touchStartPos.current.y = touch.clientY; // reset for continuous drag
     }

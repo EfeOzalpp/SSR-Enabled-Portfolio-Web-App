@@ -90,6 +90,29 @@ const RockEscapade = () => {
       }
     }, [initialized, overlayVisible]);
 
+      // Remove spacebar or arrowdown to avoid page scroll during fullscreen mode    
+        useEffect(() => {
+      const handleWheel = (e) => {
+        if (!overlayVisible) {
+          e.preventDefault();
+        }
+      };
+
+      const handleKeyDown = (e) => {
+        if (!overlayVisible && (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+          e.preventDefault();
+        }
+      };
+
+      window.addEventListener('wheel', handleWheel, { passive: false });
+      window.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        window.removeEventListener('wheel', handleWheel);
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [overlayVisible]);
+
   // Q5.js canvas features
   useEffect(() => {
     if (!initialized) return;

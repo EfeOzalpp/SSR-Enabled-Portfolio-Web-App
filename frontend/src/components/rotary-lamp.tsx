@@ -52,8 +52,14 @@ const RotaryLamp = () => {
       <div
         className="media-content-1"
         style={
-          isPortrait
-            ? { height: `${split}%`, width: '100%' }
+        isPortrait
+          ? {
+              height: split <= 15 ? '0%' : `${split}%`,
+              width: '100%',
+              position: 'absolute',
+              top: 0,
+              transition: split <= 15 ? 'height 0.1s ease' : 'none',
+            }
             : { width: `${split}%`, height: '100%' }
         }
       >
@@ -61,6 +67,7 @@ const RotaryLamp = () => {
           src={data.mediaOne?.asset.url}
           alt={data.mediaOne?.alt}
           className="media-item-1"
+          id="rotary-media-1"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </div>
@@ -71,7 +78,13 @@ const RotaryLamp = () => {
         className="media-content-2"
         style={
           isPortrait
-            ? { height: `${100 - split}%`, width: '100%', top: `${split}%`, position: 'absolute' }
+            ? {
+                height: split <= 15 ? '100%' : `${100 - split}%`,
+                width: '100%',
+                position: 'absolute',
+                top: split <= 15 ? '0%' : `${split}%`,
+                transition: split <= 15 ? 'height 0.1s ease, top 0.1s ease' : 'none',
+              }
             : { width: `${100 - split}%`, height: '100%', left: `${split}%`, position: 'absolute' }
         }
       >
@@ -80,6 +93,7 @@ const RotaryLamp = () => {
             ref={videoRef}
             src={data.mediaTwo.asset.url}
             className="media-item-2"
+            id="rotary-media-2"
             loop
             autoPlay
             playsInline
@@ -92,6 +106,7 @@ const RotaryLamp = () => {
             src={data.mediaTwo?.asset.url}
             alt={data.mediaTwo?.alt}
             className="media-item-2"
+             id="rotary-media-2"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}

@@ -11,7 +11,7 @@ const NavMenu = () => {
   const githubContainer = useRef<HTMLDivElement>(null);
   const linkedinContainer = useRef<HTMLDivElement>(null);
 
-  const { setCurrentIndex, currentIndex, projectCount, scrollContainerRef } = useProjectVisibility();
+  const { setCurrentIndex, currentIndex, projectCount, scrollContainerRef, isDragging } = useProjectVisibility();
 
   const clickStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const touchStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -58,6 +58,8 @@ const NavMenu = () => {
   };
 
   const handleNavTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+     if (isDragging) return;
+     
     const now = Date.now();
     if (now - lastScrollTime.current < SCROLL_DELAY) return;
 
@@ -79,6 +81,7 @@ const NavMenu = () => {
         target.scrollIntoView({ behavior: 'smooth' });
         setCurrentIndex(currentIndex + 1);
       }
+      window.dispatchEvent(new CustomEvent('arrowWiggle'));
 
       lastScrollTime.current = now;
       touchStartPos.current.y = touch.clientY; // reset start for continuous drag

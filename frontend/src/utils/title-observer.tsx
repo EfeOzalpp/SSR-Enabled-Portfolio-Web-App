@@ -43,7 +43,7 @@ const ProjectSwitchObserver = () => {
 
       targets.forEach(el => observer.observe(el));
 
-      // ✅ Force initial title state check
+      // Force initial title state check
       targets.forEach(el => {
         const rect = el.getBoundingClientRect();
         const ratio = Math.min(Math.max(
