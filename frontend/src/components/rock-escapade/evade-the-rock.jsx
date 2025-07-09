@@ -800,7 +800,7 @@ return (
     {!overlayVisible && <ExitButton onExit={handleExit} />}
     {!overlayVisible && <CoinCounter coins={coins} highScore={highScore}/>}
     {showCountdown && <CountdownDisplay countdown={countdown} />}
-    {gameOverVisible && <BlockGGameOver onRestart={handleRestart} />}
+    {gameOverVisible && <BlockGGameOver onRestart={handleRestart} coins={coins} highScore={highScore}/>}
   </section>
   );
 };

@@ -15,6 +15,12 @@ const SplitDragHandler = ({ split, setSplit }) => {
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
+  // Pinch gesture to default the drag handle to 50%
+  const initialPinchDistance = useRef(null);
+  const pinchTriggeredRef = useRef(false);
+  const pinchThreshold = 10; // px difference to register pinch
+
+
   useEffect(() => {
     const handleResize = () => {
       setIsPortrait(window.innerHeight > window.innerWidth);
@@ -40,6 +46,7 @@ const SplitDragHandler = ({ split, setSplit }) => {
 
   const handlePointerMove = (clientX, clientY) => {
     if (!isDraggingRef.current) return;
+    if (typeof clientX !== 'number' || typeof clientY !== 'number') return;
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -59,10 +66,26 @@ const SplitDragHandler = ({ split, setSplit }) => {
   const handleMouseMove = (e) => handlePointerMove(e.clientX, e.clientY);
 
   const handleTouchMove = (e) => {
-    if (!isDraggingRef.current) return;
-    if (e.touches.length === 1) {
+    if (e.touches.length === 1 && isDraggingRef.current && !pinchTriggeredRef.current) {
       e.preventDefault();
       handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+    } else if (e.touches.length === 2 && !isDraggingRef.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (initialPinchDistance.current === null) {
+        initialPinchDistance.current = distance;
+      } else if (!pinchTriggeredRef.current) {
+        const diff = Math.abs(distance - initialPinchDistance.current);
+        if (diff > pinchThreshold) {
+          pinchTriggeredRef.current = true;
+          isDraggingRef.current = false; // cancel drag state if pinch detected
+          setIsDragging(false);
+          setSplit(50);
+          initialPinchDistance.current = null;
+        }
+      }
     }
   };
 
@@ -164,6 +187,8 @@ const SplitDragHandler = ({ split, setSplit }) => {
         arrowAnim.playSegments([25, 75], true);
       }
     }
+    initialPinchDistance.current = null;
+    pinchTriggeredRef.current = false;
   };
 
     // Onload play animation

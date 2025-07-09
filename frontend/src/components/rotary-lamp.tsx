@@ -6,7 +6,10 @@ import SplitDragHandler from '../utils/split-controller.tsx';
 const RotaryLamp = () => {
   const [data, setData] = useState(null);
   const videoRef = useRef(null);
-  const [split, setSplit] = useState(50); // default 50%
+  const [split, setSplit] = useState(() => {
+    const isMobile = window.innerWidth < 768; // adjust breakpoint as needed
+    return isMobile ? 60 : 50;
+  });
 
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 

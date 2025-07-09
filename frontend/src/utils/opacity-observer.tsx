@@ -8,14 +8,10 @@ const OpacityObserver = () => {
         const target = entry.target as HTMLElement;
         const ratio = entry.intersectionRatio;
 
-        console.log(`[OpacityObserver] ${target.id} ratio: ${ratio}`);
-
         if (ratio >= 0.75) {
-          console.log(`[OpacityObserver] ${target.id} fully visible, setting opacity to 1`);
           target.style.opacity = '1';
         } else {
           const mappedOpacity = 0.4 + (ratio / 0.75) * (1 - 0.4);
-          console.log(`[OpacityObserver] ${target.id} partial visibility, setting opacity to ${mappedOpacity.toFixed(2)}`);
           target.style.opacity = mappedOpacity.toString();
         }
       });
@@ -37,14 +33,12 @@ const OpacityObserver = () => {
         .filter((el): el is HTMLElement => el !== null);
 
       if (targets.length < ids.length) {
-        console.log('[OpacityObserver] Not all targets found, retrying...');
         requestAnimationFrame(checkAndObserve);
         return;
       }
 
       targets.forEach(el => {
         observer.observe(el);
-        console.log(`[OpacityObserver] Observing ${el.id}`);
 
         const rect = el.getBoundingClientRect();
         const ratio = Math.min(Math.max(
@@ -52,14 +46,10 @@ const OpacityObserver = () => {
           0
         ), 1);
 
-        console.log(`[OpacityObserver] Initial check for ${el.id}, ratio: ${ratio}`);
-
         if (ratio >= 0.75) {
-          console.log(`[OpacityObserver] Initial set ${el.id} opacity to 1`);
           el.style.opacity = '1';
         } else {
           const mappedOpacity = 0.4 + (ratio / 0.75) * (1 - 0.4);
-          console.log(`[OpacityObserver] Initial set ${el.id} opacity to ${mappedOpacity.toFixed(2)}`);
           el.style.opacity = mappedOpacity.toString();
         }
       });
@@ -69,7 +59,6 @@ const OpacityObserver = () => {
 
     return () => {
       observer.disconnect();
-      console.log('[OpacityObserver] Disconnected observer');
     };
   }, []);
 
