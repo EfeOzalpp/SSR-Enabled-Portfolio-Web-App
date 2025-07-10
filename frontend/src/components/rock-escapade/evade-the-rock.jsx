@@ -35,6 +35,8 @@ const RockEscapade = () => {
 
   const [gameOverVisible, setGameOverVisible] = useState(false); // Track game over state
 
+  const [newHighScore, setNewHighScore] = useState(false);
+
   // Touch movement
   const touchStartRef = useRef({ x: 0, y: 0 });
   const activeTouchRef = useRef(false);
@@ -227,13 +229,13 @@ const RockEscapade = () => {
         // Game over changes
         if (!prevGameOver && gameOver) {
           setGameOverVisible(true);
-
-          // Check and update high score
           if (localCoins > highScore) {
-            updateHighScore(localCoins); // write to Sanity
+            updateHighScore(localCoins);
+            setNewHighScore(true);
+          } else {
+            setNewHighScore(false);
           }
         }
-
           prevGameOver = gameOver;
 
           if (gameOver) {
@@ -293,19 +295,41 @@ const RockEscapade = () => {
       const spawnRectangles = () => {
         let rectanglesInViewport = rectangles.filter(r => r.x + r.w > 0).length;
 
-        // Adjust max count and spawn rate based on device
-        let maxRectangles = 25; // default
+        let maxRectangles;
+        let timeElapsed = p.millis() / 1000; // seconds since sketch start
 
-        if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
-          maxRectangles = 40; // Increase on desktop landscape
+        if (window.innerWidth >= 1025) {
+          maxRectangles = 50;
+
+          if (rectanglesInViewport < 10) rectangleSpawnRate = 6;
+          else if (rectanglesInViewport < 25) rectangleSpawnRate = 5;
+          else if (rectanglesInViewport < 40) rectangleSpawnRate = 4;
+          else rectangleSpawnRate = 0;
+
+        } else if (window.innerWidth >= 768) {
+          maxRectangles = 40;
+
+          if (rectanglesInViewport < 8) rectangleSpawnRate = 4;
+          else if (rectanglesInViewport < 20) rectangleSpawnRate = 3;
+          else if (rectanglesInViewport < 30) rectangleSpawnRate = 2;
+          else rectangleSpawnRate = 0;
+
+        } else {
+          maxRectangles = 30;
+
+          if (rectanglesInViewport < 5) rectangleSpawnRate = 3;
+          else if (rectanglesInViewport < 15) rectangleSpawnRate = 2;
+          else rectangleSpawnRate = 1;
         }
 
-        if (rectanglesInViewport < 5) rectangleSpawnRate = 5;
-        else if (rectanglesInViewport < 20) rectangleSpawnRate = 3;
-        else if (rectanglesInViewport < 25) rectangleSpawnRate = 2;
-        else rectangleSpawnRate = 0;
+        // Introduce initial spawn buffer to reduce early clutter
+        let initialSpawnBuffer = timeElapsed < 10 ? 1.5 : 1; // 50% longer spawn interval first 10s
 
-        if (rectangleSpawnRate > 0 && p.millis() - lastSpawnTime > 2000 / rectangleSpawnRate && rectangles.length < maxRectangles) {
+        if (
+          rectangleSpawnRate > 0 &&
+          p.millis() - lastSpawnTime > (2000 / rectangleSpawnRate) * initialSpawnBuffer &&
+          rectangles.length < maxRectangles
+        ) {
           rectangles.push(new Shape(p, true, false, verticalMode));
           lastSpawnTime = p.millis();
         }
@@ -439,7 +463,6 @@ const RockEscapade = () => {
         if (p.key === 's' || p.keyCode === p.DOWN_ARROW) movingDown = true;
         if (p.key === 'a' || p.keyCode === p.LEFT_ARROW) movingLeft = true;
         if (p.key === 'd' || p.keyCode === p.RIGHT_ARROW) movingRight = true;
-        if (p.keyCode === 32 && gameOver) restartGame();
       };
 
       p.keyReleased = () => {
@@ -792,15 +815,19 @@ const RockEscapade = () => {
     attachTouchListeners();
   }, [initialized, overlayVisible]);
 
+  // Simply render current coin count to mirror high score if it exceeds the high score
+  const displayHighScore = coins > highScore ? coins : highScore;
+  const isNewHighScore = coins > highScore;
+
   // Return HTML structure
 return (
   <section className="block-type-g" id="block-g" style={{ position: 'relative' }}>
     <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
-  <BlockGOnboarding key={resetKey} onStart={handleOnboardingStart} resetTrigger={resetKey} />
+  <BlockGOnboarding key={resetKey} onStart={handleOnboardingStart} resetTrigger={resetKey}/>
     {!overlayVisible && <ExitButton onExit={handleExit} />}
-    {!overlayVisible && <CoinCounter coins={coins} highScore={highScore}/>}
-    {showCountdown && <CountdownDisplay countdown={countdown} />}
-    {gameOverVisible && <BlockGGameOver onRestart={handleRestart} coins={coins} highScore={highScore}/>}
+    {!overlayVisible && <CoinCounter coins={coins} highScore={displayHighScore} newHighScore={isNewHighScore} />}
+    {showCountdown && <CountdownDisplay countdown={countdown}/>}
+    {gameOverVisible && <BlockGGameOver onRestart={handleRestart} coins={coins} newHighScore={newHighScore}/>}
   </section>
   );
 };

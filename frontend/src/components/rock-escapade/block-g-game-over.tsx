@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import gameOver from '../../svg/gameover.json';
+import highScore from '../../svg/highscore.json';
 
-const BlockGGameOver = ({ onRestart, visibleTrigger, coins }) => {
+const BlockGGameOver = ({ onRestart, visibleTrigger, coins, newHighScore }) => {
   const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const lottieRef = useRef(null);
@@ -21,7 +22,6 @@ const BlockGGameOver = ({ onRestart, visibleTrigger, coins }) => {
     }
   }, [isFadingOut]);
 
-  // Reset logic for visibleTrigger
   useEffect(() => {
     if (visibleTrigger) {
       setVisible(true);
@@ -29,13 +29,10 @@ const BlockGGameOver = ({ onRestart, visibleTrigger, coins }) => {
     }
   }, [visibleTrigger]);
 
-  // Disable scrolling when visible
   useEffect(() => {
     if (!visible) return;
 
-    const preventScroll = (e) => {
-      e.preventDefault();
-    };
+    const preventScroll = (e) => e.preventDefault();
 
     window.addEventListener('wheel', preventScroll, { passive: false });
     window.addEventListener('touchmove', preventScroll, { passive: false });
@@ -51,47 +48,56 @@ const BlockGGameOver = ({ onRestart, visibleTrigger, coins }) => {
       document.body.style.overflow = '';
     };
   }, [visible]);
-  
+
   useEffect(() => {
     console.log('BlockGGameOver rendered with coins:', coins);
   }, [coins]);
 
-  // Play gameOver lottie once when component renders
   useEffect(() => {
     if (!lottieRef.current) return;
 
     const anim = lottie.loadAnimation({
       container: lottieRef.current,
       renderer: 'svg',
-      loop: false,
+      loop: newHighScore ? true : false,
       autoplay: true,
-      animationData: gameOver,
+      animationData: newHighScore ? highScore : gameOver,
     });
 
     return () => {
       anim.destroy();
     };
-  }, []);
+  }, [newHighScore]);
 
   if (!visible) return null;
 
-return (
-  <div
-    className={`block-g-gameover ${isFadingOut ? 'fade-out' : ''}`}
-    onClick={handleClick}
-  >
-    <div ref={lottieRef} className="gameover-lottie" />
-    <div className='gameover-text-area'>
-      <h3 className='gameover-text'>Game Over</h3>
-      <div className="gameover-coin-count">
-        <h1>
-          <span style={{ color: 'rgb(255, 205, 55)' }}>{coins} </span> 
-          <span style={{ color: ' #c498ff' }}>  Coins Collected</span>
+  return (
+    <div
+      className={`block-g-gameover ${isFadingOut ? 'fade-out' : ''}`}
+      onClick={handleClick}
+    >
+      <div ref={lottieRef} className="gameover-lottie" />
+      <div className='gameover-text-area'>
+        <h1
+          className='gameover-text'
+          style={{
+            color: newHighScore ? 'rgb(255 230 203)' : '#c498ff',
+          }}
+        >
+          {newHighScore ? 'New High Score!' : 'Game Over'}
         </h1>
+
+        <div style={{ margin: '8px 0' }}>—</div>
+
+        <div className="gameover-coin-count">
+          <h2 style={{ color: 'rgb(255, 205, 55)' }}>
+            {coins} Coins Collected
+          </h2>
+        </div>
+
+        <h4 className='gameover-cta'>Click to Play Again</h4>
       </div>
-      <h4 className='gameover-cta'>Click to Play Again</h4>
     </div>
-  </div>
   );
 };
 

@@ -18,12 +18,16 @@ function Frontpage() {
 
   useEffect(() => {
     const preventPinchZoom = (event) => {
+      // Allow pinch-zoom on videos
+      if (event.target.tagName.toLowerCase() === 'video') return;
+
       if (event.touches && event.touches.length > 1) {
         event.preventDefault();
       }
     };
 
     const preventGesture = (e) => {
+      if (e.target.tagName.toLowerCase() === 'video') return;
       e.preventDefault();
     };
 
@@ -41,16 +45,16 @@ function Frontpage() {
   }, []);
 
   return (
-  <ProjectVisibilityProvider>
-    <ThemeColorUpdater />
-    <Loading />
-    <div className="HereGoesNothing">
-      <NavMenu />
-      <ScrollController />
-      <OpacityObserver />
-      <TitleObserver />
-    </div>
-  </ProjectVisibilityProvider>
+    <ProjectVisibilityProvider>
+      <ThemeColorUpdater />
+      <Loading />
+      <div className="HereGoesNothing">
+        <NavMenu />
+        <ScrollController />
+        <OpacityObserver />
+        <TitleObserver />
+      </div>
+    </ProjectVisibilityProvider>
   );
 }
 

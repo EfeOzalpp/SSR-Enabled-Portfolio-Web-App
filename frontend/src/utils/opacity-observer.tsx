@@ -11,7 +11,7 @@ const OpacityObserver = () => {
         if (ratio >= 0.75) {
           target.style.opacity = '1';
         } else {
-          const mappedOpacity = 0.4 + (ratio / 0.75) * (1 - 0.4);
+          const mappedOpacity = 0.3 + (ratio / 0.75) * (1 - 0.3);
           target.style.opacity = mappedOpacity.toString();
         }
       });

@@ -8,7 +8,7 @@ const RotaryLamp = () => {
   const videoRef = useRef(null);
   const [split, setSplit] = useState(() => {
     const isMobile = window.innerWidth < 768; // adjust breakpoint as needed
-    return isMobile ? 60 : 50;
+    return isMobile ? 50 : 50;
   });
 
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
