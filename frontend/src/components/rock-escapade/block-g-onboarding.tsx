@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
+import { useProjectVisibility } from '../../utils/project-context.tsx';
 
 const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const [visible, setVisible] = useState(true);
@@ -9,10 +10,38 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const containerRef = useRef(null);
   const lottieInstance = useRef(null);
 
+  const {
+    focusedProjectKey,
+    scrollContainerRef,
+    previousScrollY,
+    setPreviousScrollY,
+    setFocusedProjectKey
+  } = useProjectVisibility();
+
   const handleClick = () => {
+    if (focusedProjectKey) {
+      setPreviousScrollY(window.scrollY);
+
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'auto' });
+        }
+      }, 0);
+    }
+
     if (onStart) onStart();
     setIsFadingOut(true);
   };
+
+  // Restore scroll position when exiting focus mode
+  useEffect(() => {
+    if (!focusedProjectKey && previousScrollY !== null) {
+      window.scrollTo({ top: previousScrollY, behavior: 'auto' });
+      setPreviousScrollY(null);
+    }
+  }, [focusedProjectKey]);
 
   const initializeLottie = () => {
     if (lottieRef.current) {

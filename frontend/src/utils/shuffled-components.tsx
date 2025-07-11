@@ -14,7 +14,7 @@ export const getShuffledComponents = (): ProjectComponent[] => {
   const components: ProjectComponent[] = [
     { key: 'rotary', title: 'Rotary Lamp', component: <RotaryLamp key="rotary" /> },
     { key: 'scoop', title: 'Enhanced Scoop', component: <EnhancedScoop key="scoop" /> },
-    { key: 'game', title: 'Evade The Rock', component: <ProcessingGame key="game" /> },
+    { key: 'game', title: 'Evade the Rock', component: <ProcessingGame key="game" /> },
   ];
   return components.sort(() => Math.random() - 0.5);
 };

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
 
 const ThemeColorUpdater = () => {
-  const { activeProject } = useProjectVisibility();
+  const { activeProject, focusedProjectKey } = useProjectVisibility();
 
   const updateTheme = () => {
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -30,7 +30,7 @@ const ThemeColorUpdater = () => {
       const isPortrait = window.innerHeight >= window.innerWidth;
       let gradient;
 
-      if (!isPortrait) { // Landscape
+      if (!isPortrait) {
         gradient = `
           linear-gradient(
             to bottom,
@@ -41,7 +41,7 @@ const ThemeColorUpdater = () => {
             transparent 100%
           )
         `;
-      } else { // Portrait
+      } else {
         gradient = `
           linear-gradient(
             to bottom,
@@ -60,14 +60,10 @@ const ThemeColorUpdater = () => {
 
   useEffect(() => {
     updateTheme();
-
-    const handleResize = () => {
-      updateTheme();
-    };
-
+    const handleResize = () => updateTheme();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [activeProject]);
+  }, [activeProject, focusedProjectKey]);
 
   return null;
 };

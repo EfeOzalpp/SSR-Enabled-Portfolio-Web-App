@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
 
 const ProjectSwitchObserver = () => {
-  const { setActiveProject } = useProjectVisibility();
+  const { setActiveProject, focusedProjectKey } = useProjectVisibility();
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -18,17 +18,14 @@ const ProjectSwitchObserver = () => {
             setActiveProject('Rotary Lamp');
           } else if (target.id.includes('block-g')) {
             setActiveProject('Evade the Rock');
-        }}
+          }
+        }
       });
     }, {
       threshold: Array.from({ length: 101 }, (_, i) => i / 100),
     });
 
-    const ids = [
-      '#block-i',
-      '#block-r',
-      '#block-g'
-    ];
+    const ids = ['#block-i', '#block-r', '#block-g'];
 
     const checkAndObserve = () => {
       const targets = ids
@@ -36,7 +33,6 @@ const ProjectSwitchObserver = () => {
         .filter((el): el is HTMLElement => el !== null);
 
       if (targets.length < ids.length) {
-        // Not all targets exist yet, retry
         requestAnimationFrame(checkAndObserve);
         return;
       }
@@ -56,17 +52,20 @@ const ProjectSwitchObserver = () => {
             setActiveProject('Enhanced Scoop');
           } else if (el.id.includes('block-r')) {
             setActiveProject('Rotary Lamp');
+          } else if (el.id.includes('block-g')) {
+            setActiveProject('Evade the Rock');
           }
         }
       });
     };
 
-    checkAndObserve(); // start initial check
+    checkAndObserve();
 
     return () => {
       observer.disconnect();
     };
-  }, [setActiveProject]);
+  }, [setActiveProject, focusedProjectKey]); // <-- Add focusedProjectKey here to re-run useEffect
+  //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   return null;
 };

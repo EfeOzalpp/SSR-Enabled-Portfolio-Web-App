@@ -2,9 +2,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
 import ViewProject from '../components/view-project.tsx';
+import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-case-study.tsx';
 
 const ScrollController = () => {
-  const { currentIndex, setCurrentIndex, projectComponents, scrollContainerRef, isDragging } = useProjectVisibility();
+  const {
+    currentIndex,
+    setCurrentIndex,
+    projectComponents,
+    scrollContainerRef,
+    isDragging,
+    focusedProjectKey,
+    setFocusedProjectKey,
+  } = useProjectVisibility();
+
   const touchStartY = useRef(0);
   const lastScrollTime = useRef(0);
   const SCROLL_DELAY = 300; // ms
@@ -26,12 +36,11 @@ const ScrollController = () => {
   useEffect(() => {
     updateViewportStyle();
     window.addEventListener('resize', updateViewportStyle);
-
     return () => window.removeEventListener('resize', updateViewportStyle);
   }, []);
 
   const handleWheel = (e: WheelEvent) => {
-    if (isDragging) return;
+    if (isDragging || focusedProjectKey) return;
 
     let newIndex = currentIndex;
     if (e.deltaY > 50) {
@@ -51,7 +60,7 @@ const ScrollController = () => {
   };
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (isDragging) return;
+    if (isDragging || focusedProjectKey) return;
     const now = Date.now();
     if (now - lastScrollTime.current < SCROLL_DELAY) return;
 
@@ -87,7 +96,7 @@ const ScrollController = () => {
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [projectComponents.length, currentIndex, isDragging]);
+  }, [projectComponents.length, currentIndex, isDragging, focusedProjectKey]);
 
   return (
     <div
@@ -96,15 +105,21 @@ const ScrollController = () => {
       style={{
         height: viewportStyle.height,
         overflowY: 'scroll',
-        scrollSnapType: 'y mandatory',
+        scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory', // Disable snap during focus
         paddingBottom: viewportStyle.paddingBottom,
       }}
     >
-      {projectComponents.map((item) => (
-        <div key={item.key} style={{ height: viewportStyle.height, scrollSnapAlign: 'start' }}>
-          {item.component}
-        </div>
-      ))}
+      {projectComponents.map((item) =>
+        (!focusedProjectKey || focusedProjectKey === item.key) && (
+          <div key={item.key} style={{ height: viewportStyle.height, scrollSnapAlign: 'start' }}>
+            {item.component}
+
+            {focusedProjectKey === item.key && (
+              <RockEscapade />
+            )}
+          </div>
+        )
+      )}
 
       <ViewProject
         currentProject={projectComponents[currentIndex]}

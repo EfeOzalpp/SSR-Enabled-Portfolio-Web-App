@@ -1,7 +1,10 @@
 /* Opacity Observer */
 import { useEffect } from 'react';
+import { useProjectVisibility } from './project-context.tsx';
 
 const OpacityObserver = () => {
+  const { focusedProjectKey } = useProjectVisibility();
+
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -60,7 +63,7 @@ const OpacityObserver = () => {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [focusedProjectKey]); // 🔑 depend here
 
   return null;
 };

@@ -13,12 +13,18 @@ interface ProjectVisibilityContextType {
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
 
   projectCount: number;
-  projectComponents: ProjectComponent[]; 
+  projectComponents: ProjectComponent[];
 
   scrollContainerRef: React.RefObject<HTMLDivElement>;
 
-  isDragging: boolean; // Split Drag dragging state contxt
-  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>; 
+  isDragging: boolean;
+  setIsDragging: React.Dispatch<React.SetStateAction<boolean>>;
+
+  focusedProjectKey: string | null;
+  setFocusedProjectKey: React.Dispatch<React.SetStateAction<string | null>>;
+
+  previousScrollY: number | null;
+  setPreviousScrollY: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const ProjectVisibilityContext = createContext<ProjectVisibilityContextType | undefined>(undefined);
@@ -31,7 +37,11 @@ export const ProjectVisibilityProvider = ({ children }) => {
   const [projectComponents] = useState(getShuffledComponents());
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const [isDragging, setIsDragging] = useState(false); 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const [focusedProjectKey, setFocusedProjectKey] = useState<string | null>(null);
+
+  const [previousScrollY, setPreviousScrollY] = useState<number | null>(null);
 
   return (
     <ProjectVisibilityContext.Provider value={{
@@ -44,8 +54,12 @@ export const ProjectVisibilityProvider = ({ children }) => {
       projectCount: projectComponents.length,
       projectComponents,
       scrollContainerRef,
-      isDragging, 
-      setIsDragging 
+      isDragging,
+      setIsDragging,
+      focusedProjectKey,
+      setFocusedProjectKey,
+      previousScrollY,
+      setPreviousScrollY
     }}>
       {children}
     </ProjectVisibilityContext.Provider>

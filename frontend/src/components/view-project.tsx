@@ -6,7 +6,7 @@ import arrowData from '../svg/arrow.json';
 // ViewProject – The little CTA at the bottom that shows project title + arrow wiggle
 export const ViewProject = () => {
   // Bringing in project context stuff for scrolling and index management
-  const { activeProject, currentIndex, setCurrentIndex, projectComponents, scrollContainerRef, isDragging, setIsDragging } = useProjectVisibility();
+  const { focusedProjectKey, setFocusedProjectKey, activeProject,  currentIndex, setCurrentIndex, projectComponents, scrollContainerRef, isDragging, setIsDragging, } = useProjectVisibility();
 
   // Refs for lottie container, lottie instance, and touch position tracking
   const arrowContainer = useRef<HTMLDivElement>(null);
@@ -99,6 +99,17 @@ export const ViewProject = () => {
     }
     setIsDragging(false);
     handleInteraction();
+  };
+
+  const handleProjectViewClick = () => {
+    // Find the active project's key
+    const activeProjectKey = projectComponents.find(p => p.title === activeProject)?.key;
+
+    if (!focusedProjectKey) {
+      setFocusedProjectKey(activeProjectKey || null);
+    } else {
+      setFocusedProjectKey(null); // restore all projects
+    }
   };
 
   // Touch move – handles vertical swiping to navigate projects
@@ -214,6 +225,7 @@ export const ViewProject = () => {
         onTouchStart={(e) => { handleTouchStart(e); setHovered(true); }}
         onTouchEnd={(e) => { handleTouchEnd(e); setHovered(false); }}
         onTouchCancel={() => setHovered(false)}
+        onClick={handleProjectViewClick}
       >
         <div
           className={`view-project-background ${!showBackground ? 'no-bg' : ''}`}

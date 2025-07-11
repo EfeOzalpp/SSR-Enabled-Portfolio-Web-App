@@ -356,7 +356,6 @@ const RockEscapade = () => {
           for (let j = projectiles.length - 1; j >= 0; j--) {
             let proj = projectiles[j];
 
-            // Determine projectile collision box
             let projSize, projX, projY, projW, projH;
 
             if (proj.size) {
@@ -380,17 +379,36 @@ const RockEscapade = () => {
               projY < r.y + r.h
             ) {
               if (proj instanceof RectangleProjectile) {
-                // Physical collision response without removing rectangle or projectile
-                // Example: simple bounce off
+                if (p.random() < 0.05) {
+                  // 5% chance to trigger cascade destruction
 
-                // Calculate simple bounce by inverting projectile velocity
-                proj.vx *= -1;
-                proj.vy *= -1;
+                  rectangles.splice(i, 1);
+                  projectiles.splice(j, 1);
 
-                // Optionally, adjust position to prevent sticking
-                proj.x += proj.vx * delta * 2;
-                proj.y += proj.vy * delta * 2;
+                  // Spawn purple rectangle-shaped projectiles in 360 directions
+                  for (let k = 0; k < 8; k++) {
+                    let angle = (p.TWO_PI / 8) * k;
+                    let speed = p.random(2, 4);
+                    let vx = Math.cos(angle) * speed;
+                    let vy = Math.sin(angle) * speed;
 
+                    projectiles.push(new RectangleProjectile(
+                      p,
+                      r.x + r.w / 2,
+                      r.y + r.h / 2,
+                      vx,
+                      vy,
+                      '#c896ff'
+                    ));
+                  }
+
+                } else {
+                  // Bounce off normally without destruction
+                  proj.vx *= -1;
+                  proj.vy *= -1;
+                  proj.x += proj.vx * delta * 2;
+                  proj.y += proj.vy * delta * 2;
+                }
               } else {
                 // Normal projectile destroys rectangle and itself
                 rectangles.splice(i, 1);
