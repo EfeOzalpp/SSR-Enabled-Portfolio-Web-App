@@ -11,18 +11,16 @@
 .github-lottie:hover, .linkedin-lottie:hover { scale: 1.1; }
 
 /* View Project */
-.view-project-wrapper { position: fixed; bottom: 16px; width: 100%; display: flex; z-index: 1000; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+.view-project-wrapper { position: fixed; width: 100%; display: flex; z-index: 1000; flex-direction: row; flex-wrap: wrap; justify-content: center; }
 .view-project-btn {
   position: relative;
   overflow: hidden;
   background-color: transparent;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border-radius: 2px;
   display: flex;
   align-items: center;
   gap: 1.25em;
-  padding: 4px 32px 0px 32px;
   color: #f0f0f0;
   border: none;
   cursor: pointer;
@@ -57,9 +55,9 @@
 .arrow-svg { filter: drop-shadow(0 0px 8px rgba(0,0,0,0.6)); }
 
 /* Hover style */
-.view-project-btn:hover .project-view { scale: 1.02; }
-.view-project-btn:hover .view-project-arrow { scale: 1.1; }
-.view-project-btn:hover { gap: 1.35em; }
+.view-project-btn:hover .project-view { transform: scale(1.05); }
+.view-project-btn:hover .view-project-arrow { transform: scale(1.2); }
+.view-project-btn:hover { gap: 1.55em; }
 
 .view-project-background {
   opacity: 1;
@@ -82,6 +80,8 @@
 
 /* Media Queries */
 @media (max-width: 767px) {
+  .view-project-wrapper {bottom: 2dvh;}
+  .view-project-btn {padding: 8px 32px 0px 32px;}
   .nav-menu { padding-bottom: 12px; }
   .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6)); }
 }
@@ -95,11 +95,15 @@
 }
 
 @media (max-width: 1024px) and (min-width: 768px) {
+  .view-project-wrapper {bottom: 3dvh;}
+  .view-project-btn {padding: 16px 40px 8px 40px;}
   .nav-menu { padding-bottom: 8px; }
   .arrow-svg { filter: drop-shadow(0 0px 14px rgba(0,0,0,0.6)); }
 }
 
 @media (min-width: 1025px) {
+  .view-project-wrapper {bottom: 4dvh;}
+  .view-project-btn {padding: 4px 32px 0px 32px;}
   .nav-menu { padding-bottom: 4px; }
   .nav-right { padding-right: 28px; gap: 24px; }
   .arrow-svg { filter: drop-shadow(0 0px 18px rgba(0,0,0,0.6)); }

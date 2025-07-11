@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProjectVisibility } from '../../utils/project-context.tsx';
 
-import { fetchHighScore } from './fetchHighScore.js';
 import { updateHighScore } from './updateHighScore.js';
 import { useHighScoreSubscription } from './subscribeHighScore.js';
 
@@ -44,7 +43,7 @@ const RockEscapade = () => {
   // Check if thee q5.js canvas is initialized
   useEffect(() => {
     if (!initialized) setInitialized(true);
-  }, [initialized]);
+   }, [initialized]);
 
   // Onboarding component const
   const handleOnboardingStart = () => {
@@ -54,25 +53,27 @@ const RockEscapade = () => {
   };
 
   const handleRestart = () => {
-  setGameOverVisible(false); // hide overlay
+    setGameOverVisible(false);
+    setNewHighScore(false); // Reset here when a new game starts
 
-  if (q5InstanceRef.current && q5InstanceRef.current.restartGame) {
-    q5InstanceRef.current.restartGame(); // call internal sketch restart logic
-  }
+    if (q5InstanceRef.current && q5InstanceRef.current.restartGame) {
+      q5InstanceRef.current.restartGame();
+    }
   };
 
   // Constant resize canvas to fit changes
   useEffect(() => {
     const handleResize = () => {
-      if (q5InstanceRef.current) {
-        q5InstanceRef.current.resizeCanvas(window.innerWidth, window.innerHeight);
+      const container = canvasRef.current; // ADD THIS LINE
+      if (q5InstanceRef.current && container) {
+        q5InstanceRef.current.resizeCanvas(container.offsetWidth, container.offsetHeight);
       }
     };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  // Position above others when overlayVisible is false
+    // Position above others when overlayVisible is false
   useEffect(() => {
       if (!initialized) return;
 
@@ -82,7 +83,7 @@ const RockEscapade = () => {
           canvasContainer.style.position = 'fixed';
           canvasContainer.style.top = '0';
           canvasContainer.style.left = '0';
-          canvasContainer.style.zIndex = '9999';
+          canvasContainer.style.zIndex = '1500';
         } else {
           canvasContainer.style.position = 'relative';
           canvasContainer.style.top = '';
@@ -92,8 +93,8 @@ const RockEscapade = () => {
       }
     }, [initialized, overlayVisible]);
 
-      // Remove spacebar or arrowdown to avoid page scroll during fullscreen mode    
-        useEffect(() => {
+    // Remove spacebar or arrowdown to avoid page scroll during fullscreen mode    
+  useEffect(() => {
       const handleWheel = (e) => {
         if (!overlayVisible) {
           e.preventDefault();
@@ -115,6 +116,19 @@ const RockEscapade = () => {
       };
     }, [overlayVisible]);
 
+  useEffect(() => {
+    const navMenu = document.querySelector('.nav-menu');
+
+    if (!navMenu) return;
+
+    if (!overlayVisible) {
+      navMenu.style.zIndex = '0'; // push it behind gameplay
+    } else {
+      navMenu.style.zIndex = ''; // restore default
+    }
+
+  }, [overlayVisible]);
+
   // Q5.js canvas features
   useEffect(() => {
     if (!initialized) return;
@@ -124,19 +138,25 @@ const RockEscapade = () => {
       // Declare non-react visible Q5.JS variables
       let verticalMode = window.innerWidth <= 1024 && window.innerHeight > window.innerWidth;
 
-      let rectangles = [];
-      let octagons = [];
-      let particles = [];
+      let rectangles = []; // obstacles
+      let octagons = []; // money currency
+      let particles = []; // particle effect
+      let projectiles = []; // fire projectiles 
       let circle;
       let lastSpawnTime = 0;
       let lastOctagonSpawnTime = 0;
-      let maxOctagons = 2;
       let rectangleSpawnRate = 2;
       let localCoins = 0;
       let gameOver = false;
       let fadeAlpha = 0;
       let spawnEnabled = false;
       let prevGameOver = false; // inside sketch scope
+
+      let lastFiredTime = -Infinity; // initially allows immediate fire
+      let cooldownDuration = 1500; // in ms
+
+      let cooldownRadiusMax = 48;
+      let cooldownRadius = 0;
 
       let movingUp = false;
       let movingDown = false;
@@ -146,16 +166,16 @@ const RockEscapade = () => {
       let w, h;
 
       const restartGame = () => {
-      gameOver = false;
-      fadeAlpha = 0;
-      localCoins = 0;
-      setCoins(0);
-      rectangles = [];
-      octagons = [];
-      particles = [];
-      for (let i = 0; i < maxOctagons; i++) octagons.push(new Shape(p, true, true, verticalMode));
-      circle = new Circle(p, 240, p.height / 2, 33);
-      q5InstanceRef.current.circle = circle;
+        gameOver = false;
+        fadeAlpha = 0;
+        localCoins = 0;
+        setCoins(0);
+        rectangles = [];
+        octagons = []; // clear all octagons
+        particles = [];
+        circle = new Circle(p, 240, p.height / 2, 33);
+        q5InstanceRef.current.circle = circle;
+        lastOctagonSpawnTime = p.millis(); // reset spawn timer
       };
 
       // attach to p
@@ -163,137 +183,120 @@ const RockEscapade = () => {
 
       // Setup the canvas
       p.setup = () => {
-
-        // Delay spawning for when the gameplay mode, aka overlayVisible is false
-        if (!overlayVisible) {
-        setTimeout(() => {
-        spawnEnabled = true;
-        }, 3000); // delay spawning by 3
-        }
-
-        // Match the canvas size to the viewport height + width
-        if (!overlayVisible) {
-          w = window.innerWidth;
-          h = window.innerHeight;
-        } else {
-          w = canvasRef.current?.clientWidth || 400;
-          h = canvasRef.current?.clientHeight || 400;
-        }
+        // Always match canvas size to window dimensions
+        const container = canvasRef.current;
+        w = container ? container.offsetWidth : window.innerWidth;
+        h = container ? container.offsetHeight : window.innerHeight;
 
         p.createCanvas(w, h);
-        
-        // Max octagon at a time to 1 and spawn rate to 3 for mobile devices
-        if (window.innerWidth < 768) {
-          maxOctagons = 1;
-          rectangleSpawnRate = 3;
+
+        // Start octagon spawning immediately regardless of overlay mode
+        lastOctagonSpawnTime = p.millis();
+
+        // Delay rectangle spawn if starting gameplay (as your prior logic intended)
+        if (!overlayVisible) {
+          setTimeout(() => {
+            spawnEnabled = true;
+          }, 3000); // delay spawning by 3s for gameplay onboarding
+        } else {
+          spawnEnabled = true; // enable spawn immediately in preview
         }
 
         // Render the user circle
         circle = new Circle(p, 240, h / 2, 33);
         q5InstanceRef.current.circle = circle;
-      }; // End of p.setup
+      };
 
       // Render inside canvas
       p.draw = () => {
+        let delta = p.deltaTime / 16.67;
 
         setCoins(localCoins);
 
+        p.background(25);
+
         if (overlayVisible) {
-          p.background(25);
-
-          // Auto-evade logic for preview mode
           autoEvade();
-
-          circle.update();
-          circle.display();
-
-          // Spawn rectangles
-          spawnRectangles();
-          updateRectangles();
-          // Spawn octagons
-          spawnOctagons();
-          updateOctagons(); // Disable collection but keep particle trail
-
-          // display particles
-            if (particles.length > 300) particles.splice(0, particles.length - 300);
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-              let part = particles[i];
-              part.update();
-              part.display();
-              if (part.isDead()) particles.splice(i, 1);
-            }
-          return;
+        } else {
+          if (movingUp) circle.moveUp(); else if (movingDown) circle.moveDown(); else circle.stopVertical();
+          if (movingLeft) circle.moveLeft(); else if (movingRight) circle.moveRight(); else circle.stopHorizontal();
         }
 
-        // Game over changes
-        if (!prevGameOver && gameOver) {
-          setGameOverVisible(true);
+        circle.update(delta);
+        circle.display();
+
+        if (spawnEnabled || overlayVisible) {
+          spawnRectangles();
+        }
+        updateRectangles(delta);
+
+        spawnOctagons();
+        updateOctagons(delta);
+
+        if (!isMobile) {
+          p.blendMode(p.ADD);
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          let part = particles[i];
+          part.update(delta);
+          part.display();
+          if (part.isDead()) particles.splice(i, 1);
+        }
+        p.blendMode(p.BLEND);
+
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+          let proj = projectiles[i];
+          proj.update(delta);
+          proj.display();
+          if (proj.isDead()) projectiles.splice(i, 1);
+        }
+
+        if (!overlayVisible) {
+          if (!prevGameOver && gameOver) {
+            setGameOverVisible(true);
+            if (localCoins > highScore) {
+              updateHighScore(localCoins);
+            }
+          }
+
           if (localCoins > highScore) {
-            updateHighScore(localCoins);
             setNewHighScore(true);
           } else {
             setNewHighScore(false);
           }
-        }
+
           prevGameOver = gameOver;
 
           if (gameOver) {
             p.background(25, fadeAlpha);
-            fadeAlpha = p.min(fadeAlpha + 5, 255);
-            return; // Freeze gameplay updates
+            fadeAlpha = p.min(fadeAlpha + 30 * delta, 255);
+            return;
           }
 
-        p.background(25);
+          let cooldownElapsed = p.millis() - lastFiredTime;
+          if (cooldownElapsed < cooldownDuration) {
+            let remaining = cooldownDuration - cooldownElapsed;
+            let cooldownProgress = remaining / cooldownDuration;
+            let indicatorRadius = cooldownProgress * cooldownRadiusMax;
 
-        if (movingUp) circle.moveUp(); else if (movingDown) circle.moveDown(); else circle.stopVertical();
-        if (movingLeft) circle.moveLeft(); else if (movingRight) circle.moveRight(); else circle.stopHorizontal();
-
-        circle.update();
-        circle.display();
-
-        if (spawnEnabled) {
-          spawnRectangles();
-        }
-        updateRectangles(true);
-
-        if (p.millis() > 4000) { // wait 4 seconds before spawning octagons
-          spawnOctagons();
-        }
-
-        for (let i = octagons.length - 1; i >= 0; i--) {
-          let o = octagons[i];
-          o.update();
-          o.display();
-
-        // Create particles and coin gain upon eating octagons
-          if (circle.overlaps(o)) {
-          localCoins += 20;
-          setCoins(prev => prev + 20);
-            for (let j = 0; j < 10; j++) particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
-            octagons.splice(i, 1);
+            p.noStroke();
+            p.fill(200, 150, 255, 100);
+            p.ellipse(circle.x, circle.y, indicatorRadius * 2, indicatorRadius * 2);
           }
-
-          let speed = Math.abs(o.vx) + Math.abs(o.vy);
-          let numParticles = p.constrain(speed * 0.3, 0, 2);
-          for (let j = 0; j < numParticles; j++) {
-            particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
-          }
-        }
-
-        if (particles.length > 300) particles.splice(0, particles.length - 300);
-
-        for (let i = particles.length - 1; i >= 0; i--) {
-          let part = particles[i];
-          part.update();
-          part.display();
-          if (part.isDead()) particles.splice(i, 1);
         }
       }; // End of p.draw
-      
+
       // Spawn Rectangles
       const spawnRectangles = () => {
-        let rectanglesInViewport = rectangles.filter(r => r.x + r.w > 0).length;
+        let rectanglesInViewport = rectangles.filter(r => {
+          // Determine if rectangle is within visible viewport
+          if (verticalMode) {
+            return r.y + r.h > 0 && r.y < p.height;
+          } else {
+            return r.x + r.w > 0 && r.x < p.width;
+          }
+        }).length;
 
         let maxRectangles;
         let timeElapsed = p.millis() / 1000; // seconds since sketch start
@@ -307,47 +310,61 @@ const RockEscapade = () => {
           else rectangleSpawnRate = 0;
 
         } else if (window.innerWidth >= 768) {
-          maxRectangles = 40;
+          maxRectangles = 60;
 
-          if (rectanglesInViewport < 8) rectangleSpawnRate = 4;
-          else if (rectanglesInViewport < 20) rectangleSpawnRate = 3;
-          else if (rectanglesInViewport < 30) rectangleSpawnRate = 2;
+          if (rectanglesInViewport < 8) rectangleSpawnRate = 5;
+          else if (rectanglesInViewport < 20) rectangleSpawnRate = 4;
+          else if (rectanglesInViewport < 40) rectangleSpawnRate = 3;
           else rectangleSpawnRate = 0;
 
         } else {
-          maxRectangles = 30;
+          maxRectangles = 25;
 
-          if (rectanglesInViewport < 5) rectangleSpawnRate = 3;
-          else if (rectanglesInViewport < 15) rectangleSpawnRate = 2;
+          if (rectanglesInViewport < 10) rectangleSpawnRate = 4;
+          else if (rectanglesInViewport < 20) rectangleSpawnRate = 3;
           else rectangleSpawnRate = 1;
         }
 
         // Introduce initial spawn buffer to reduce early clutter
         let initialSpawnBuffer = timeElapsed < 10 ? 1.5 : 1; // 50% longer spawn interval first 10s
 
+        // Spawn if under viewport cap instead of total array cap
         if (
           rectangleSpawnRate > 0 &&
           p.millis() - lastSpawnTime > (2000 / rectangleSpawnRate) * initialSpawnBuffer &&
-          rectangles.length < maxRectangles
+          rectanglesInViewport < maxRectangles
         ) {
           rectangles.push(new Shape(p, true, false, verticalMode));
           lastSpawnTime = p.millis();
         }
+
+        // Periodic cleanup every 5s to remove any stale or NaN rectangles
+        if (p.millis() % 5000 < 20) {
+          rectangles = rectangles.filter(r => !isNaN(r.x) && !isNaN(r.y));
+        }
       };
 
       // Update Rectanglee
-      const updateRectangles = () => {
+      const updateRectangles = (delta) => {
         for (let i = rectangles.length - 1; i >= 0; i--) {
           let r = rectangles[i];
-          r.update();
+          r.update(delta);
           r.display();
 
           if (circle.overlaps(r)) gameOver = true;
 
-          if (verticalMode ? r.y - r.h > p.height : r.x + r.w < 0) rectangles.splice(i, 1);
+          // Expanded offscreen removal with buffer
+          let offscreen = verticalMode
+            ? r.y - r.h > p.height + 100 || r.y + r.h < -100
+            : r.x + r.w < -100 || r.x - r.w > p.width + 100;
+
+          if (offscreen) {
+            rectangles.splice(i, 1);
+            continue;
+          }
         }
 
-        // Resolve collisions between rectangles
+        // Collision resolution
         for (let i = 0; i < rectangles.length; i++) {
           let r1 = rectangles[i];
           for (let j = i + 1; j < rectangles.length; j++) {
@@ -359,39 +376,59 @@ const RockEscapade = () => {
 
       // Spawn octagons
       const spawnOctagons = () => {
-        if (p.millis() - lastOctagonSpawnTime > 2000 && octagons.length < maxOctagons) {
-          if (p.random() < 0.5) octagons.push(new Shape(p, true, true, verticalMode));
+        if (p.millis() - lastOctagonSpawnTime > 2000) {
+          if (octagons.length === 0) { // only spawn one if none exist
+            octagons.push(new Shape(p, true, true, verticalMode));
+          }
           lastOctagonSpawnTime = p.millis();
         }
       };
 
       // Update the octagons
-      const updateOctagons = () => {
+      const updateOctagons = (delta) => {
+        let buffer = 150;
+
         for (let i = octagons.length - 1; i >= 0; i--) {
           let o = octagons[i];
-          o.update();
+          o.update(delta);
           o.display();
 
           if (circle.overlaps(o)) {
             localCoins += 20;
             setCoins(prev => prev + 20);
-            for (let j = 0; j < 30; j++) { // increased from 10 to 30
-              let particle = new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c);
-              // give it a stronger initial velocity burst
-              particle.vx = p.random(-2, 2);
-              particle.vy = p.random(-2, 2);
-              particles.push(particle);
-            }
+
+          for (let j = 0; j < 10; j++) {
+            particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c, 0, 0, 5));
+          }
+
             octagons.splice(i, 1);
+            continue;
           }
 
           let speed = Math.abs(o.vx) + Math.abs(o.vy);
-          let numParticles = p.constrain(speed * 0.3, 0, 2);
-          for (let j = 0; j < numParticles; j++) {
+          let numParticles;
+          if (speed < 1) numParticles = 0.05;
+          else if (speed < 3) numParticles = 0.1;
+          else if (speed < 6) numParticles = 0.2;
+          else numParticles = 0.3;
+
+          let particlesToSpawn = Math.floor(numParticles);
+          let fractionalPart = numParticles - particlesToSpawn;
+
+          for (let j = 0; j < particlesToSpawn; j++) {
             particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
           }
 
-          if (verticalMode ? o.y - o.size > p.height : o.x + o.size < 0) {
+          if (p.random() < fractionalPart) {
+            particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
+          }
+
+          if (
+            o.x + o.size < -buffer || 
+            o.x - o.size > p.width + buffer ||
+            o.y + o.size < -buffer ||
+            o.y - o.size > p.height + buffer
+          ) {
             octagons.splice(i, 1);
           }
         }
@@ -410,7 +447,7 @@ const RockEscapade = () => {
           let dy = circle.y - rectCenterY;
           let distSq = dx * dx + dy * dy;
 
-          if (distSq < 10000) { // ~1000px radius
+          if (distSq < 20000) { 
           let dist = Math.sqrt(distSq) || 1;
           let weight = 1 / (dist + 300); // +50 to prevent extreme near-field force
           let force = weight * 150; // adjust multiplier for overall strength
@@ -439,8 +476,8 @@ const RockEscapade = () => {
           let dy = (closestOctagon.y + closestOctagon.size / 2) - circle.y;
           let dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-          attractForceX = (dx / dist) * 0.25;
-          attractForceY = (dy / dist) * 0.25;
+          attractForceX = (dx / dist) * 0.45;
+          attractForceY = (dy / dist) * 0.45;
         }
 
         // Combine forces with priority to evasion
@@ -459,6 +496,23 @@ const RockEscapade = () => {
 
       // Desktop Navigation
       p.keyPressed = () => {
+        if (p.key === ' ' || p.key === 'Spacebar') {
+          let now = p.millis();
+          if (now - lastFiredTime >= cooldownDuration) {
+            lastFiredTime = now;
+
+            if (circle) {
+              let proj = new Projectile(
+                p,
+                circle.x,
+                circle.y,
+                circle.vx !== 0 || circle.vy !== 0 ? circle.vx : 5,
+                circle.vy !== 0 || circle.vx !== 0 ? circle.vy : 0
+              );
+              projectiles.push(proj);
+            }
+          }
+        }
         if (p.key === 'w' || p.keyCode === p.UP_ARROW) movingUp = true;
         if (p.key === 's' || p.keyCode === p.DOWN_ARROW) movingDown = true;
         if (p.key === 'a' || p.keyCode === p.LEFT_ARROW) movingLeft = true;
@@ -471,7 +525,35 @@ const RockEscapade = () => {
         if (p.key === 'a' || p.keyCode === p.LEFT_ARROW) movingLeft = false;
         if (p.key === 'd' || p.keyCode === p.RIGHT_ARROW) movingRight = false;
       };
-  
+
+      p.touchStarted = () => {
+        if (overlayVisible) return;
+
+        // Fire projectile only if touch count is 1 (single tap) and not moving
+        if (p.touches.length === 1) {
+          const now = p.millis();
+          if (now - lastFiredTime >= cooldownDuration) {
+            lastFiredTime = now;
+
+            const vx = circle.vx !== 0 || circle.vy !== 0 ? circle.vx : 5;
+            const vy = circle.vy !== 0 || circle.vx !== 0 ? circle.vy : 0;
+
+            projectiles.push(new Projectile(p, circle.x, circle.y, vx, vy));
+          }
+        }
+
+        return false; // prevent default
+      };
+
+      p.touchMoved = () => {
+        // Movement logic here (if needed)
+        return false;
+      };
+
+      p.touchEnded = () => {
+        return false;
+      };
+
       // Q5.js classes for shapes, user control, and particle effects
       class Circle {
         constructor(p, x, y, r) {
@@ -487,13 +569,15 @@ const RockEscapade = () => {
           this.trail = [];
         }
 
-        update() {
-          this.vx += this.ax;
-          this.vy += this.ay;
-          this.vx *= 0.92;
-          this.vy *= 0.92;
-          this.x += this.vx;
-          this.y += this.vy;
+        update(delta) {
+          this.vx += this.ax * delta;
+          this.vy += this.ay * delta;
+
+          this.vx *= Math.pow(0.92, delta);
+          this.vy *= Math.pow(0.92, delta);
+
+          this.x += this.vx * delta;
+          this.y += this.vy * delta;
 
           if (this.y + this.radius < 0) this.y = this.p.height + this.radius;
           else if (this.y - this.radius > this.p.height) this.y = -this.radius;
@@ -554,63 +638,105 @@ const RockEscapade = () => {
         reset(startOffScreen) {
           if (this.verticalMode) {
             this.x = this.p.random(this.p.width);
-            this.y = startOffScreen ? -this.p.random(60, 120) : this.p.random(this.p.height);
-            this.vx = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
-            this.vy = this.p.random(1, 3);
 
-            this.w = this.p.random(28, 70);
-            this.h = this.p.random(28, 70);
-          } else {
-            this.x = startOffScreen ? this.p.width + this.p.random(10, 40) : this.p.random(this.p.width);
-            this.y = this.p.random(this.p.height);
-            this.vx = this.p.random(-3, -1);
-            this.vy = this.isOctagon ? this.p.random(-0.5, 0.5) : this.p.random(-0.5, 0.5);
+            if (this.isOctagon) {
+              if (startOffScreen) {
+                // Spawn just above the visible area
+                this.y = -this.p.random(30, 60);
+              } else {
+                // Fallback random position within viewport if needed
+                this.y = this.p.random(this.p.height);
+              }
 
-            if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
-              this.w = this.p.random(33, 105);
-              this.h = this.p.random(33, 105);
+              this.vx = this.p.random(-1.2, 1.2);
+
+              if (this.p.random() < 0.1) {
+                this.vy = this.p.random(6, 9);
+              } else if (this.p.random() < 0.2) {
+                this.vy = this.p.random(0.5, 1.5);
+              } else {
+                this.vy = this.p.random(2, 5);
+              }
+
+              this.size = 25;
+
+              const playfulColors = [
+                this.p.color(255, 215, 0),
+                this.p.color(255, 223, 70),
+                this.p.color(255, 200, 0),
+                this.p.color(255, 170, 50),
+              ];
+              this.c = this.p.random(playfulColors);
             } else {
-              this.w = this.p.random(30, 75);
-              this.h = this.p.random(30, 75);
+              this.y = startOffScreen
+                ? -this.p.random(60, 120)
+                : this.p.random(this.p.height);
+
+              this.vx = this.p.random(-0.5, 0.5);
+              this.vy = this.p.random(1, 3);
+
+              this.w = this.p.random(28, 70);
+              this.h = this.p.random(28, 70);
+              this.c = this.p.color(235, 235, 255);
+            }
+          } else {
+            if (startOffScreen) {
+              // Spawn just beyond right edge for horizontal gameplay
+              this.x = this.p.width + this.p.random(10, 40);
+            } else {
+              this.x = this.p.random(this.p.width);
+            }
+
+            this.y = this.p.random(this.p.height);
+
+            if (this.isOctagon) {
+              let baseSpeedX = this.p.random(-2.5, -0.5);
+              if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
+                baseSpeedX *= 4.5;
+              }
+
+              if (this.p.random() < 0.1) {
+                baseSpeedX *= 2;
+              } else if (this.p.random() < 0.2) {
+                baseSpeedX *= 0.5;
+              }
+
+              this.vx = baseSpeedX;
+              this.vy = this.p.random(-0.3, 0.3);
+
+              this.size = 25;
+
+              const playfulColors = [
+                this.p.color(255, 215, 0),
+                this.p.color(255, 223, 70),
+                this.p.color(255, 200, 0),
+                this.p.color(255, 170, 50),
+              ];
+              this.c = this.p.random(playfulColors);
+            } else {
+              this.vx = this.p.random(-3, -1);
+              this.vy = this.p.random(-0.5, 0.5);
+
+              if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
+                this.w = this.p.random(33, 105);
+                this.h = this.p.random(33, 105);
+              } else {
+                this.w = this.p.random(30, 75);
+                this.h = this.p.random(30, 75);
+              }
+
+              this.c = this.p.color(235, 235, 255);
             }
           }
 
           this.rotation = 0;
           this.rotationSpeed = this.p.random(-1, 1);
-
-          if (this.isOctagon) {
-            this.size = 25;
-
-            const playfulColors = [
-              this.p.color(255, 215, 0),
-              this.p.color(255, 223, 70),
-              this.p.color(255, 200, 0),
-              this.p.color(255, 170, 50),
-            ];
-            this.c = this.p.random(playfulColors);
-
-            // Base horizontal speed, always negative for right-to-left
-            let baseSpeedX = this.p.random(-1.2, -0.5);
-
-            // Increase horizontal speed for desktop landscape
-            if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
-              baseSpeedX *= 4.5;
-            }
-
-            this.vx = baseSpeedX;
-
-            // Small vertical drift
-            this.vy = this.p.random(-0.1, 0.1);
-          }
-          else {
-            this.c = this.p.color(235, 235, 255);
-          }
         }
 
-        update() {
-          this.x += this.vx;
-          this.y += this.vy;
-          this.rotation += this.rotationSpeed;
+        update(delta) {
+          this.x += this.vx * delta;
+          this.y += this.vy * delta;
+          this.rotation += this.rotationSpeed * delta;
         }
 
         display() {
@@ -670,30 +796,114 @@ const RockEscapade = () => {
       }
 
       class Particle {
-        constructor(p, x, y, lifespan = 255, c = p.color(255, 215, 0)) {
+        constructor(p, x, y, lifespan = 255, c = p.color(255, 215, 0), sourceVx = 0, sourceVy = 0, speedMultiplier = null) {
           this.p = p;
           this.x = x;
           this.y = y;
-          this.vx = p.random(-0.5, 0.5);
-          this.vy = p.random(-0.5, 0.5);
           this.lifespan = lifespan;
           this.c = c;
+
+          const sourceSpeed = Math.sqrt(sourceVx * sourceVx + sourceVy * sourceVy);
+
+          let emissionSpeed = p.map(sourceSpeed, 0, 5, 1, 3);
+          emissionSpeed = p.constrain(emissionSpeed, 1.2, 3.5);
+
+          if (speedMultiplier !== null) {
+            emissionSpeed *= speedMultiplier; // only apply if explicitly set
+          }
+
+          const emissionAngle = p.random(0, p.TWO_PI);
+
+          this.vx = Math.cos(emissionAngle) * emissionSpeed + sourceVx * 0.1;
+          this.vy = Math.sin(emissionAngle) * emissionSpeed + sourceVy * 0.1;
         }
 
-        update() {
-          this.x += this.vx;
-          this.y += this.vy;
-          this.lifespan -= 3;
+        update(delta) {
+          this.x += this.vx * delta;
+          this.y += this.vy * delta;
+          this.lifespan -= 1 * delta;
         }
 
         display() {
           this.p.noStroke();
           this.p.fill(this.c.levels[0], this.c.levels[1], this.c.levels[2], this.lifespan);
-          this.p.ellipse(this.x, this.y, 3, 3);
+          this.p.ellipse(this.x, this.y, 4, 4);
         }
 
         isDead() {
           return this.lifespan <= 0;
+        }
+      }
+
+      class Projectile {
+        constructor(p, x, y, vx, vy) {
+          this.p = p;
+          this.x = x;
+          this.y = y;
+
+          const dirMag = Math.sqrt(vx * vx + vy * vy) || 1;
+          const dirX = vx / dirMag;
+          const dirY = vy / dirMag;
+
+          this.minSpeed = 0.6; // minimum base speed (slow launch)
+          this.maxSpeed = 12; // maximum top speed (cap)
+          this.speed = this.minSpeed;
+
+          this.vx = dirX * this.speed;
+          this.vy = dirY * this.speed;
+
+          this.targetSpeed = 8; // cruising target speed
+          this.acceleration = 3;
+
+          this.radius = 6;
+          this.lifespan = 500;
+          this.trail = [];
+          this.color = p.color(200,150,255);
+        }
+
+        update(delta) {
+          this.speed += (this.targetSpeed - this.speed) * this.acceleration * delta;
+
+          if (this.speed < this.minSpeed) this.speed = this.minSpeed;
+          if (this.speed > this.maxSpeed) this.speed = this.maxSpeed;
+
+          const dirMag = Math.sqrt(this.vx * this.vx + this.vy * this.vy) || 1;
+          const dirX = this.vx / dirMag;
+          const dirY = this.vy / dirMag;
+
+          this.vx = dirX * this.speed;
+          this.vy = dirY * this.speed;
+
+          this.x += this.vx * delta;
+          this.y += this.vy * delta;
+
+          this.lifespan -= 1 * delta;
+
+          this.trail.push({ x: this.x, y: this.y, alpha: 160 });
+          if (this.trail.length > 20) this.trail.shift();
+
+          for (let i = 0; i < this.trail.length; i++) {
+            this.trail[i].alpha *= 0.8;
+          }
+        }
+
+        display() {
+          for (let i = 0; i < this.trail.length; i++) {
+            let t = this.trail[i];
+            this.p.fill(200,150,255, t.alpha);
+            this.p.noStroke();
+            this.p.ellipse(t.x, t.y, this.radius * 2, this.radius * 2);
+          }
+
+          this.p.fill(this.color);
+          this.p.noStroke();
+          this.p.ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
+        }
+
+        isDead() {
+          return this.lifespan <= 0 ||
+            this.x < 0 || this.x > this.p.width ||
+            this.y < 0 || this.y > this.p.height;
         }
       }
     }; // end of sketch
@@ -710,7 +920,6 @@ const RockEscapade = () => {
     };
   }, [initialized, overlayVisible]);
   
-
   // Countdown for the game started
   useEffect(() => {
     if (!showCountdown) return;
@@ -754,47 +963,47 @@ const RockEscapade = () => {
 
       let lastTouchPosition = null;
 
-      const handleTouchMove = (e) => {
-  if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
+            const handleTouchMove = (e) => {
+        if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
 
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const touchX = touch.clientX - rect.left;
-  const touchY = touch.clientY - rect.top;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
 
-  const circle = q5InstanceRef.current.circle;
+        const circle = q5InstanceRef.current.circle;
 
-  if (lastTouchPosition) {
-    const dx = touchX - lastTouchPosition.x;
-    const dy = touchY - lastTouchPosition.y;
+        if (lastTouchPosition) {
+          const dx = touchX - lastTouchPosition.x;
+          const dy = touchY - lastTouchPosition.y;
 
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-    // Base force multiplier by device
-    let baseMultiplier = 0.4;
+          // Base force multiplier by device
+          let baseMultiplier = 0.4;
 
-    if (isTablet) {
-      baseMultiplier = 0.6;
-    } else if (isMobile) {
-      baseMultiplier = 0.5;
-    } else if (isDesktop) {
-      baseMultiplier = 0.35;
-    }
+          if (isTablet) {
+            baseMultiplier = 0.6;
+          } else if (isMobile) {
+            baseMultiplier = 0.5;
+          } else if (isDesktop) {
+            baseMultiplier = 0.35;
+          }
 
-    // Calculate speed factor based on distance moved
-    const speedFactor = Math.log2(dist + 1);  
+          // Calculate speed factor based on distance moved
+          const speedFactor = Math.log2(dist + 1);  
 
-    const forceMultiplier = baseMultiplier * speedFactor;
+          const forceMultiplier = baseMultiplier * speedFactor;
 
-    // Apply as impulse to velocity directly
-    circle.vx += (dx / dist) * forceMultiplier;
-    circle.vy += (dy / dist) * forceMultiplier;
-  }
+          // Apply as impulse to velocity directly
+          circle.vx += (dx / dist) * forceMultiplier;
+          circle.vy += (dy / dist) * forceMultiplier;
+        }
 
-  lastTouchPosition = { x: touchX, y: touchY };
+        lastTouchPosition = { x: touchX, y: touchY };
 
-  e.preventDefault();
-};
+        e.preventDefault();
+      };
 
 
       const handleTouchEnd = () => {
@@ -825,7 +1034,7 @@ return (
     <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
   <BlockGOnboarding key={resetKey} onStart={handleOnboardingStart} resetTrigger={resetKey}/>
     {!overlayVisible && <ExitButton onExit={handleExit} />}
-    {!overlayVisible && <CoinCounter coins={coins} highScore={displayHighScore} newHighScore={isNewHighScore} />}
+    {!overlayVisible && <CoinCounter coins={coins} highScore={displayHighScore} newHighScore={newHighScore} />}
     {showCountdown && <CountdownDisplay countdown={countdown}/>}
     {gameOverVisible && <BlockGGameOver onRestart={handleRestart} coins={coins} newHighScore={newHighScore}/>}
   </section>

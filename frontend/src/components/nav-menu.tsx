@@ -28,11 +28,16 @@ const NavMenu = () => {
     const deltaY = Math.abs(e.clientY - clickStartPos.current.y);
 
     if (deltaX < 5 && deltaY < 5) {
-      window.open(url, "_blank", "noopener,noreferrer");
+      if (url === "/") {
+        window.location.reload(); // refresh current page
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
     } else {
       e.preventDefault();
     }
   };
+
 
   // Touch events for tap vs drag within links
   const handleLinkTouchStart = (e: React.TouchEvent<HTMLAnchorElement>) => {

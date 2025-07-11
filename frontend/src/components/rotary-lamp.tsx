@@ -1,4 +1,3 @@
-// Rotary Lamp Project
 import { useEffect, useRef, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
@@ -7,13 +6,12 @@ const RotaryLamp = () => {
   const [data, setData] = useState(null);
   const videoRef = useRef(null);
   const [split, setSplit] = useState(() => {
-    const isMobile = window.innerWidth < 768; // adjust breakpoint as needed
+    const isMobile = window.innerWidth < 768;
     return isMobile ? 50 : 50;
   });
 
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
-  // Fetch data
   useEffect(() => {
     client
       .fetch(
@@ -26,7 +24,6 @@ const RotaryLamp = () => {
       .then(setData);
   }, []);
 
-  // Video autoplay
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = true;
@@ -34,45 +31,66 @@ const RotaryLamp = () => {
     }
   }, [data]);
 
-  // Listen to orientation changes to trigger re-render
   useEffect(() => {
     const handleResize = () => {
       setIsPortrait(window.innerHeight > window.innerWidth);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   if (!data) return null;
 
-  const isVideo =
-    data.mediaTwo?.asset._type === 'sanity.fileAsset' &&
-    data.mediaTwo?.asset.url.match(/\.(mp4|webm|ogg)$/);
+  // Swap media based on orientation
+  const media1 = isPortrait ? data.mediaOne : data.mediaTwo;
+  const media2 = isPortrait ? data.mediaTwo : data.mediaOne;
+
+  const isMedia1Video =
+    media1?.asset._type === 'sanity.fileAsset' &&
+    media1?.asset.url.match(/\.(mp4|webm|ogg)$/);
+
+  const isMedia2Video =
+    media2?.asset._type === 'sanity.fileAsset' &&
+    media2?.asset.url.match(/\.(mp4|webm|ogg)$/);
 
   return (
     <section className="block-type-1" id="block-r" style={{ position: 'relative' }}>
       <div
         className="media-content-1"
         style={
-        isPortrait
-          ? {
-              height: split <= 15 ? '0%' : `${split}%`,
-              width: '100%',
-              position: 'absolute',
-              top: 0,
-              transition: split <= 15 ? 'height 0.1s ease' : 'none',
-            }
-            : { width: `${split}%`, height: '100%' }
+          isPortrait
+            ? {
+                height: split <= 15 ? '0%' : `${split}%`,
+                width: '100%',
+                position: 'absolute',
+                top: 0,
+                transition: split <= 15 ? 'height 0.1s ease' : 'none',
+              }
+            : { width: `${split}%`, height: '100%', position: 'absolute', left: 0 }
         }
       >
-        <img
-          src={data.mediaOne?.asset.url}
-          alt={data.mediaOne?.alt}
-          className="media-item-1"
-          id="rotary-media-1"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
+        {isMedia1Video ? (
+          <video
+            ref={videoRef}
+            src={media1.asset.url}
+            className="media-item-1"
+            id="rotary-media-1"
+            loop
+            autoPlay
+            playsInline
+            muted
+            preload="auto"
+            style={{ pointerEvents: 'all', width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <img
+            src={media1?.asset.url}
+            alt={media1?.alt}
+            className="media-item-1"
+            id="rotary-media-1"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        )}
       </div>
 
       <SplitDragHandler split={split} setSplit={setSplit} />
@@ -88,13 +106,18 @@ const RotaryLamp = () => {
                 top: split <= 15 ? '0%' : `${split}%`,
                 transition: split <= 15 ? 'height 0.1s ease, top 0.1s ease' : 'none',
               }
-            : { width: `${100 - split}%`, height: '100%', left: `${split}%`, position: 'absolute' }
+            : {
+                width: `${100 - split}%`,
+                height: '100%',
+                position: 'absolute',
+                left: `${split}%`,
+              }
         }
       >
-        {isVideo ? (
+        {isMedia2Video ? (
           <video
             ref={videoRef}
-            src={data.mediaTwo.asset.url}
+            src={media2.asset.url}
             className="media-item-2"
             id="rotary-media-2"
             loop
@@ -106,10 +129,10 @@ const RotaryLamp = () => {
           />
         ) : (
           <img
-            src={data.mediaTwo?.asset.url}
-            alt={data.mediaTwo?.alt}
+            src={media2?.asset.url}
+            alt={media2?.alt}
             className="media-item-2"
-             id="rotary-media-2"
+            id="rotary-media-2"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}
