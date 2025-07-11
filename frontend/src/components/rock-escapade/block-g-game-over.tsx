@@ -81,7 +81,7 @@ const BlockGGameOver = ({ onRestart, visibleTrigger, coins, newHighScore }) => {
         <h1
           className='gameover-text'
           style={{
-            color: newHighScore ? 'rgb(255 230 203)' : '#c498ff',
+            color: newHighScore ? 'rgb(255 230 203)' : 'rgb(222 202 250)',
           }}
         >
           {newHighScore ? 'New High Score!' : 'Game Over'}

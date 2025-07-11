@@ -353,7 +353,71 @@ const RockEscapade = () => {
 
           if (circle.overlaps(r)) gameOver = true;
 
-          // Expanded offscreen removal with buffer
+          for (let j = projectiles.length - 1; j >= 0; j--) {
+            let proj = projectiles[j];
+
+            // Determine projectile collision box
+            let projSize, projX, projY, projW, projH;
+
+            if (proj.size) {
+              projSize = proj.size;
+              projX = proj.x - projSize / 2;
+              projY = proj.y - projSize / 2;
+              projW = projSize;
+              projH = projSize;
+            } else {
+              projSize = proj.radius * 2;
+              projX = proj.x - proj.radius;
+              projY = proj.y - proj.radius;
+              projW = projSize;
+              projH = projSize;
+            }
+
+            if (
+              projX + projW > r.x &&
+              projX < r.x + r.w &&
+              projY + projH > r.y &&
+              projY < r.y + r.h
+            ) {
+              if (proj instanceof RectangleProjectile) {
+                // Physical collision response without removing rectangle or projectile
+                // Example: simple bounce off
+
+                // Calculate simple bounce by inverting projectile velocity
+                proj.vx *= -1;
+                proj.vy *= -1;
+
+                // Optionally, adjust position to prevent sticking
+                proj.x += proj.vx * delta * 2;
+                proj.y += proj.vy * delta * 2;
+
+              } else {
+                // Normal projectile destroys rectangle and itself
+                rectangles.splice(i, 1);
+                projectiles.splice(j, 1);
+
+                // Spawn purple rectangle-shaped projectiles in 360 directions
+                for (let k = 0; k < 8; k++) {
+                  let angle = (p.TWO_PI / 8) * k;
+                  let speed = p.random(2, 4);
+                  let vx = Math.cos(angle) * speed;
+                  let vy = Math.sin(angle) * speed;
+
+                  projectiles.push(new RectangleProjectile(
+                    p,
+                    r.x + r.w / 2,
+                    r.y + r.h / 2,
+                    vx,
+                    vy,
+                    '#c896ff'
+                  ));
+                }
+              }
+
+              break; // exit projectile loop for this rectangle
+            }
+          }
+
           let offscreen = verticalMode
             ? r.y - r.h > p.height + 100 || r.y + r.h < -100
             : r.x + r.w < -100 || r.x - r.w > p.width + 100;
@@ -364,7 +428,6 @@ const RockEscapade = () => {
           }
         }
 
-        // Collision resolution
         for (let i = 0; i < rectangles.length; i++) {
           let r1 = rectangles[i];
           for (let j = i + 1; j < rectangles.length; j++) {
@@ -904,6 +967,55 @@ const RockEscapade = () => {
           return this.lifespan <= 0 ||
             this.x < 0 || this.x > this.p.width ||
             this.y < 0 || this.y > this.p.height;
+        }
+      }
+
+      class RectangleProjectile {
+        constructor(p, x, y, vx, vy, color) {
+          this.p = p;
+          this.x = x;
+          this.y = y;
+
+          // Random size between 8 and 20
+          this.size = p.random(8, 20);
+
+          // Speed multiplier based on size (larger = faster)
+          const baseSpeed = Math.sqrt(vx * vx + vy * vy);
+          const sizeSpeedFactor = this.p.map(this.size, 8, 20, 1, 2);
+          this.vx = vx * sizeSpeedFactor;
+          this.vy = vy * sizeSpeedFactor;
+
+          this.lifespan = 80;
+          this.maxLifespan = this.lifespan;
+
+          this.color = p.color(color);
+          this.rotation = p.random(360);
+          this.rotationSpeed = p.random(-20, 20);
+        }
+
+        update(delta) {
+          this.x += this.vx * delta;
+          this.y += this.vy * delta;
+          this.lifespan -= 1 * delta;
+          this.rotation += this.rotationSpeed * delta;
+        }
+
+        display() {
+          this.p.push();
+          this.p.translate(this.x, this.y);
+          this.p.rotate(this.p.radians(this.rotation));
+          let alpha = this.p.map(this.lifespan, 0, this.maxLifespan, 0, 255);
+          this.p.fill(this.color.levels[0], this.color.levels[1], this.color.levels[2], alpha);
+          this.p.noStroke();
+          this.p.rectMode(this.p.CENTER);
+          this.p.rect(0, 0, this.size, this.size);
+          this.p.pop();
+        }
+
+        isDead() {
+          return this.lifespan <= 0 ||
+            this.x < -50 || this.x > this.p.width + 50 ||
+            this.y < -50 || this.y > this.p.height + 50;
         }
       }
     }; // end of sketch
