@@ -6,12 +6,12 @@
 .icon-svg { cursor: pointer; transition: transform 0.2s ease; }
 .icon-svg:hover { transform: scale(1.1); }
 .title-lottie { width: 12.8em; }
-.title-lottie:hover { scale: 1.02; }
+.title-lottie:hover { scale: 1.02; padding-left: 0.06em; }
 .github-lottie, .linkedin-lottie { width: 2.4em; }
 .github-lottie:hover, .linkedin-lottie:hover { scale: 1.1; }
 
 /* View Project */
-.view-project-wrapper { position: fixed; width: 100%; display: flex; z-index: 1000; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+.view-project-wrapper { position: fixed; width: 100%; display: flex; z-index: 1000; flex-direction: row; flex-wrap: wrap; justify-content: center; pointer-events: none;}
 .view-project-btn {
   position: relative;
   overflow: hidden;
@@ -24,6 +24,7 @@
   color: #f0f0f0;
   border: none;
   cursor: pointer;
+  pointer-events: all;
   transition: opacity 0.3s ease;
   opacity: 1; 
 }

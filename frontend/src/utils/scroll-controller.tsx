@@ -12,7 +12,6 @@ const ScrollController = () => {
     scrollContainerRef,
     isDragging,
     focusedProjectKey,
-    previousScrollY,
     setPreviousScrollY,
   } = useProjectVisibility();
 
@@ -21,6 +20,7 @@ const ScrollController = () => {
   const SCROLL_DELAY = 300;
 
   const [justExitedFocusKey, setJustExitedFocusKey] = useState<string | null>(null);
+  const [invisibleKeys, setInvisibleKeys] = useState<Set<string>>(new Set());
   const projectRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [viewportStyle, setViewportStyle] = useState({ height: '98dvh', paddingBottom: '2dvh' });
@@ -29,7 +29,7 @@ const ScrollController = () => {
     const width = window.innerWidth;
     if (width >= 1025) {
       setViewportStyle({ height: '96dvh', paddingBottom: '4dvh' });
-    } else if (width >= 768 && width <= 1024) {
+    } else if (width >= 768) {
       setViewportStyle({ height: '97dvh', paddingBottom: '3dvh' });
     } else {
       setViewportStyle({ height: '98dvh', paddingBottom: '2dvh' });
@@ -68,8 +68,8 @@ const ScrollController = () => {
     if (now - lastScrollTime.current < SCROLL_DELAY) return;
 
     const deltaY = e.touches[0].clientY - touchStartY.current;
-
     let newIndex = currentIndex;
+
     if (Math.abs(deltaY) > 30) {
       if (deltaY > 0) {
         newIndex = Math.max(currentIndex - 1, 0);
@@ -101,14 +101,26 @@ const ScrollController = () => {
     };
   }, [projectComponents.length, currentIndex, isDragging, focusedProjectKey]);
 
-  // Capture the key of the project before leaving focus mode
+  useEffect(() => {
+    if (focusedProjectKey) {
+      const keysToHide = projectComponents
+        .filter(p => p.key !== focusedProjectKey)
+        .map(p => p.key);
+      setInvisibleKeys(new Set(keysToHide));
+    } else {
+      const timeout = setTimeout(() => {
+        setInvisibleKeys(new Set());
+      }, 400);
+      return () => clearTimeout(timeout);
+    }
+  }, [focusedProjectKey, projectComponents]);
+
   useEffect(() => {
     if (focusedProjectKey) {
       setJustExitedFocusKey(focusedProjectKey);
     }
   }, [focusedProjectKey]);
 
-  // After exiting focus mode, scroll to the original project by key
   useEffect(() => {
     if (!focusedProjectKey && justExitedFocusKey && scrollContainerRef.current) {
       const el = projectRefs.current[justExitedFocusKey];
@@ -130,25 +142,43 @@ const ScrollController = () => {
         overflowY: 'scroll',
         scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
         paddingBottom: viewportStyle.paddingBottom,
+        scrollbarWidth: 'none', // Firefox
+        msOverflowStyle: 'none', // IE 10+
       }}
     >
-      {projectComponents.map((item) =>
-        (!focusedProjectKey || focusedProjectKey === item.key) && (
+      <style>
+        {`
+          .SnappyScrollThingy::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+
+      {projectComponents.map((item) => {
+        const isFocused = focusedProjectKey === item.key;
+        const isHidden = invisibleKeys.has(item.key);
+
+        return (
           <div
             key={item.key}
             ref={(el) => (projectRefs.current[item.key] = el)}
-            style={{ height: viewportStyle.height, scrollSnapAlign: 'start' }}
+            style={{
+              height: isHidden ? '0px' : isFocused ? 'auto' : viewportStyle.height,
+              overflow: isFocused ? 'visible' : 'hidden',
+              scrollSnapAlign: isHidden ? 'none' : 'start',
+              opacity: isHidden ? 0 : 1,
+              visibility: isHidden ? 'hidden' : 'visible',
+              pointerEvents: isHidden ? 'none' : 'auto',
+              transition: 'opacity 0.4s ease, visibility 0.4s ease',
+            }}
           >
-            {item.component}
-            {focusedProjectKey === item.key && item.title === 'Evade the Rock' ? (
-              <RockEscapade />
-            ) : (
-              focusedProjectKey === item.key &&
-              console.log('[Focused] Not Evade the Rock:', item.title)
-            )}
+            <>
+              {item.component}
+              {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
+            </>
           </div>
-        )
-      )}
+        );
+      })}
 
       <ViewProject
         currentProject={projectComponents[currentIndex]}

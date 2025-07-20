@@ -8,7 +8,7 @@
   height: 100%;
   background:rgb(24, 24, 26); /* blackish gray */
   opacity: 1;
-  z-index: 9999;
+  z-index: 99999;
   transition: opacity 0.2s ease-in;
 }
 
