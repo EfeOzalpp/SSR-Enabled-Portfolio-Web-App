@@ -15,11 +15,9 @@ const SplitDragHandler = ({ split, setSplit }) => {
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-  // Pinch gesture to default the drag handle to 50%
   const initialPinchDistance = useRef(null);
   const pinchTriggeredRef = useRef(false);
-  const pinchThreshold = 10; // px difference to register pinch
-
+  const pinchThreshold = 10;
 
   useEffect(() => {
     const handleResize = () => {
@@ -31,18 +29,45 @@ const SplitDragHandler = ({ split, setSplit }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const playSegment = (segment, holdFrame) => {
+const playSegment = (() => {
+  let lastCompleteHandler = null;
+  let currentSegment = null;
+
+  return (segment, holdFrame) => {
     const arrowAnim = arrowAnimRef.current;
     if (!arrowAnim) return;
 
+    // Remove any existing handler
+    if (lastCompleteHandler) {
+      arrowAnim.removeEventListener('complete', lastCompleteHandler);
+      lastCompleteHandler = null;
+    }
+
+    currentSegment = segment;
+    console.log('[Animation] Playing segment', segment);
+
     const onComplete = () => {
       arrowAnim.removeEventListener('complete', onComplete);
-      arrowAnim.goToAndStop(holdFrame, true);
+      lastCompleteHandler = null;
+
+      const currentFrame = arrowAnim.currentFrame;
+      console.log('[Animation] Segment complete. Current frame:', currentFrame);
+
+      // Only hold if animation stopped on expected range
+      if (currentSegment?.[1] !== undefined && Math.abs(currentFrame - currentSegment[1]) <= 2) {
+        console.log('[Animation] Holding at', holdFrame);
+        arrowAnim.goToAndStop(holdFrame, true);
+      } else {
+        console.warn('[Animation] Skipped holding because animation interrupted or cut off.');
+      }
     };
 
+    lastCompleteHandler = onComplete;
     arrowAnim.addEventListener('complete', onComplete);
     arrowAnim.playSegments(segment, true);
   };
+})();
+
 
   const handlePointerMove = (clientX, clientY) => {
     if (!isDraggingRef.current) return;
@@ -60,10 +85,14 @@ const SplitDragHandler = ({ split, setSplit }) => {
       ? Math.max(15, Math.min(100, newSplit))
       : Math.max(0, Math.min(100, newSplit));
 
+    console.log('[PointerMove] New split:', newSplit.toFixed(2));
     setSplit(newSplit);
   };
 
-  const handleMouseMove = (e) => handlePointerMove(e.clientX, e.clientY);
+  const handleMouseMove = (e) => {
+    console.log('[MouseMove] X:', e.clientX, 'Y:', e.clientY);
+    handlePointerMove(e.clientX, e.clientY);
+  };
 
   const handleTouchMove = (e) => {
     if (e.touches.length === 1 && isDraggingRef.current && !pinchTriggeredRef.current) {
@@ -80,7 +109,7 @@ const SplitDragHandler = ({ split, setSplit }) => {
         const diff = Math.abs(distance - initialPinchDistance.current);
         if (diff > pinchThreshold) {
           pinchTriggeredRef.current = true;
-          isDraggingRef.current = false; // cancel drag state if pinch detected
+          isDraggingRef.current = false;
           setIsDragging(false);
           setSplit(50);
           initialPinchDistance.current = null;
@@ -91,16 +120,21 @@ const SplitDragHandler = ({ split, setSplit }) => {
 
   const startDragging = (e) => {
     e.preventDefault();
+    console.log('[StartDragging] Event:', e.type);
     isDraggingRef.current = true;
     setIsDragging(true);
+
     const arrowAnim = arrowAnimRef.current;
     if (arrowAnim) {
       if (isTouchDevice) {
+        console.log('[StartDragging] Touch: play [0, 25]');
         arrowAnim.playSegments([0, 25], true);
       } else {
+        console.log('[StartDragging] Desktop: stop at 25');
         arrowAnim.goToAndStop(25, true);
       }
     }
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', stopDragging);
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -108,18 +142,24 @@ const SplitDragHandler = ({ split, setSplit }) => {
   };
 
   const stopDragging = () => {
+    console.log('[StopDragging]');
     isDraggingRef.current = false;
     setIsDragging(false);
+
     const arrowAnim = arrowAnimRef.current;
     if (arrowAnim) {
       if (isTouchDevice) {
+        console.log('[StopDragging] Touch: play [25, 75]');
         arrowAnim.playSegments([25, 75], true);
       } else if (isHoveringRef.current) {
+        console.log('[StopDragging] Hovering: stop at 25');
         arrowAnim.goToAndStop(25, true);
       } else {
+        console.log('[StopDragging] Not hovering: play [25, 75]');
         arrowAnim.playSegments([25, 75], true);
       }
     }
+
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', stopDragging);
     window.removeEventListener('touchmove', handleTouchMove);
@@ -127,22 +167,32 @@ const SplitDragHandler = ({ split, setSplit }) => {
   };
 
   const handleMouseEnter = () => {
+    console.log('[MouseEnter]');
     isHoveringRef.current = true;
+
     const arrowAnim = arrowAnimRef.current;
     if (isDraggingRef.current) {
+      console.log('[MouseEnter] Dragging: stop at 25');
       if (arrowAnim) arrowAnim.goToAndStop(25, true);
       return;
     }
+
+    console.log('[MouseEnter] Idle: play [0, 25]');
     playSegment([0, 25], 25);
   };
 
   const handleMouseLeave = () => {
+    console.log('[MouseLeave]');
     isHoveringRef.current = false;
+
     const arrowAnim = arrowAnimRef.current;
     if (isDraggingRef.current) {
+      console.log('[MouseLeave] Dragging: stop at 25');
       if (arrowAnim) arrowAnim.goToAndStop(25, true);
       return;
     }
+
+    console.log('[MouseLeave] Idle: play [25, 75]');
     playSegment([25, 75], 75);
   };
 
@@ -187,60 +237,59 @@ const SplitDragHandler = ({ split, setSplit }) => {
         arrowAnim.playSegments([25, 75], true);
       }
     }
+
     initialPinchDistance.current = null;
     pinchTriggeredRef.current = false;
   };
 
-    // Onload play animation
-    useEffect(() => {
-      const arrowAnim = lottie.loadAnimation({
-        container: arrowContainer.current,
-        renderer: 'svg',
-        loop: false,
-        autoplay: false,
-        animationData: arrowData2,
-      });
-      arrowAnimRef.current = arrowAnim;
+  useEffect(() => {
+    const arrowAnim = lottie.loadAnimation({
+      container: arrowContainer.current,
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      animationData: arrowData2,
+    });
+    arrowAnimRef.current = arrowAnim;
 
-      const container = containerRef.current;
+    const container = containerRef.current;
+    if (container) {
+      container.style.opacity = '0';
+    }
+
+    const playInitial = () => {
+      arrowAnim.goToAndStop(0, true);
+
+      setTimeout(() => {
+        arrowAnim.playSegments([0, 75], true);
+      }, 3200);
+
       if (container) {
-        container.style.opacity = '0'; // Start hidden
+        setTimeout(() => {
+          container.style.opacity = '1';
+        }, 3200);
       }
 
-      const playInitial = () => {
-        arrowAnim.goToAndStop(0, true);
+      const svg = arrowContainer.current?.querySelector('svg');
+      if (svg) svg.classList.add('drag-arrow');
+    };
 
-        setTimeout(() => {
-          arrowAnim.playSegments([0, 75], true);
-        }, 3200);
+    arrowAnim.addEventListener('DOMLoaded', playInitial);
 
-        if (container) {
-          setTimeout(() => {
-            container.style.opacity = '1'; // Fade in after 3.2s
-          }, 3200);
-        }
+    const fallback = setTimeout(() => {
+      if (!arrowAnim.isLoaded) {
+        playInitial();
+      }
+    }, 2000);
 
-        const svg = arrowContainer.current?.querySelector('svg');
-        if (svg) svg.classList.add('drag-arrow');
-      };
-
-      arrowAnim.addEventListener('DOMLoaded', playInitial);
-
-      const fallback = setTimeout(() => {
-        if (!arrowAnim.isLoaded) {
-          playInitial();
-        }
-      }, 2000);
-
-      return () => {
-        clearTimeout(fallback);
-        arrowAnim.removeEventListener('DOMLoaded', playInitial);
-        arrowAnim.destroy();
-      };
+    return () => {
+      clearTimeout(fallback);
+      arrowAnim.removeEventListener('DOMLoaded', playInitial);
+      arrowAnim.destroy();
+    };
   }, []);
 
-    //Intrsection Observer
-      useEffect(() => {
+  useEffect(() => {
     const container = containerRef.current;
     if (!container || !arrowAnimRef.current) return;
 
@@ -259,7 +308,7 @@ const SplitDragHandler = ({ split, setSplit }) => {
         }
       });
     }, {
-      threshold: 0.1, // adjust if needed
+      threshold: 0.1,
     });
 
     observer.observe(container);
@@ -300,7 +349,7 @@ const SplitDragHandler = ({ split, setSplit }) => {
               left: 0,
               right: 0,
               top: `${split}%`,
-              height: '96px',
+              height: '7rem',
               cursor: 'ns-resize',
               transform: 'translateY(-50%)',
             }
@@ -308,10 +357,10 @@ const SplitDragHandler = ({ split, setSplit }) => {
               top: 0,
               bottom: 0,
               left: `${split}%`,
-              width: '96px',
+              width: '7rem',
               cursor: 'ew-resize',
               transform: 'translateX(-50%)',
-              height: 'calc(100% - 5em)',
+              height: 'calc(100% - 6em)',
             }),
         zIndex: 3000,
         transition: isPortrait ? 'top 0s' : 'left 0s',
@@ -323,7 +372,7 @@ const SplitDragHandler = ({ split, setSplit }) => {
         ref={arrowContainer}
         style={{
           width: isPortrait ? '100%' : 'calc(100% - 2em)',
-          height: isPortrait ? 'calc(100% - 4em)' : 'calc(100% + 2em)',
+          height: isPortrait ? 'calc(100% - 4em)' : 'calc(100% + 3em)',
           pointerEvents: 'none',
           transform: isPortrait ? 'rotate(90deg)' : 'none',
           transformOrigin: 'center center',

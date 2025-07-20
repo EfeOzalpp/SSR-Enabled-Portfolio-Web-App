@@ -12,18 +12,21 @@ const ScrollController = () => {
     scrollContainerRef,
     isDragging,
     focusedProjectKey,
-    setFocusedProjectKey,
+    previousScrollY,
+    setPreviousScrollY,
   } = useProjectVisibility();
 
   const touchStartY = useRef(0);
   const lastScrollTime = useRef(0);
-  const SCROLL_DELAY = 300; // ms
+  const SCROLL_DELAY = 300;
+
+  const [justExitedFocusKey, setJustExitedFocusKey] = useState<string | null>(null);
+  const projectRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [viewportStyle, setViewportStyle] = useState({ height: '98dvh', paddingBottom: '2dvh' });
 
   const updateViewportStyle = () => {
     const width = window.innerWidth;
-
     if (width >= 1025) {
       setViewportStyle({ height: '96dvh', paddingBottom: '4dvh' });
     } else if (width >= 768 && width <= 1024) {
@@ -98,24 +101,50 @@ const ScrollController = () => {
     };
   }, [projectComponents.length, currentIndex, isDragging, focusedProjectKey]);
 
+  // Capture the key of the project before leaving focus mode
+  useEffect(() => {
+    if (focusedProjectKey) {
+      setJustExitedFocusKey(focusedProjectKey);
+    }
+  }, [focusedProjectKey]);
+
+  // After exiting focus mode, scroll to the original project by key
+  useEffect(() => {
+    if (!focusedProjectKey && justExitedFocusKey && scrollContainerRef.current) {
+      const el = projectRefs.current[justExitedFocusKey];
+      if (el) {
+        requestAnimationFrame(() => {
+          el.scrollIntoView({ behavior: 'auto' });
+          setJustExitedFocusKey(null);
+        });
+      }
+    }
+  }, [focusedProjectKey, justExitedFocusKey]);
+
   return (
     <div
       ref={scrollContainerRef}
-      className='SnappyScrollThingy'
+      className="SnappyScrollThingy"
       style={{
         height: viewportStyle.height,
         overflowY: 'scroll',
-        scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory', // Disable snap during focus
+        scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
         paddingBottom: viewportStyle.paddingBottom,
       }}
     >
       {projectComponents.map((item) =>
         (!focusedProjectKey || focusedProjectKey === item.key) && (
-          <div key={item.key} style={{ height: viewportStyle.height, scrollSnapAlign: 'start' }}>
+          <div
+            key={item.key}
+            ref={(el) => (projectRefs.current[item.key] = el)}
+            style={{ height: viewportStyle.height, scrollSnapAlign: 'start' }}
+          >
             {item.component}
-
-            {focusedProjectKey === item.key && (
+            {focusedProjectKey === item.key && item.title === 'Evade the Rock' ? (
               <RockEscapade />
+            ) : (
+              focusedProjectKey === item.key &&
+              console.log('[Focused] Not Evade the Rock:', item.title)
             )}
           </div>
         )
