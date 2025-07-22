@@ -13,7 +13,7 @@ const ProjectSwitchObserver = () => {
 
         if (ratio > 0.55) {
           if (target.id.includes('block-i')) {
-            setActiveProject('Enhanced Scoop');
+            setActiveProject('Ice Cream Scoop');
           } else if (target.id.includes('block-r')) {
             setActiveProject('Rotary Lamp');
           } else if (target.id.includes('block-g')) {
@@ -49,7 +49,7 @@ const ProjectSwitchObserver = () => {
 
         if (ratio > 0.55) {
           if (el.id.includes('block-i')) {
-            setActiveProject('Enhanced Scoop');
+            setActiveProject('Ice Cream Scoop');
           } else if (el.id.includes('block-r')) {
             setActiveProject('Rotary Lamp');
           } else if (el.id.includes('block-g')) {

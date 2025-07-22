@@ -25,7 +25,7 @@ const IceCreamScoop = () => {
   useEffect(() => {
     client
       .fetch(
-        `*[_type == "mediaBlock" && title match "Enhanced Scoop"][0]{
+        `*[_type == "mediaBlock" && title match "Ice Scoop"][0]{
           mediaOne { alt, asset->{url, _type} },
           mediaTwo { alt, asset->{url, _type} },
           tags

@@ -24,7 +24,7 @@ export const ViewProject = () => {
 
   // Colors for each project background
   const projectColors: { [key: string]: string } = {
-    'Enhanced Scoop': '150, 80, 60',
+    'Ice Cream Scoop': '150, 80, 60',
     'Rotary Lamp': '85, 95, 90',
     'Evade the Rock': '140, 110, 160',
   };

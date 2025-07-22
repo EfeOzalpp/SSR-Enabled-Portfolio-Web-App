@@ -15,7 +15,7 @@ const ThemeColorUpdater = () => {
 
     if (activeProject === 'Rotary Lamp') {
       topColor = 'rgb(18, 19, 19)';
-    } else if (activeProject === 'Enhanced Scoop') {
+    } else if (activeProject === 'Ice Cream Scoop') {
       topColor = 'rgb(18, 17, 17)';
     } else if (activeProject === 'Evade the Rock') {
       topColor = 'rgb(25, 25, 25)';

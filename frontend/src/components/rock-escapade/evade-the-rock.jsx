@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import lottie from 'lottie-web';
+import desktopOnboarding from '../../svg/desktop-onboarding.json';
+
 import { useProjectVisibility } from '../../utils/project-context.tsx';
 
 import { updateHighScore } from './updateHighScore.js';
@@ -7,7 +10,6 @@ import { useHighScoreSubscription } from './subscribeHighScore.js';
 import BlockGOnboarding from './block-g-onboarding.tsx';
 import ExitButton from './block-g-exit.tsx';
 import CoinCounter from './block-g-coin-counter.tsx';
-import CountdownDisplay from './block-g-countdown.tsx';
 import BlockGGameOver from './block-g-game-over.tsx';
 
 import { isMobile, isTablet, isDesktop } from 'react-device-detect';
@@ -29,12 +31,16 @@ const RockEscapade = () => {
   const [resetKey, setResetKey] = useState(0); // Reset overlay
   const [coins, setCoins] = useState(0); // Track coins 
 
-  const [showCountdown, setShowCountdown] = useState(false); // Track countdown 
-  const [countdown, setCountdown] = useState(3);
+  const lottieContainerRef = useRef(null);
+  const [showBeginText, setShowBeginText] = useState(false);
+  const [showOverlayBg, setShowOverlayBg] = useState(false);
+  const [shouldRenderOverlayBg, setShouldRenderOverlayBg] = useState(false);
 
   const [gameOverVisible, setGameOverVisible] = useState(false); // Track game over state
+  const [countdownPhase, setCountdownPhase] = useState(null);
 
   const [newHighScore, setNewHighScore] = useState(false);
+
 
   // Touch movement
   const touchStartRef = useRef({ x: 0, y: 0 });
@@ -43,13 +49,57 @@ const RockEscapade = () => {
   // Check if thee q5.js canvas is initialized
   useEffect(() => {
     if (!initialized) setInitialized(true);
-   }, [initialized]);
+  }, [initialized]);
 
-  // Onboarding component const
+  // Onboarding instructions lottie
+  useEffect(() => {
+    if (countdownPhase !== 'lottie' || !lottieContainerRef.current) return;
+
+    const anim = lottie.loadAnimation({
+      container: lottieContainerRef.current,
+      renderer: 'svg',
+      loop: false,
+      autoplay: true,
+      animationData: desktopOnboarding,
+    });
+
+    // After animation ends, show BEGIN!
+    anim.addEventListener('complete', () => {
+      setCountdownPhase('begin');
+    });
+
+    return () => anim.destroy();
+  }, [countdownPhase]);
+  // Render begin! after lottie 
+  useEffect(() => {
+    if (countdownPhase === 'begin') {
+      setShowBeginText(true);
+
+      const timeout = setTimeout(() => {
+        setShowBeginText(false);
+        setCountdownPhase(null); // <– hide Lottie only after "BEGIN!" disappears
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [countdownPhase]);
+ // Render bg overlay
+  useEffect(() => {
+    if (countdownPhase === 'lottie') {
+      setShowOverlayBg(true);
+      setShouldRenderOverlayBg(true);
+    } else if (countdownPhase === null) {
+      setShowOverlayBg(false);
+      setTimeout(() => {
+        setShouldRenderOverlayBg(false);
+      }, 400);
+    }
+  }, [countdownPhase]);
+
   const handleOnboardingStart = () => {
     setOverlayVisible(false);
     setBlockGClick(true);
-    setShowCountdown(true); // show countdown for 3 seconds
+    setCountdownPhase('lottie');
   };
 
   const handleRestart = () => {
@@ -73,7 +123,7 @@ const RockEscapade = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-    // Position above others when overlayVisible is false
+  // Position above others when overlayVisible is false
   useEffect(() => {
       if (!initialized) return;
 
@@ -91,9 +141,9 @@ const RockEscapade = () => {
           canvasContainer.style.zIndex = '';
         }
       }
-    }, [initialized, overlayVisible]);
+  }, [initialized, overlayVisible]);
 
-    // Remove spacebar or arrowdown to avoid page scroll during fullscreen mode    
+  // Remove spacebar or arrowdown to avoid page scroll during fullscreen mode    
   useEffect(() => {
       const handleWheel = (e) => {
         if (!overlayVisible) {
@@ -114,7 +164,7 @@ const RockEscapade = () => {
         window.removeEventListener('wheel', handleWheel);
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, [overlayVisible]);
+  }, [overlayVisible]);
 
   useEffect(() => {
     const navMenu = document.querySelector('.nav-menu');
@@ -197,7 +247,7 @@ const RockEscapade = () => {
         if (!overlayVisible) {
           setTimeout(() => {
             spawnEnabled = true;
-          }, 3000); // delay spawning by 3s for gameplay onboarding
+          }, 8000); // delay spawning by 3s for gameplay onboarding
         } else {
           spawnEnabled = true; // enable spawn immediately in preview
         }
@@ -457,6 +507,8 @@ const RockEscapade = () => {
 
       // Spawn octagons
       const spawnOctagons = () => {
+        if (!spawnEnabled) return;
+
         if (p.millis() - lastOctagonSpawnTime > 2000) {
           if (octagons.length === 0) { // only spawn one if none exist
             octagons.push(new Shape(p, true, true, verticalMode));
@@ -1050,31 +1102,14 @@ const RockEscapade = () => {
     };
   }, [initialized, overlayVisible]);
   
-  // Countdown for the game started
-  useEffect(() => {
-    if (!showCountdown) return;
-
-    setCountdown(3);
-    let current = 3;
-    const interval = setInterval(() => {
-      current -= 1;
-      setCountdown(current);
-      if (current <= 0) {
-        clearInterval(interval);
-        setShowCountdown(false);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [showCountdown]);
-
   // Exit button state changes 
   const handleExit = () => {
-    setOverlayVisible(true);
-    setBlockGClick(false);
-    setShowCountdown(false);
-    setGameOverVisible(false);
-    setResetKey(prev => prev + 1); // trigger onboarding reset
+  setOverlayVisible(true);
+  setBlockGClick(false);
+  setGameOverVisible(false);
+  setCountdownPhase(null); // Reset Lottie state
+  setShowBeginText(false);
+  setResetKey(prev => prev + 1);
   };
 
   // Event handler for touch based interaction
@@ -1159,16 +1194,26 @@ const RockEscapade = () => {
   const isNewHighScore = coins > highScore;
 
   // Return HTML structure
-return (
-  <section className="block-type-g" id="block-g" style={{ position: 'relative' }}>
-    <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
-  <BlockGOnboarding key={resetKey} onStart={handleOnboardingStart} resetTrigger={resetKey}/>
-    {!overlayVisible && <ExitButton onExit={handleExit} />}
-    {!overlayVisible && <CoinCounter coins={coins} highScore={displayHighScore} newHighScore={newHighScore} />}
-    {showCountdown && <CountdownDisplay countdown={countdown}/>}
-    {gameOverVisible && <BlockGGameOver onRestart={handleRestart} coins={coins} newHighScore={newHighScore}/>}
-  </section>
-  );
-};
+  return (
+    <section className="block-type-g" id="block-g" style={{ position: 'relative' }}>
+      <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
+    <BlockGOnboarding key={resetKey} onStart={handleOnboardingStart} resetTrigger={resetKey}/>
+      {!overlayVisible && <ExitButton onExit={handleExit} />}
+      {!overlayVisible && <CoinCounter coins={coins} highScore={displayHighScore} newHighScore={newHighScore} />}
+      {shouldRenderOverlayBg && (
+        <div className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`} />
+      )}
+      {(countdownPhase === 'lottie' || countdownPhase === 'begin') && (
+        <div ref={lottieContainerRef} id="lottie-onboarding" className="countdown-lottie" />
+      )}
+      {showBeginText && (
+          <div className="countdown-display">
+          <h1 className="countdown-text">BEGIN!</h1>
+          </div>
+        )}
+      {gameOverVisible && <BlockGGameOver onRestart={handleRestart} coins={coins} newHighScore={newHighScore}/>}
+    </section>
+    );
+  };
 
 export default RockEscapade;
