@@ -79,11 +79,11 @@ const IceCreamScoop = () => {
         style={
           isPortrait
             ? {
-                height: split <= 15 ? '100%' : `${100 - split}%`,
+                height: split <= 25 ? '100%' : `${100 - split}%`,
                 width: '100%',
                 position: 'absolute',
-                top: split <= 15 ? '0%' : `${split}%`,
-                transition: split <= 15 ? 'height 0.1s ease, top 0.1s ease' : 'none',
+                top: split <= 25 ? '0%' : `${split}%`,
+                transition: split <= 25 ? 'height 0.1s ease, top 0.1s ease' : 'none',
               }
             : {
                 width: `${100 - split}%`,

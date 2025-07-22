@@ -27,7 +27,6 @@
   z-index: 2000; /* Must be higher than canvas (which uses 1500) */
   pointer-events: none; /* Optional: So it doesn't block input */
 }
-
 .countdown-bg-overlay {
   position: fixed;
   top: 0;
@@ -40,7 +39,6 @@
   z-index: 1999;
   pointer-events: none;
 }
-
 .countdown-bg-overlay.hide {
   opacity: 0;
 }

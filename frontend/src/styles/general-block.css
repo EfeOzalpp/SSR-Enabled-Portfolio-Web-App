@@ -82,7 +82,7 @@
 /* Media Queries */
 @media (max-width: 767px) {
   .view-project-wrapper {bottom: 2dvh;}
-  .view-project-btn {padding: 8px 32px 0px 32px;}
+  .view-project-btn {padding: 8px 32px 0px 36px;}
   .nav-menu { padding-bottom: 12px; }
   .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6)); }
 }

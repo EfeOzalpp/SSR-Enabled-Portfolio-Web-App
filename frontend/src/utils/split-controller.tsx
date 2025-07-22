@@ -82,7 +82,7 @@ const playSegment = (() => {
       : (clientX / viewportWidth) * 100;
 
     newSplit = isNowPortrait
-      ? Math.max(15, Math.min(100, newSplit))
+      ? Math.max(25, Math.min(100, newSplit))
       : Math.max(0, Math.min(100, newSplit));
 
     console.log('[PointerMove] New split:', newSplit.toFixed(2));
@@ -349,7 +349,7 @@ const playSegment = (() => {
               left: 0,
               right: 0,
               top: `${split}%`,
-              height: '7rem',
+              height: '6rem',
               cursor: 'ns-resize',
               transform: 'translateY(-50%)',
             }

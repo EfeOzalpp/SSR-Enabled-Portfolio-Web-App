@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import desktopOnboarding from '../../svg/desktop-onboarding.json';
+import mobileOnboarding from '../../svg/mobile-onboarding.json';
 
 import { useProjectVisibility } from '../../utils/project-context.tsx';
 
@@ -60,7 +61,7 @@ const RockEscapade = () => {
       renderer: 'svg',
       loop: false,
       autoplay: true,
-      animationData: desktopOnboarding,
+      animationData: isMobile || isTablet ? mobileOnboarding : desktopOnboarding,
     });
 
     // After animation ends, show BEGIN!
