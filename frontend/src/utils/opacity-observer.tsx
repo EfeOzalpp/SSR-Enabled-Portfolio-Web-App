@@ -30,6 +30,7 @@ const OpacityObserver = () => {
       '#rotary-media-1',
       '#rotary-media-2',
       '#block-g',
+      '#data-visualization-media'
     ];
 
     const applyFinalOpacity = (el: HTMLElement) => {
@@ -59,7 +60,7 @@ const OpacityObserver = () => {
 
       targets.forEach(el => {
         observer.observe(el);
-        applyFinalOpacity(el); // ✅ Now safe
+        applyFinalOpacity(el); 
       });
     };
 

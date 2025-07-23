@@ -18,6 +18,8 @@ const ProjectSwitchObserver = () => {
             setActiveProject('Rotary Lamp');
           } else if (target.id.includes('block-g')) {
             setActiveProject('Evade the Rock');
+          } else if (target.id.includes('block-d')) {
+            setActiveProject('Data Visualization');
           }
         }
       });
@@ -25,7 +27,7 @@ const ProjectSwitchObserver = () => {
       threshold: Array.from({ length: 101 }, (_, i) => i / 100),
     });
 
-    const ids = ['#block-i', '#block-r', '#block-g'];
+    const ids = ['#block-i', '#block-r', '#block-g', '#block-d'];
 
     const checkAndObserve = () => {
       const targets = ids
@@ -54,7 +56,8 @@ const ProjectSwitchObserver = () => {
             setActiveProject('Rotary Lamp');
           } else if (el.id.includes('block-g')) {
             setActiveProject('Evade the Rock');
-          }
+          } else if (el.id.includes('block-d')) 
+            setActiveProject('Data Visualization');
         }
       });
     };
@@ -65,7 +68,6 @@ const ProjectSwitchObserver = () => {
       observer.disconnect();
     };
   }, [setActiveProject, focusedProjectKey]); // <-- Add focusedProjectKey here to re-run useEffect
-  //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   return null;
 };

@@ -8,7 +8,7 @@
 .title-lottie { width: 12.8em; }
 .title-lottie:hover { scale: 1.02; padding-left: 0.06em; }
 .github-lottie, .linkedin-lottie { width: 2.4em; }
-.github-lottie:hover, .linkedin-lottie:hover { scale: 1.1; }
+.github-lottie:hover, .linkedin-lottie:hover { scale: 1.03; }
 
 /* View Project */
 .view-project-wrapper { position: fixed; width: 100%; display: flex; z-index: 1000; flex-direction: row; flex-wrap: wrap; justify-content: center; pointer-events: none;}
@@ -57,7 +57,7 @@
 
 /* Hover style */
 .view-project-btn:hover .project-view { transform: scale(1.05); }
-.view-project-btn:hover .view-project-arrow { transform: scale(1.2); }
+.view-project-btn:hover .view-project-arrow { transform: scale(1.1); }
 .view-project-btn:hover { gap: 1.65em; }
 
 .view-project-background {

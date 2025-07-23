@@ -86,6 +86,23 @@ const ScrollController = () => {
     }
   };
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (isDragging || focusedProjectKey) return;
+
+    let newIndex = currentIndex;
+
+    if (e.key === 'ArrowDown') {
+      newIndex = Math.min(currentIndex + 1, projectComponents.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      newIndex = Math.max(currentIndex - 1, 0);
+    }
+
+    if (newIndex !== currentIndex) {
+      setCurrentIndex(newIndex);
+      window.dispatchEvent(new CustomEvent('arrowWiggle'));
+    }
+  };
+
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -93,11 +110,13 @@ const ScrollController = () => {
     container.addEventListener('wheel', handleWheel);
     container.addEventListener('touchstart', handleTouchStart);
     container.addEventListener('touchmove', handleTouchMove);
-
+    window.addEventListener('keydown', handleKeyDown);
+    
     return () => {
       container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [projectComponents.length, currentIndex, isDragging, focusedProjectKey]);
 

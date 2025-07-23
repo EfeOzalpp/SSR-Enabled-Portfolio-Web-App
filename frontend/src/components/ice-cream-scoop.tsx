@@ -8,7 +8,7 @@ const IceCreamScoop = () => {
   const videoRef = useRef(null);
   const [split, setSplit] = useState(() => {
     const isMobile = window.innerWidth < 768; // adjust breakpoint as needed
-    return isMobile ? 40 : 50;
+    return isMobile ? 40 : 35;
   });
 
 

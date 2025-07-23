@@ -27,6 +27,7 @@ export const ViewProject = () => {
     'Ice Cream Scoop': '147, 149, 146',
     'Rotary Lamp': '85, 95, 90',
     'Evade the Rock': '140, 110, 160',
+    'Data Visualization': '10, 146, 205'
   };
 
   // Gets rgba background color based on active project and hover state
@@ -190,7 +191,7 @@ export const ViewProject = () => {
       });
     }, { threshold: 0.5 });
 
-    const ids = ['#block-i', '#block-r', '#block-g'];
+    const ids = ['#block-i', '#block-r', '#block-g', '#block-d'];
 
     const checkAndObserve = () => {
       const targets = ids
