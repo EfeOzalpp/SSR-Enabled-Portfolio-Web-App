@@ -16,12 +16,17 @@ const DataVisualizationBlock = () => {
       .then(setData);
   }, []);
 
-  useEffect(() => {
+    useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.muted = true;
-      videoRef.current.play().catch(() => {});
+        const video = videoRef.current;
+        video.muted = true;
+        video.play()
+        .then(() => {
+            video.playbackRate = 0.8; // Slow down by 20%
+        })
+        .catch(() => {});
     }
-  }, [data]);
+    }, [data]);
 
   if (!data) return null;
 

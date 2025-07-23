@@ -42,6 +42,7 @@ const RockEscapade = () => {
 
   const [newHighScore, setNewHighScore] = useState(false);
 
+  const [isVisible, setIsVisible] = useState(false); // unmount when not used for performance
 
   // Touch movement
   const touchStartRef = useRef({ x: 0, y: 0 });
@@ -70,7 +71,7 @@ const RockEscapade = () => {
     });
 
     return () => anim.destroy();
-  }, [countdownPhase]);
+    }, [countdownPhase]);
   // Render begin! after lottie 
   useEffect(() => {
     if (countdownPhase === 'begin') {
@@ -84,7 +85,7 @@ const RockEscapade = () => {
       return () => clearTimeout(timeout);
     }
   }, [countdownPhase]);
- // Render bg overlay
+  // Render bg overlay
   useEffect(() => {
     if (countdownPhase === 'lottie') {
       setShowOverlayBg(true);
@@ -180,9 +181,29 @@ const RockEscapade = () => {
 
   }, [overlayVisible]);
 
+  // unmount canvas when not in view 
+  useEffect(() => {
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      setIsVisible(entry.isIntersecting);
+    },
+    {
+      root: null,
+      threshold: 0.1, // trigger when at least 10% is visible
+    }
+  );
+
+  const el = canvasRef.current;
+  if (el) observer.observe(el);
+
+  return () => {
+    if (el) observer.unobserve(el);
+  };
+  }, []);
+
   // Q5.js canvas features
   useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || !isVisible) return;
 
     const sketch = (p) => {
 
@@ -1101,7 +1122,7 @@ const RockEscapade = () => {
       if (q5Instance && q5Instance.remove) q5Instance.remove();
       if (canvasRef.current) canvasRef.current.innerHTML = '';
     };
-  }, [initialized, overlayVisible]);
+  }, [initialized, overlayVisible, isVisible]);
   
   // Exit button state changes 
   const handleExit = () => {
