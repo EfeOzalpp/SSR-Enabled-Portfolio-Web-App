@@ -1,11 +1,16 @@
+// Onboarding for the evade the rock
 import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
+import { Tooltip } from 'react-tooltip';
 import { useProjectVisibility } from '../../utils/project-context.tsx';
+import ToolBar from '../../utils/toolbar.tsx';
 
 const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [mouseIdle, setMouseIdle] = useState(false);
+
   const lottieRef = useRef(null);
   const containerRef = useRef(null);
   const lottieInstance = useRef(null);
@@ -21,13 +26,9 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const handleClick = () => {
     if (focusedProjectKey) {
       setPreviousScrollY(window.scrollY);
-
       setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
-        } else {
-          window.scrollTo({ top: 0, behavior: 'auto' });
-        }
+        const target = scrollContainerRef.current || window;
+        target.scrollTo({ top: 0, behavior: 'auto' });
       }, 0);
     }
 
@@ -35,7 +36,6 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
     setIsFadingOut(true);
   };
 
-  // Restore scroll position when exiting focus mode
   useEffect(() => {
     if (!focusedProjectKey && previousScrollY !== null) {
       window.scrollTo({ top: previousScrollY, behavior: 'auto' });
@@ -45,9 +45,7 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
 
   const initializeLottie = () => {
     if (lottieRef.current) {
-      if (lottieInstance.current) {
-        lottieInstance.current.destroy();
-      }
+      if (lottieInstance.current) lottieInstance.current.destroy();
 
       lottieInstance.current = lottie.loadAnimation({
         container: lottieRef.current,
@@ -77,10 +75,8 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             initializeLottie();
-            if (lottieInstance.current) {
-              lottieInstance.current.stop();
-              lottieInstance.current.playSegments([0, lottieInstance.current.totalFrames], true);
-            }
+            lottieInstance.current?.stop();
+            lottieInstance.current?.playSegments([0, lottieInstance.current.totalFrames], true);
           } else {
             destroyLottie();
           }
@@ -89,9 +85,7 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
       { threshold: 0.1 }
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+    if (containerRef.current) observer.observe(containerRef.current);
 
     return () => {
       observer.disconnect();
@@ -101,9 +95,7 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
 
   useEffect(() => {
     if (isFadingOut) {
-      const timeout = setTimeout(() => {
-        setVisible(false);
-      }, 300);
+      const timeout = setTimeout(() => setVisible(false), 300);
       return () => clearTimeout(timeout);
     }
   }, [isFadingOut]);
@@ -117,22 +109,75 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
 
   if (!visible) return null;
 
+  const tooltipRGB = '140, 110, 160';
+  const backgroundColor = `rgba(${tooltipRGB}, 0.6)`;
+
   return (
-    <div
-      className="block-g-onboarding"
-      onClick={handleClick}
-      ref={containerRef}
-      style={{
-        opacity: isFadingOut ? 0 : 1,
-        transition: 'opacity 0.3s ease',
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <div ref={lottieRef} className="coin"></div>
-      <h1 className="onboarding-text">Click to Play!</h1>
-    </div>
+    <>
+      <ToolBar onIdleChange={setMouseIdle} />
+
+      {/* Tooltip host layer */}
+      <div
+        data-tooltip-id="blockg-tooltip"
+        data-tooltip-content=" "
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 998,
+          pointerEvents: 'auto',
+        }}
+      />
+
+      {/* Interactive content (NOT tooltip-bound) */}
+      <div
+        className="block-g-onboarding"
+        ref={containerRef}
+        onClick={handleClick}
+        style={{
+          opacity: isFadingOut ? 0 : 1,
+          transition: 'opacity 0.3s ease',
+          pointerEvents: 'none',
+          zIndex: 999,
+        }}
+      >
+        <div
+          ref={lottieRef}
+          className="coin"
+          style={{ pointerEvents: 'auto', zIndex: 1001 }}
+        />
+        <h1
+          className="onboarding-text"
+          style={{ pointerEvents: 'auto', zIndex: 1001 }}
+        >
+          Click to Play!
+        </h1>
+      </div>
+
+      <Tooltip
+        id="blockg-tooltip"
+        place="top"
+        float
+        positionStrategy="absolute"
+        unstyled
+        noArrow
+        className={mouseIdle ? 'tooltip-hidden' : ''}
+        style={{
+          backgroundColor,
+        }}
+        render={() => (
+          <div className="custom-tooltip-blur">
+            <span className="tooltip-tag">#q5.js Canvas</span>
+            <span className="tooltip-tag">#Gamification</span>
+            <span className="tooltip-tag">#Lottie Animation</span>
+          </div>
+        )}
+      />
+    </>
   );
 };
 
 export default BlockGOnboarding;
+

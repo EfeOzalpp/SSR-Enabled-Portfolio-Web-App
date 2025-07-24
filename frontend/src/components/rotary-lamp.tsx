@@ -1,16 +1,23 @@
+// Rotary lamp hero section
 import { useEffect, useRef, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
+import ToolBar from '../utils/toolbar.tsx';
+import { useVideoVisibility } from '../utils/video-observer.tsx';
+import { Tooltip } from 'react-tooltip';
 
 const RotaryLamp = () => {
   const [data, setData] = useState(null);
-  const videoRef = useRef(null);
   const [split, setSplit] = useState(() => {
     const isMobile = window.innerWidth < 768;
-    return isMobile ? 60 : 50;
+    return isMobile ? 55 : 50;
   });
-
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
+  const [mouseIdle, setMouseIdle] = useState(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useVideoVisibility(videoRef, containerRef);
 
   useEffect(() => {
     client
@@ -25,36 +32,30 @@ const RotaryLamp = () => {
   }, []);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = true;
-      videoRef.current.play().catch(() => {});
-    }
-  }, [data]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsPortrait(window.innerHeight > window.innerWidth);
-    };
+    const handleResize = () => setIsPortrait(window.innerHeight > window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   if (!data) return null;
 
-  // Swap media based on orientation
   const media1 = isPortrait ? data.mediaOne : data.mediaTwo;
   const media2 = isPortrait ? data.mediaTwo : data.mediaOne;
-
-  const isMedia1Video =
-    media1?.asset._type === 'sanity.fileAsset' &&
-    media1?.asset.url.match(/\.(mp4|webm|ogg)$/);
 
   const isMedia2Video =
     media2?.asset._type === 'sanity.fileAsset' &&
     media2?.asset.url.match(/\.(mp4|webm|ogg)$/);
 
+  const alt1 = media1?.alt || 'Rotary Lamp media';
+  const alt2 = media2?.alt || 'Rotary Lamp media';
+
+  const tooltipRGB = '85, 95, 90';
+  const backgroundColor = `rgba(${tooltipRGB}, 0.6)`;
+
   return (
-    <section className="block-type-1" id="block-r" style={{ position: 'relative' }}>
+    <section ref={containerRef} className="block-type-1" id="block-r" style={{ position: 'relative' }}>
+      <ToolBar onIdleChange={setMouseIdle} />
+
       <div
         className="media-content-1"
         style={
@@ -69,28 +70,15 @@ const RotaryLamp = () => {
             : { width: `${split}%`, height: '100%', position: 'absolute', left: 0 }
         }
       >
-        {isMedia1Video ? (
-          <video
-            ref={videoRef}
-            src={media1.asset.url}
-            className="media-item-1"
-            id="rotary-media-1"
-            loop
-            autoPlay
-            playsInline
-            muted
-            preload="auto"
-            style={{ pointerEvents: 'all', width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <img
-            src={media1?.asset.url}
-            alt={media1?.alt}
-            className="media-item-1"
-            id="rotary-media-1"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        )}
+        <img
+          src={media1?.asset.url}
+          alt={alt1}
+          className="media-item-1"
+          id="rotary-media-1"
+          data-tooltip-id="rotary-tooltip"
+          data-tooltip-content=" "
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
       </div>
 
       <SplitDragHandler split={split} setSplit={setSplit} />
@@ -121,22 +109,50 @@ const RotaryLamp = () => {
             className="media-item-2"
             id="rotary-media-2"
             loop
-            autoPlay
             playsInline
             muted
-            preload="auto"
+            preload="metadata"
+            aria-label={alt2}
+            data-tooltip-id="rotary-tooltip"
+            data-tooltip-content=" "
             style={{ pointerEvents: 'all', width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
           <img
             src={media2?.asset.url}
-            alt={media2?.alt}
+            alt={alt2}
             className="media-item-2"
             id="rotary-media-2"
+            data-tooltip-id="rotary-tooltip"
+            data-tooltip-content=" "
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}
       </div>
+
+      <Tooltip
+        id="rotary-tooltip"
+        place="top"
+        float
+        positionStrategy="absolute"
+        unstyled
+        noArrow
+        className={mouseIdle ? 'tooltip-hidden' : ''}
+        style={{
+          backgroundColor,
+        }}
+        render={() => (
+          <div className="custom-tooltip-blur">
+            {data.tags && data.tags.length > 0 ? (
+              data.tags.map((tag, i) => (
+                <span key={i} className="tooltip-tag">{tag}</span>
+              ))
+            ) : (
+              <p className="tooltip-tag">No tags</p>
+            )}
+          </div>
+        )}
+      />
     </section>
   );
 };

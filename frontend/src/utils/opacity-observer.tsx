@@ -1,5 +1,6 @@
 /* Opacity Observer */
 import { useEffect } from 'react';
+import { isMobile } from 'react-device-detect';
 import { useProjectVisibility } from './project-context.tsx';
 
 const OpacityObserver = () => {
@@ -11,12 +12,13 @@ const OpacityObserver = () => {
         const target = entry.target as HTMLElement;
         const ratio = entry.intersectionRatio;
 
-        if (focusedProjectKey) return; // If focused, let another opacity logic handle it
+        if (focusedProjectKey) return;
 
+        const baseMin = isMobile ? 0.1 : 0.3; // stronger fade on mobile
         if (ratio >= 0.75) {
           target.style.opacity = '1';
         } else {
-          const mappedOpacity = 0.3 + (ratio / 0.75) * (1 - 0.3);
+          const mappedOpacity = baseMin + (ratio / 0.75) * (1 - baseMin);
           target.style.opacity = mappedOpacity.toString();
         }
       });
@@ -40,10 +42,11 @@ const OpacityObserver = () => {
         0
       ), 1);
 
+      const baseMin = isMobile ? 0.1 : 0.4;
       if (ratio >= 0.75) {
         el.style.opacity = '1';
       } else {
-        const mappedOpacity = 0.4 + (ratio / 0.75) * (1 - 0.4);
+        const mappedOpacity = baseMin + (ratio / 0.75) * (1 - baseMin);
         el.style.opacity = mappedOpacity.toString();
       }
     };
@@ -60,7 +63,7 @@ const OpacityObserver = () => {
 
       targets.forEach(el => {
         observer.observe(el);
-        applyFinalOpacity(el); 
+        applyFinalOpacity(el);
       });
     };
 

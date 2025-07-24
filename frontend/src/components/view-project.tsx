@@ -33,10 +33,10 @@ export const ViewProject = () => {
   // Gets rgba background color based on active project and hover state
   const getBackgroundColor = () => {
     const rgb = projectColors[activeProject];
-    if (!rgb) return 'rgba(240, 240, 240, 0.4)';
+    if (!rgb) return 'rgba(240, 240, 240, 0.6)';
 
     // Hover increases opacity for more prominence
-    const opacity = hovered ? 0.8 : 0.3;
+    const opacity = hovered ? 1 : 0.6;
     return `rgba(${rgb}, ${opacity})`;
   };
 

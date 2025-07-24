@@ -1,7 +1,7 @@
 /* Block type 1 styles */
 .block-type-1 { max-width: 100%; display: flex; flex-wrap: wrap; align-content: space-between;}
 
-.media-content-1, .media-content-2 { width: 100%; height: 50%; display: flex; flex-wrap: wrap; justify-content: center; }
+.media-content-1, .media-content-2 { z-index: 750; width: 100%; height: 50%; display: flex; flex-wrap: wrap; justify-content: center; }
 
 .media-item-1, .media-item-2 { height: 100%; width: 100%; object-fit: cover; }
 

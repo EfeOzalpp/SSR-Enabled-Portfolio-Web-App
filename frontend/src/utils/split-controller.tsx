@@ -44,21 +44,17 @@ const playSegment = (() => {
     }
 
     currentSegment = segment;
-    console.log('[Animation] Playing segment', segment);
 
     const onComplete = () => {
       arrowAnim.removeEventListener('complete', onComplete);
       lastCompleteHandler = null;
 
       const currentFrame = arrowAnim.currentFrame;
-      console.log('[Animation] Segment complete. Current frame:', currentFrame);
 
       // Only hold if animation stopped on expected range
       if (currentSegment?.[1] !== undefined && Math.abs(currentFrame - currentSegment[1]) <= 2) {
-        console.log('[Animation] Holding at', holdFrame);
         arrowAnim.goToAndStop(holdFrame, true);
       } else {
-        console.warn('[Animation] Skipped holding because animation interrupted or cut off.');
       }
     };
 
@@ -85,7 +81,6 @@ const playSegment = (() => {
       ? Math.max(25, Math.min(100, newSplit))
       : Math.max(0, Math.min(100, newSplit));
 
-    console.log('[PointerMove] New split:', newSplit.toFixed(2));
     setSplit(newSplit);
   };
 
@@ -120,17 +115,14 @@ const playSegment = (() => {
 
   const startDragging = (e) => {
     e.preventDefault();
-    console.log('[StartDragging] Event:', e.type);
     isDraggingRef.current = true;
     setIsDragging(true);
 
     const arrowAnim = arrowAnimRef.current;
     if (arrowAnim) {
       if (isTouchDevice) {
-        console.log('[StartDragging] Touch: play [0, 25]');
         arrowAnim.playSegments([0, 25], true);
       } else {
-        console.log('[StartDragging] Desktop: stop at 25');
         arrowAnim.goToAndStop(25, true);
       }
     }
@@ -142,20 +134,16 @@ const playSegment = (() => {
   };
 
   const stopDragging = () => {
-    console.log('[StopDragging]');
     isDraggingRef.current = false;
     setIsDragging(false);
 
     const arrowAnim = arrowAnimRef.current;
     if (arrowAnim) {
       if (isTouchDevice) {
-        console.log('[StopDragging] Touch: play [25, 75]');
         arrowAnim.playSegments([25, 75], true);
       } else if (isHoveringRef.current) {
-        console.log('[StopDragging] Hovering: stop at 25');
         arrowAnim.goToAndStop(25, true);
       } else {
-        console.log('[StopDragging] Not hovering: play [25, 75]');
         arrowAnim.playSegments([25, 75], true);
       }
     }
@@ -167,32 +155,25 @@ const playSegment = (() => {
   };
 
   const handleMouseEnter = () => {
-    console.log('[MouseEnter]');
     isHoveringRef.current = true;
 
     const arrowAnim = arrowAnimRef.current;
     if (isDraggingRef.current) {
-      console.log('[MouseEnter] Dragging: stop at 25');
       if (arrowAnim) arrowAnim.goToAndStop(25, true);
       return;
     }
 
-    console.log('[MouseEnter] Idle: play [0, 25]');
     playSegment([0, 25], 25);
   };
 
   const handleMouseLeave = () => {
-    console.log('[MouseLeave]');
     isHoveringRef.current = false;
 
     const arrowAnim = arrowAnimRef.current;
     if (isDraggingRef.current) {
-      console.log('[MouseLeave] Dragging: stop at 25');
       if (arrowAnim) arrowAnim.goToAndStop(25, true);
       return;
     }
-
-    console.log('[MouseLeave] Idle: play [25, 75]');
     playSegment([25, 75], 75);
   };
 

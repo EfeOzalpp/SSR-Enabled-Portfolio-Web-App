@@ -44,10 +44,6 @@ const RockEscapade = () => {
 
   const [isVisible, setIsVisible] = useState(false); // unmount when not used for performance
 
-  // Touch movement
-  const touchStartRef = useRef({ x: 0, y: 0 });
-  const activeTouchRef = useRef(false);
-
   // Check if thee q5.js canvas is initialized
   useEffect(() => {
     if (!initialized) setInitialized(true);
@@ -1141,12 +1137,9 @@ const RockEscapade = () => {
     const attachTouchListeners = () => {
       const canvas = document.querySelector('.evade-the-rock canvas');
       if (!canvas) {
-        console.log('Canvas not found yet for touch listener – retrying.');
         setTimeout(attachTouchListeners, 100);
         return;
       }
-
-      console.log('Attaching touch listeners to canvas for impulse-based drag.');
 
       let lastTouchPosition = null;
 
