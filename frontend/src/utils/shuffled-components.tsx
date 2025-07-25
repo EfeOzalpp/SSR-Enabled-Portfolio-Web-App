@@ -11,14 +11,31 @@ interface ProjectComponent {
   component: ReactElement;
 }
 
-export const getShuffledComponents = (): ProjectComponent[] => {
+export const getShuffledComponents = (
+  setMouseIdle: (idle: boolean) => void
+): ProjectComponent[] => {
   const components: ProjectComponent[] = [
-    { key: 'rotary', title: 'Rotary Lamp', component: <RotaryLamp key="rotary" /> },
-    { key: 'scoop', title: 'Ice Scoop', component: <EnhancedScoop key="scoop" /> },
-    { key: 'dataviz', title: 'Data Visualization', component: <DataVisualization key="dataviz" /> },
-    { key: 'game', title: 'Evade the Rock', component: <ProcessingGame key="game" /> },
+    {
+      key: 'rotary',
+      title: 'Rotary Lamp',
+      component: <RotaryLamp key="rotary" onIdleChange={setMouseIdle} />,
+    },
+    {
+      key: 'scoop',
+      title: 'Ice Scoop',
+      component: <EnhancedScoop key="scoop" onIdleChange={setMouseIdle} />,
+    },
+    {
+      key: 'dataviz',
+      title: 'Data Visualization',
+      component: <DataVisualization key="dataviz" onIdleChange={setMouseIdle} />,
+    },
+    {
+      key: 'game',
+      title: 'Evade the Rock',
+      component: <ProcessingGame key="game" onIdleChange={setMouseIdle} />,
+    },
   ];
+
   return components.sort(() => Math.random() - 0.5);
 };
-
-export default getShuffledComponents;

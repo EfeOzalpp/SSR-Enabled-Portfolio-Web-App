@@ -1,19 +1,18 @@
-// Onboarding for the evade the rock
 import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
-import { Tooltip } from 'react-tooltip';
 import { useProjectVisibility } from '../../utils/project-context.tsx';
 import ToolBar from '../../utils/toolbar.tsx';
 
 const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const [mouseIdle, setMouseIdle] = useState(false);
 
   const lottieRef = useRef(null);
   const containerRef = useRef(null);
   const lottieInstance = useRef(null);
+
+  const { setMouseIdle } = useProjectVisibility();
 
   const {
     focusedProjectKey,
@@ -109,17 +108,15 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
 
   if (!visible) return null;
 
-  const tooltipRGB = '140, 110, 160';
-  const backgroundColor = `rgba(${tooltipRGB}, 0.6)`;
-
   return (
     <>
       <ToolBar onIdleChange={setMouseIdle} />
 
-      {/* Tooltip host layer */}
+      {/* Global tooltip trigger layer */}
       <div
-        data-tooltip-id="blockg-tooltip"
+        data-tooltip-id="global-tooltip"
         data-tooltip-content=" "
+        data-tooltip-key="block-g"
         style={{
           position: 'absolute',
           top: 0,
@@ -131,7 +128,6 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
         }}
       />
 
-      {/* Interactive content (NOT tooltip-bound) */}
       <div
         className="block-g-onboarding"
         ref={containerRef}
@@ -152,32 +148,11 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
           className="onboarding-text"
           style={{ pointerEvents: 'auto', zIndex: 1001 }}
         >
-          Click to Play!
+          Click Here to Play!
         </h1>
       </div>
-
-      <Tooltip
-        id="blockg-tooltip"
-        place="top"
-        float
-        positionStrategy="absolute"
-        unstyled
-        noArrow
-        className={mouseIdle ? 'tooltip-hidden' : ''}
-        style={{
-          backgroundColor,
-        }}
-        render={() => (
-          <div className="custom-tooltip-blur">
-            <span className="tooltip-tag">#q5.js Canvas</span>
-            <span className="tooltip-tag">#Gamification</span>
-            <span className="tooltip-tag">#Lottie Animation</span>
-          </div>
-        )}
-      />
     </>
   );
 };
 
 export default BlockGOnboarding;
-

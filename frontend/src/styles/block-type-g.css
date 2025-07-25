@@ -23,7 +23,6 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  transform: scale(0.65);
   z-index: 2000; /* Must be higher than canvas (which uses 1500) */
   pointer-events: none; /* Optional: So it doesn't block input */
 }
@@ -33,7 +32,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(25,25,25, 0.6); /* this is your translucent black */
+  background: rgb(27, 27, 28); /* this is your translucent black */
   opacity: 1;
   transition: opacity 0.4s ease;
   z-index: 1999;
@@ -71,6 +70,7 @@
 
 @media (orientation: landscape) {
   .block-g-onboarding { flex-direction: row; }
+  .onboarding-text {padding-top: 2.4em; padding-bottom: 2.4em;}
 }
 
 @media (max-width: 768px) {
@@ -78,6 +78,7 @@
   .coin { width: 14em; } 
   .gameover-text-area {bottom: 168px;}
   .gameover-lottie {width: calc(100% + 32em); margin-top: -168px;}
+  .countdown-lottie  {transform: scale(0.9);}
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -86,6 +87,7 @@
   .coin { width: 12em; } 
   .gameover-text-area {bottom: 144px;}
   .gameover-lottie {width: calc(100% + 24em); margin-top: -144px;}
+    .countdown-lottie  {transform: scale(0.8);}
 }
 
 @media (min-width: 1025px) {
@@ -96,5 +98,6 @@
   .gameover-lottie {width: calc(80%); margin-top: -144px;}
   .gameover-text-area h1 {margin-bottom: 0em;}
   .gameover-coin-count h2 {margin: 0.2em 0 0.6em 0;}
-   .gameover-cta {margin-top: 2.4em;}
+  .gameover-cta {margin-top: 2.4em;}
+  .countdown-lottie  {transform: scale(0.65);}
 }

@@ -14,11 +14,13 @@ const ThemeColorUpdater = () => {
     let topColor = 'rgb(24, 24, 26)';
 
     if (activeProject === 'Rotary Lamp') {
-      topColor = 'rgb(18, 19, 19)';
+      topColor = 'rgba(19, 21, 21, 1)';
     } else if (activeProject === 'Ice Cream Scoop') {
-      topColor = 'rgb(18, 17, 17)';
+      topColor = 'rgba(23, 27, 24, 1)';
     } else if (activeProject === 'Evade the Rock') {
       topColor = 'rgb(25, 25, 25)';
+    } else if (activeProject === 'Data Visualization') {
+      topColor = 'rgba(28, 30, 31, 1)';
     }
 
     metaThemeColor.setAttribute('content', topColor);
@@ -46,9 +48,9 @@ const ThemeColorUpdater = () => {
           linear-gradient(
             to bottom,
             rgba(${r}, ${g}, ${b}, 0.5) 0%,
-            rgba(${r}, ${g}, ${b}, 0.4) 25%,
-            rgba(${r}, ${g}, ${b}, 0.3) 50%,
-            rgba(${r}, ${g}, ${b}, 0.2) 66%,
+            rgba(${r}, ${g}, ${b}, 0.3) 20%,
+            rgba(${r}, ${g}, ${b}, 0.2) 30%,
+            rgba(${r}, ${g}, ${b}, 0.1) 60%,
             transparent 100%
           )
         `;

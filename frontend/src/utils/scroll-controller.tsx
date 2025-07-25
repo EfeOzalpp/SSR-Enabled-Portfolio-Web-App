@@ -42,21 +42,37 @@ const ScrollController = () => {
     return () => window.removeEventListener('resize', updateViewportStyle);
   }, []);
 
+  const accumulatedDelta = useRef(0);
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const handleWheel = (e: WheelEvent) => {
     if (isDragging || focusedProjectKey) return;
 
-    let newIndex = currentIndex;
-    if (e.deltaY > 50) {
-      newIndex = Math.min(currentIndex + 1, projectComponents.length - 1);
-    } else if (e.deltaY < -50) {
-      newIndex = Math.max(currentIndex - 1, 0);
+    accumulatedDelta.current += e.deltaY;
+
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current);
     }
 
-    if (newIndex !== currentIndex) {
-      setCurrentIndex(newIndex);
-      window.dispatchEvent(new CustomEvent('arrowWiggle'));
+    scrollTimeout.current = setTimeout(() => {
+      accumulatedDelta.current = 0;
+    }, 250); // reset if they stop scrolling for 250ms
+
+    const SCROLL_THRESHOLD = 10000; // adjust this to taste
+    const steps = Math.floor(accumulatedDelta.current / SCROLL_THRESHOLD);
+
+    if (steps !== 0) {
+      let newIndex = currentIndex + Math.sign(steps);
+      newIndex = Math.max(0, Math.min(projectComponents.length - 1, newIndex));
+
+      if (newIndex !== currentIndex) {
+        setCurrentIndex(newIndex);
+        window.dispatchEvent(new CustomEvent('arrowWiggle'));
+        accumulatedDelta.current = 0; // reset after scroll
+      }
     }
   };
+
 
   const handleTouchStart = (e: TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -121,6 +137,22 @@ const ScrollController = () => {
   }, [projectComponents.length, currentIndex, isDragging, focusedProjectKey]);
 
   useEffect(() => {
+  const container = scrollContainerRef.current;
+  if (!container) return;
+
+  container.classList.add('no-snap');
+  const timeout = setTimeout(() => container.classList.remove('no-snap'), 800);
+  return () => clearTimeout(timeout);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const targetEl = projectRefs.current[projectComponents[currentIndex]?.key];
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [currentIndex, projectComponents]);
+
+  useEffect(() => {
     if (focusedProjectKey) {
       const keysToHide = projectComponents
         .filter(p => p.key !== focusedProjectKey)
@@ -160,6 +192,7 @@ const ScrollController = () => {
         height: viewportStyle.height,
         overflowY: 'scroll',
         scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
+        scrollBehavior: 'smooth',
         paddingBottom: viewportStyle.paddingBottom,
         scrollbarWidth: 'none', // Firefox
         msOverflowStyle: 'none', // IE 10+

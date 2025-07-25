@@ -62,6 +62,7 @@ const OpacityObserver = () => {
       }
 
       targets.forEach(el => {
+        el.style.transition = 'opacity 0.1s ease 0.1s';
         observer.observe(el);
         applyFinalOpacity(el);
       });

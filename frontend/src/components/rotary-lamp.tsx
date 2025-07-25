@@ -1,34 +1,31 @@
-// Rotary lamp hero section
+// src/sections/RotaryLamp.tsx
 import { useEffect, useRef, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
 import ToolBar from '../utils/toolbar.tsx';
 import { useVideoVisibility } from '../utils/video-observer.tsx';
-import { Tooltip } from 'react-tooltip';
 
-const RotaryLamp = () => {
+const RotaryLamp = ({ onIdleChange }) => {
   const [data, setData] = useState(null);
-  const [split, setSplit] = useState(() => {
-    const isMobile = window.innerWidth < 768;
-    return isMobile ? 55 : 50;
-  });
+  const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 55 : 64));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
-  const [mouseIdle, setMouseIdle] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   useVideoVisibility(videoRef, containerRef);
 
   useEffect(() => {
-    client
-      .fetch(
+    const fetchData = async () => {
+      const res = await client.fetch(
         `*[_type == "mediaBlock" && title match "Rotary Lamp"][0]{
-          mediaOne { alt, asset->{url, _type} },
-          mediaTwo { alt, asset->{url, _type} },
-          tags
+          mediaOne { alt, tags, asset->{url, _type} },
+          mediaTwo { alt, tags, asset->{url, _type} }
         }`
-      )
-      .then(setData);
+      );
+      setData(res);
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -49,12 +46,14 @@ const RotaryLamp = () => {
   const alt1 = media1?.alt || 'Rotary Lamp media';
   const alt2 = media2?.alt || 'Rotary Lamp media';
 
-  const tooltipRGB = '85, 95, 90';
-  const backgroundColor = `rgba(${tooltipRGB}, 0.6)`;
-
   return (
-    <section ref={containerRef} className="block-type-1" id="block-r" style={{ position: 'relative' }}>
-      <ToolBar onIdleChange={setMouseIdle} />
+    <section
+      ref={containerRef}
+      className="block-type-1"
+      id="block-r"
+      style={{ position: 'relative' }}
+    >
+       <ToolBar onIdleChange={onIdleChange} />
 
       <div
         className="media-content-1"
@@ -67,7 +66,12 @@ const RotaryLamp = () => {
                 top: 0,
                 transition: split <= 15 ? 'height 0.1s ease' : 'none',
               }
-            : { width: `${split}%`, height: '100%', position: 'absolute', left: 0 }
+            : {
+                width: `${split}%`,
+                height: '100%',
+                position: 'absolute',
+                left: 0,
+              }
         }
       >
         <img
@@ -75,8 +79,8 @@ const RotaryLamp = () => {
           alt={alt1}
           className="media-item-1"
           id="rotary-media-1"
-          data-tooltip-id="rotary-tooltip"
-          data-tooltip-content=" "
+          data-tooltip-id="global-tooltip"
+          data-tooltip-key="rotary-lamp"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </div>
@@ -113,8 +117,8 @@ const RotaryLamp = () => {
             muted
             preload="metadata"
             aria-label={alt2}
-            data-tooltip-id="rotary-tooltip"
-            data-tooltip-content=" "
+            data-tooltip-id="global-tooltip"
+            data-tooltip-key="rotary-lamp"
             style={{ pointerEvents: 'all', width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
@@ -123,36 +127,12 @@ const RotaryLamp = () => {
             alt={alt2}
             className="media-item-2"
             id="rotary-media-2"
-            data-tooltip-id="rotary-tooltip"
-            data-tooltip-content=" "
+            data-tooltip-id="global-tooltip"
+            data-tooltip-key="rotary-lamp"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}
       </div>
-
-      <Tooltip
-        id="rotary-tooltip"
-        place="top"
-        float
-        positionStrategy="absolute"
-        unstyled
-        noArrow
-        className={mouseIdle ? 'tooltip-hidden' : ''}
-        style={{
-          backgroundColor,
-        }}
-        render={() => (
-          <div className="custom-tooltip-blur">
-            {data.tags && data.tags.length > 0 ? (
-              data.tags.map((tag, i) => (
-                <span key={i} className="tooltip-tag">{tag}</span>
-              ))
-            ) : (
-              <p className="tooltip-tag">No tags</p>
-            )}
-          </div>
-        )}
-      />
     </section>
   );
 };

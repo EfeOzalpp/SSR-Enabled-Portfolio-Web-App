@@ -44,3 +44,6 @@ p { font-family: 'Poppins', sans-serif; color: #cccccc; margin-bottom: 1em; }
 body { -ms-overflow-style: none; scrollbar-width: none; }
 body::-webkit-scrollbar { display: none; }
 
+.no-snap {
+  scroll-snap-type: none !important;
+}

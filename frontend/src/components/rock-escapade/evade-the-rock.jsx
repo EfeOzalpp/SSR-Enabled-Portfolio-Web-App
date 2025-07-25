@@ -185,7 +185,7 @@ const RockEscapade = () => {
     },
     {
       root: null,
-      threshold: 0.1, // trigger when at least 10% is visible
+      threshold: 0.01, // trigger when at least 1% is visible
     }
   );
 

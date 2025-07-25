@@ -52,7 +52,7 @@
 }
 .view-project-btn h2 { text-shadow: 0px 0px 24px rgb(29 29 33); }
 .view-project-icon { width: 1.25rem; height: 1.25rem; }
-.view-project-arrow { width: 3.2em; }
+.view-project-arrow { width: 3em; }
 .arrow-svg { filter: drop-shadow(0 0px 8px rgba(0,0,0,0.6)); }
 
 /* Hover style */

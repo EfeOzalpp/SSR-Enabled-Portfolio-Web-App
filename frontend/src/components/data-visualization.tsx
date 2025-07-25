@@ -3,11 +3,9 @@ import { useEffect, useState, useRef } from 'react';
 import client from '../utils/sanity';
 import { useVideoVisibility } from '../utils/video-observer.tsx';
 import ToolBar from '../utils/toolbar.tsx';
-import { Tooltip } from 'react-tooltip';
 
-const DataVisualizationBlock = () => {
+const DataVisualizationBlock = ({ onIdleChange }) => {
   const [data, setData] = useState(null);
-  const [mouseIdle, setMouseIdle] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,8 +16,7 @@ const DataVisualizationBlock = () => {
     client
       .fetch(
         `*[_type == "mediaBlock" && title match "Data Visualization"][0]{
-          mediaOne { alt, asset->{url, _type} },
-          tags
+          mediaOne { alt, asset->{url, _type} }
         }`
       )
       .then(setData);
@@ -33,12 +30,9 @@ const DataVisualizationBlock = () => {
 
   const altText = data.mediaOne?.alt || 'Data Visualization';
 
-  const tooltipRGB = '10, 146, 205';
-  const backgroundColor = `rgba(${tooltipRGB}, 0.6)`;
-
   return (
     <section ref={containerRef} className="block-type-1" id="block-d" style={{ position: 'relative' }}>
-      <ToolBar onIdleChange={setMouseIdle} />
+      <ToolBar onIdleChange={onIdleChange} />
 
       <div
         className="media-content"
@@ -58,7 +52,8 @@ const DataVisualizationBlock = () => {
             preload="metadata"
             id="data-visualization-media"
             aria-label={altText}
-            data-tooltip-id="dv-tooltip"
+            data-tooltip-id="global-tooltip"
+            data-tooltip-key="data-viz"
             data-tooltip-content=" "
             style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'all' }}
           />
@@ -68,36 +63,13 @@ const DataVisualizationBlock = () => {
             alt={altText}
             className="media-item"
             id="data-visualization-media"
-            data-tooltip-id="dv-tooltip"
+            data-tooltip-id="global-tooltip"
+            data-tooltip-key="data-viz"
             data-tooltip-content=" "
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}
       </div>
-
-      <Tooltip
-        id="dv-tooltip"
-        place="top"
-        float
-        positionStrategy="absolute"
-        unstyled
-        noArrow
-        className={mouseIdle ? 'tooltip-hidden' : ''}
-        style={{
-          backgroundColor,
-        }}
-        render={() => (
-          <div className="custom-tooltip-blur">
-            {data.tags && data.tags.length > 0 ? (
-              data.tags.map((tag, i) => (
-                <span key={i} className="tooltip-tag">{tag}</span>
-              ))
-            ) : (
-              <p className="tooltip-tag">No tags</p>
-            )}
-          </div>
-        )}
-      />
     </section>
   );
 };

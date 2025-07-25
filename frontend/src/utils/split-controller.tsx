@@ -330,7 +330,7 @@ const playSegment = (() => {
               left: 0,
               right: 0,
               top: `${split}%`,
-              height: '6rem',
+              height: '5.4rem',
               cursor: 'ns-resize',
               transform: 'translateY(-50%)',
             }
@@ -338,7 +338,7 @@ const playSegment = (() => {
               top: 0,
               bottom: 0,
               left: `${split}%`,
-              width: '7rem',
+              width: '6rem',
               cursor: 'ew-resize',
               transform: 'translateX(-50%)',
               height: 'calc(100% - 6em)',

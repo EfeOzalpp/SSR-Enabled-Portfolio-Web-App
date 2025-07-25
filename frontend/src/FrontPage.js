@@ -1,26 +1,24 @@
 // src/FrontPage.js
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import NavMenu from './components/nav-menu.tsx';
 import Loading from './components/loading.tsx'; 
-
 import ScrollController from './utils/scroll-controller.tsx'; 
 import OpacityObserver from './utils/opacity-observer.tsx';
 import TitleObserver from './utils/title-observer.tsx';
 import ThemeColorUpdater from './utils/theme-color-updater.tsx';  
-
+import { GlobalTooltip } from './utils/global-tooltip.tsx';
 import { ProjectVisibilityProvider } from './utils/project-context.tsx';
 
-import './styles/block-type-1.css'; // Type 1 Project Block
-import './styles/block-type-g.css'; // Evade the Rock
-import './styles/general-block.css'; // Fonts, Colors, etc. 
+import './styles/block-type-1.css';
+import './styles/block-type-g.css';
+import './styles/general-block.css';
 
 function Frontpage() {
+  const [mouseIdle, setMouseIdle] = useState(false);
 
   useEffect(() => {
     const preventPinchZoom = (event) => {
-      // Allow pinch-zoom on videos
       if (event.target.tagName.toLowerCase() === 'video') return;
-
       if (event.touches && event.touches.length > 1) {
         event.preventDefault();
       }
@@ -45,7 +43,7 @@ function Frontpage() {
   }, []);
 
   return (
-    <ProjectVisibilityProvider>
+    <ProjectVisibilityProvider setMouseIdle={setMouseIdle}>
       <ThemeColorUpdater />
       <Loading />
       <div className="HereGoesNothing">
@@ -53,6 +51,7 @@ function Frontpage() {
         <ScrollController />
         <OpacityObserver />
         <TitleObserver />
+        <GlobalTooltip mouseIdle={mouseIdle} />
       </div>
     </ProjectVisibilityProvider>
   );
