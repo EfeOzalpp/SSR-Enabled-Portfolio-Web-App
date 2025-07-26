@@ -1,19 +1,26 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './styles/font+theme.css';
-import Frontpage from './FrontPage.js';
-import reportWebVitals from './reportWebVitals';
-import './fonts/fonts1.css';
-import './fonts/epilogue.css';
+import { BrowserRouter } from 'react-router-dom';
 
-const root = ReactDOM.createRoot(document.getElementById('Efe Ozalps Portfolio lol'));
-root.render(
-  <React.StrictMode>
-    <Frontpage  />
-  </React.StrictMode>
-);
+import Frontpage from './FrontPage';
+import DynamicTheme from './DynamicTheme';
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+const path = window.location.pathname;
+
+if (path === '/' || path === '/home') {
+  ReactDOM.createRoot(document.getElementById('Efe Ozalps Portfolio lol')).render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <Frontpage />
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+} else if (path === '/dynamic-theme') {
+  ReactDOM.createRoot(document.getElementById('dynamic-theme')).render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <DynamicTheme />
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+}

@@ -28,7 +28,8 @@ const ToolBar = ({ onIdleChange }: ToolBarProps) => {
       '#icecream-media-2',
       '#rotary-media-1',
       '#rotary-media-2',
-      '#data-visualization-media'
+      '#data-visualization-media',
+       '[data-tooltip-key="block-g"]'
     ];
 
     const targets: HTMLElement[] = [];
@@ -73,7 +74,7 @@ const ToolBar = ({ onIdleChange }: ToolBarProps) => {
       if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
       idleTimeoutRef.current = setTimeout(() => {
         onIdleChange(true);
-      }, 1000);
+      }, 2000);
     };
 
     window.addEventListener('mousemove', handleActivity);

@@ -1,12 +1,7 @@
 {
-  "short_name": "Efe Ozalp",
-  "name": "Efe Ozalp's Portfolio Website",
+  "short_name": "Fresh Media",
+  "name": "DMI MassArt - Fresh Media 2025",
   "icons": [
-    {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    },
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
@@ -20,6 +15,7 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#191919",
-  "background_color": "#191919"
+  "theme_color": "#1e1e1f",
+  "background_color": "#1e1e1f"
 }
+

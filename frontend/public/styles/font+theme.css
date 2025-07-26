@@ -1,5 +1,5 @@
 body { width: 100%; font-family: 'Poppins', sans-serif; font-size: clamp(0.8rem, 1vw, 1rem); line-height: 1.6; color: #e0e0e0; margin: 0; padding: 0; overscroll-behavior: none; }
-html, body { background-color: rgb(18, 18, 20); touch-action: manipulation; }
+html , body { background-color: rgb(18, 18, 20); touch-action: manipulation; }
 
 h1, h2, h3 { font-family: 'Epilogue-Variable', sans-serif; font-weight: 400; }
 h4 { font-family: 'Poppins', sans-serif; font-weight: 500; }
@@ -29,12 +29,15 @@ p { font-family: 'Poppins', sans-serif; color: #cccccc; margin-bottom: 1em; }
 
 /* Large devices */
 @media (min-width: 1025px) {
-  html {font-size: 75%;}
+  html.font-small {
+  font-size: 75%;
+}
+
   h1 { font-size: clamp(2.2rem, 3vw, 3rem); line-height: 1.2; }
-  h2 { font-size: clamp(1.4rem, 2.4vw, 2.1rem); line-height: 1.1; }
+  h2  { font-size: clamp(1.4rem, 2.4vw, 2.1rem); line-height: 1.1; }
   h3 { font-size: clamp(1.4rem, 2vw, 2rem); line-height: 1.1; }
   h4 { font-size: clamp(1.1rem, 1.5vw, 1.3rem); line-height: 0.2; }
-  p { font-size: clamp(1.07rem, 0.9vw, 1.2rem); line-height: 1.4; }
+  p  { font-size: clamp(1.07rem, 0.9vw, 1.2rem); line-height: 1.4; }
 }
 
 /* Default Scrollbar removal */

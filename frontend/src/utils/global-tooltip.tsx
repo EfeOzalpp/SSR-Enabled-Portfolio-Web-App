@@ -19,7 +19,7 @@ export const setTooltipInfo = (info: TooltipInfo | null) => {
 const tooltipDataCache: Record<string, TooltipInfo> = {};
 
 const backgroundColorMap: Record<string, string> = {
-  'rotary-lamp': 'rgba(85, 95, 90, 0.6)',
+  'rotary-lamp': 'rgba(148, 72, 53, 0.6)',
   'ice-scoop': 'rgba(147, 149, 146, 0.6)',
   'data-viz': 'rgba(10, 146, 205, 0.6)',
   'block-g': 'rgba(140, 110, 160, 0.6)'

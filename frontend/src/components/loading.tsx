@@ -1,6 +1,5 @@
 // src/components/LoadingOverlay.tsx
 import React, { useEffect, useState } from 'react';
-import '../styles/loading-overlay.css';
 
 const LoadingOverlay = () => {
   const [fadeOut, setFadeOut] = useState(false);
