@@ -5,6 +5,7 @@ import q5 from 'q5';
 const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onToggleFireworks }) => {
   const canvasRef = useRef(null);
   const [fireworksEnabled, setFireworksEnabled] = useState(true); // No delay
+  const fireworksRef = useRef([]);
 
   // Function to adjust brightness of a hex color
   function adjustBrightness(hex, multiplier) {
@@ -24,7 +25,7 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
 
   useEffect(() => {
     const sketch = (p) => {
-      let fireworks = [];
+      let fireworks = fireworksRef.current;
       let lastFireworkTime = -8000;
       let lastLaunchPosition = p.createVector(p.width / 2, p.height);
       const minDistance = 1000;
@@ -55,9 +56,21 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
           this.shapeType = p.random(['circle', 'square', 'triangle']); // Add random shape selection
         
           // Randomize lifespan based on size (larger particles live longer)
-          const minLifespan = p.random(55, 100);
-          const maxLifespan = p.random(85, 150);
+          let minLifespan, maxLifespan;
+
+          if (p.windowWidth < 768) {
+            minLifespan = p.random(30, 60);
+            maxLifespan = p.random(40, 80);
+          } else if (p.windowWidth <= 1024) {
+            minLifespan = p.random(50, 80);
+            maxLifespan = p.random(70, 100);
+          } else {
+            minLifespan = p.random(50, 90);
+            maxLifespan = p.random(80, 140);
+          }
+
           this.lifespan = p.map(size, 1, 12, minLifespan, maxLifespan);
+
         
           // Adjust trail length based on particle size
           this.trailLength = size >= 4 && size <= 12 ? 8 : 1; // Longer trail for larger particles
@@ -236,14 +249,14 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
           if (p.windowWidth < 768) {
             // For screens smaller than 768px, make the explosion higher on the screen
             this.targetX = p.random(p.width * 0.5, p.width * 0.9);  
-            this.targetY = p.random(p.height * 0, p.height * 0.2);  
+            this.targetY = p.random(p.height * 0.1, p.height * 0.3);  
             } else if (p.windowWidth >= 768 && p.windowWidth <= 1024) {
             // For screens between 768px and 1024px, make the explosion in the middle
             this.targetX = p.random(p.width * 0.5, p.width * 0.8);  
             this.targetY = p.random(p.height * 0.05, p.height * 0.3);  
             } else {
             // For screens larger than 1024px, make the explosion lower on the screen
-            this.targetY = p.random(p.height * 0.1, p.height * 0.55);  
+            this.targetY = p.random(p.height * 0.15, p.height * 0.65);  
             this.targetX = p.random(p.width * 0.3, p.width * 0.7);  
           }
       
@@ -252,9 +265,21 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
           this.explosionStartTime = -1;
 
            // Particle amount logic
-           this.numParticles = type === 'BLINKING'
-           ? Math.floor(p.random(375, 475)) // BLINKING particle count
-           : Math.floor(p.random(400, 500)); // PROJECTILE particle count
+          let baseCount;
+        if (p.windowWidth < 768) {
+          baseCount = type === 'BLINKING'
+            ? p.random(50, 150)
+            : p.random(100, 200);
+        } else if (p.windowWidth <= 1024) {
+          baseCount = type === 'BLINKING'
+            ? p.random(275, 375)
+            : p.random(200, 300); // Fewer PROJECTILE particles on medium screens
+        } else {
+          baseCount = type === 'BLINKING'
+            ? p.random(375, 475)
+            : p.random(400, 500);
+          }
+          this.numParticles = Math.floor(baseCount);
         }
       
         explode() {
@@ -363,7 +388,16 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
           if (!this.exploded) {
             let direction = p.createVector(this.targetX - this.firework.pos.x, this.targetY - this.firework.pos.y);
             direction.normalize();
-            direction.mult(p.random(2, 7));
+            let launchSpeed;
+              if (p.windowWidth < 768) {
+                launchSpeed = p.random(6, 11);
+              } else if (p.windowWidth <= 1024) {
+                launchSpeed = p.random(5, 9); // Moderate speed boost for medium screens
+              } else {
+                launchSpeed = p.random(3, 8);
+              }
+
+            direction.mult(launchSpeed);
             this.firework.vel = direction;
             this.firework.update();
             if (p.dist(this.firework.pos.x, this.firework.pos.y, this.targetX, this.targetY) < 10) {
@@ -496,6 +530,7 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
 
     return () => {
       p5Instance.remove();
+      fireworksRef.current = []; 
     };
   }, [fireworksEnabled, items, colorMapping, lastKnownColor]);
 

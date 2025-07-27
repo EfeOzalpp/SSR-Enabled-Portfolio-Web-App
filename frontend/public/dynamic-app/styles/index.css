@@ -6,14 +6,13 @@ div {background-color: transparent;}
 a { text-decoration: none;}
 .section-divider, .section-divider2, .section-divider3 {background-color: #1e1e1f;}
 h-title a {color: #ffffff;}
-label p {color: #c4c4c4;}
+label p {color: #dbdbdb;}
 
 /* Mobile general styles */
 @media screen and (max-width: 768px) {
 
 /* Padding and spacers for Mobile */  
-body #homePage {padding-left: 0.8em; padding-right: 0.8em;}
-.section-divider {height: 12.4vw;} .section-divider2 {height: 8.8vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
+.section-divider {height: 12.4vw;} .section-divider2 {height: 9.6vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
 
 /* Fonts */
 h1 {
@@ -59,9 +58,9 @@ h4 {
 
 h5 {
   color: #f6f6f6;
-  font-size: clamp(16px, 3.8vw, 40px);
+  font-size: clamp(16px, 3.6vw, 40px);
   font-family: 'rubik';
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.4px;
   margin: 0px;
 }  
@@ -78,7 +77,7 @@ h-title {
 
 p, .p {
   color: #f5f5f5;
-  font-size: clamp(12px, 4vw, 36px);
+  font-size: clamp(12px, 3.2vw, 32px);
   font-family: 'rubik'; font-weight: 400; letter-spacing: 0.4px;
  } 
 }
@@ -88,16 +87,16 @@ p, .p {
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 
 /* General padding and spacers for tablet */ 
-body #homePage {padding-left: 1.6em; padding-right: 1.6em;}
 .section-divider {height: 8.4vw;} .section-divider2 {height: 1.8vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
 
 /* Fonts */
 h1 {
-  font-size: clamp(48px,10.8vw, 142px); 
+  font-size: clamp(48px, 6.8vw, 108px); 
   color: #f0f0f0;
   font-family: 'Orbitron', 'Oxygen', 'ubuntu', 'Cantarell', sans-serif; 
   font-weight: 400;
-  margin-top: 0vw; margin-bottom: 0.2vw; letter-spacing: -1.2px;
+  margin-top: 0vw; margin-bottom: 0.2vw; letter-spacing: -0.4px;
+  line-height: 1.4;
 }
 
 h1 a:hover {font-size: calc(1.1 * clamp(50px, 8vw, 100px));}
@@ -136,9 +135,9 @@ h4 {
 
 h5 {
   color: #f6f6f6; 
-  font-size: clamp(12px, 2.6vw, 24px); 
+  font-size: clamp(12px, 2vw, 22px); 
   font-family: 'rubik'; 
-  font-weight: 400; 
+  font-weight: 500; 
   letter-spacing: 0.4px;
   margin: 0px;
 }
@@ -146,7 +145,7 @@ h5 {
 /* Site title special font */
 h-title {
   color: #ffffff;
-  font-size: clamp(22px, 5.4vw, 36px);
+  font-size: clamp(22px, 4vw, 26px);
   font-family: 'rubik';
   font-weight: 400;
   letter-spacing: 0.4px;
@@ -155,7 +154,7 @@ h-title {
 
 p, .p {
   color: #f5f5f5;
-  font-size: clamp(8px, 2.4vw, 30px);
+  font-size: clamp(10px, 1.8vw, 20px);
   font-family: 'rubik'; font-weight: 400; letter-spacing: 0.4px;
  }  
 }
@@ -166,7 +165,7 @@ p, .p {
 
 /* General padding and spacers for Desktop */ 
 body #homePage {padding-left: 7.8em; padding-right: 7.8em;}
-.section-divider {height: 4.8vw;} .section-divider2 {height: 0vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
+.section-divider {height: 4.8vw;} .section-divider2 {height: 1.2vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
 
 /* Fonts */
 h1 {

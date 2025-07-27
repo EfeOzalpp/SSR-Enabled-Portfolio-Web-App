@@ -25,23 +25,23 @@ const setupIntersectionObserver = (pauseAnimation) => {
     // Conditions for screen width <= 768px
     if (window.innerWidth <= 768) {
       if (percentage > 0.55) {
-        imageContainerTransform = 'translate(4.5vw)';
-        imageContainer2Transform = 'translate(1vw, -108vw)';
+        imageContainerTransform = 'translate(2.4vw, 4.6vw)';
+        imageContainer2Transform = 'translate(-2.2vw, -108vw)';
         imageContainerZIndex = '1';
         imageContainer2ZIndex = '5';
       } else if (percentage > 0.35 && percentage <= 0.55) {
-        imageContainerTransform = 'translate(4.5vw)';
-        imageContainer2Transform = 'translate(1vw, -108vw)';
+        imageContainerTransform = 'translate(1.4vw, 3.6vw)';
+        imageContainer2Transform = 'translate(-0.6vw, -106.8vw)';
         imageContainerZIndex = '5';
         imageContainer2ZIndex = '1';
       } else if (percentage > 0.15 && percentage <= 0.35) {
-        imageContainerTransform = 'translate(2vw, 2vw)';
-        imageContainer2Transform = 'translate(4vw, -115vw)';
+        imageContainerTransform = 'translate(-0.4vw, 2.6vw)';
+        imageContainer2Transform = 'translate(1vw, -105.6vw)';
         imageContainerZIndex = '6';
         imageContainer2ZIndex = '3';
       } else {
-        imageContainerTransform = 'translateY(-2.4vw)';
-        imageContainer2Transform = 'translate(7.5vw, -111.5vw)';
+        imageContainerTransform = 'translate(-2.2vw, 1.6vw)';
+        imageContainer2Transform = 'translate(2.6vw, -104.4vw)';
         imageContainerZIndex = '5';
         imageContainer2ZIndex = '1';
       }
@@ -49,23 +49,23 @@ const setupIntersectionObserver = (pauseAnimation) => {
     // Conditions for screen width between 768px and 1024px
     else if (window.innerWidth > 768 && window.innerWidth <= 1024) {
       if (percentage > 0.55) {
-        imageContainerTransform = 'translate(4vw, -3vw)';
-        imageContainer2Transform = 'translate(1vw, -63vw)';
+        imageContainerTransform = 'translate(4vw, -4vw)';
+        imageContainer2Transform = 'translate(1vw, -60vw)';
         imageContainerZIndex = '1';
         imageContainer2ZIndex = '5';
       } else if (percentage > 0.35 && percentage <= 0.55) {
-        imageContainerTransform = 'translate(4vw, -3vw)';
-        imageContainer2Transform = 'translate(1vw, -63vw)';
+        imageContainerTransform = 'translate(3vw, -5.4vw)';
+        imageContainer2Transform = 'translate(0.95vw, -61.3vw)';
         imageContainerZIndex = '5';
         imageContainer2ZIndex = '1';
       } else if (percentage > 0.15 && percentage <= 0.35) {
-        imageContainerTransform = 'translate(2vw, -1.8vw)';
-        imageContainer2Transform = 'translate(2.8vw, -65vw)';
+        imageContainerTransform = 'translate(1.6vw, -6.2vw)';
+        imageContainer2Transform = 'translate(0.87vw, -62.7vw)';
         imageContainerZIndex = '5';
         imageContainer2ZIndex = '1';
       } else {
-        imageContainerTransform = 'translate(0vw, -5vw)';
-        imageContainer2Transform = 'translate(2.8vw, -65vw)';
+        imageContainerTransform = 'translate(-1vw, -7vw)';
+        imageContainer2Transform = 'translate(0.8vw, -64vw)';
         imageContainerZIndex = '5';
         imageContainer2ZIndex = '1';
       }
@@ -73,23 +73,23 @@ const setupIntersectionObserver = (pauseAnimation) => {
     // Conditions for screen width above 1024px
     else if (window.innerWidth > 1024) {
       if (percentage > 0.55) {
-        imageContainerTransform = 'translate(1.75vw, 0vw)';
-        imageContainer2Transform = 'translate(0vw, -31vw)';
+        imageContainerTransform = 'translate(3.5vw, 0vw)';
+        imageContainer2Transform = 'translate(1vw, -30vw)';
         imageContainerZIndex = '1';
         imageContainer2ZIndex = '5';
       } else if (percentage > 0.35 && percentage <= 0.55) {
-        imageContainerTransform = 'translate(1.75vw, 0vw)';
-        imageContainer2Transform = 'translate(0vw, -31vw)';
+        imageContainerTransform = 'translate(3.5vw, 0vw)';
+        imageContainer2Transform = 'translate(1vw, -30vw)';
         imageContainerZIndex = '5';
         imageContainer2ZIndex = '1';
       } else if (percentage > 0.15 && percentage <= 0.35) {
-        imageContainerTransform = 'translate(0.25vw, 1vw)';
-        imageContainer2Transform = 'translate(-0vw, -30.5vw)';
+        imageContainerTransform = 'translate(0vw, 0vw)';
+        imageContainer2Transform = 'translate(1vw, -30vw)';
         imageContainerZIndex = '6';
         imageContainer2ZIndex = '3';
       } else {
-        imageContainerTransform = 'translateY(0vw)';
-        imageContainer2Transform = 'translate(1vw, -31vw)';
+        imageContainerTransform = 'translate(0vw, 0vw)';
+        imageContainer2Transform = 'translate(1vw, -30vw)';
         imageContainerZIndex = '5';
         imageContainer2ZIndex = '1';
       }
