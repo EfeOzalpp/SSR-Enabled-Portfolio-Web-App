@@ -91,12 +91,12 @@ p, .p {
 
 /* Fonts */
 h1 {
-  font-size: clamp(48px, 6.8vw, 108px); 
+  font-size: clamp(52px, 7.6vw, 118px); 
   color: #f0f0f0;
   font-family: 'Orbitron', 'Oxygen', 'ubuntu', 'Cantarell', sans-serif; 
   font-weight: 400;
   margin-top: 0vw; margin-bottom: 0.2vw; letter-spacing: -0.4px;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 h1 a:hover {font-size: calc(1.1 * clamp(50px, 8vw, 100px));}
@@ -111,7 +111,7 @@ h2 {
 
 h3 {
   color: #f7f7f7;
-  font-size: clamp(24px, 4.4vw, 68px);
+  font-size: clamp(24px, 4vw, 62px);
   font-family: 'rubik'; font-weight: 400; letter-spacing: 1.4px;
   margin: 22px 0 18px 0;
 }

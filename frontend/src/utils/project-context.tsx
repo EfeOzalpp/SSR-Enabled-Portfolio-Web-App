@@ -1,4 +1,3 @@
-// utils/project-context.tsx
 import React, {
   createContext,
   useState,
@@ -8,7 +7,7 @@ import React, {
   ReactNode,
 } from 'react';
 
-import { getShuffledComponents } from './shuffled-components.tsx';
+import { getShuffledComponents, preloadMap } from './shuffled-components.tsx';
 
 interface ProjectComponent {
   key: string;
@@ -39,17 +38,15 @@ interface ProjectVisibilityContextType {
 
   previousScrollY: number | null;
   setPreviousScrollY: React.Dispatch<React.SetStateAction<number | null>>;
-
-  setMouseIdle: (idle: boolean) => void;
 }
 
 interface ProjectVisibilityProviderProps {
   children: ReactNode;
-  setMouseIdle: (idle: boolean) => void;
 }
+
 const ProjectVisibilityContext = createContext<ProjectVisibilityContextType | undefined>(undefined);
 
-export const ProjectVisibilityProvider = ({ children, setMouseIdle }: ProjectVisibilityProviderProps) => {
+export const ProjectVisibilityProvider = ({ children }: ProjectVisibilityProviderProps) => {
   const [activeProject, setActiveProject] = useState<string | undefined>(undefined);
   const [blockGClick, setBlockGClick] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -59,10 +56,14 @@ export const ProjectVisibilityProvider = ({ children, setMouseIdle }: ProjectVis
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const projectComponents = useMemo(
-    () => getShuffledComponents(setMouseIdle),
-    [setMouseIdle]
-  );
+  const projectComponents = useMemo(() => {
+    const shuffled = getShuffledComponents();
+    if (shuffled[0]) {
+      const preload = preloadMap[shuffled[0].key];
+      if (preload) preload();
+    }
+    return shuffled;
+  }, []);
 
   return (
     <ProjectVisibilityContext.Provider
@@ -82,7 +83,6 @@ export const ProjectVisibilityProvider = ({ children, setMouseIdle }: ProjectVis
         setFocusedProjectKey,
         previousScrollY,
         setPreviousScrollY,
-        setMouseIdle,
       }}
     >
       {children}

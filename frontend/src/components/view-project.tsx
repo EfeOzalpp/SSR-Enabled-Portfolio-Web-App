@@ -22,12 +22,15 @@ export const ViewProject = () => {
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [hovered, setHovered] = useState(false);
 
+  const lastActiveProject = useRef(activeProject);
+  
   // Colors for each project background
   const projectColors: { [key: string]: string } = {
-    'Ice Cream Scoop': '147, 149, 146',
-    'Rotary Lamp': '148, 72, 53',
-    'Evade the Rock': '140, 110, 160',
-    'Data Visualization': '10, 146, 205'
+    'Ice Cream Scoop': '234, 103, 97',     // 🍓 Soft Coral — friendly, grounded
+    'Rotary Lamp': '98, 102, 109',         // 🧊 Cool Graphite — matches metal & mood
+    'Evade the Rock': '101, 86, 175',      // 🔮 Desaturated Purple — game-like, not loud
+    'Data Visualization': '48, 152, 202',  // 📊 Calm Sky Blue — intelligent and clean
+    'Dynamic App': '0, 255, 133'           // 🍃 Neon Mint — remains your statement accent
   };
 
   // Gets rgba background color based on active project and hover state
@@ -113,32 +116,13 @@ export const ViewProject = () => {
     }
   };
 
-  // Touch move – handles vertical swiping to navigate projects
-  const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
-    const now = Date.now();
-    if (now - lastScrollTime.current < SCROLL_DELAY) return;
-    const touch = e.touches[0];
-    const deltaY = touch.clientY - touchStartPos.current.y;
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    if (Math.abs(deltaY) > 30) {
-      if (deltaY > 0 && currentIndex > 0) {
-        const target = container.children[currentIndex - 1] as HTMLElement;
-        target.scrollIntoView({ behavior: 'smooth' });
-        setCurrentIndex(currentIndex - 1);
-      } else if (deltaY < 0 && currentIndex < projectComponents.length - 1) {
-        const target = container.children[currentIndex + 1] as HTMLElement;
-        target.scrollIntoView({ behavior: 'smooth' });
-        setCurrentIndex(currentIndex + 1);
-      }
+  // Play wiggle animation when currentIndex changes
+  useEffect(() => {
+    if (lastActiveProject.current !== activeProject) {
       playArrowWiggle();
-      window.dispatchEvent(new CustomEvent('arrowWiggle'));
-      lastScrollTime.current = now;
-      touchStartPos.current.y = touch.clientY;
+      lastActiveProject.current = activeProject;
     }
-    handleInteraction();
-  };
+  }, [activeProject]);
 
   // Plays arrow wiggle animation from stop to end segment
   const playArrowWiggle = () => {
@@ -158,11 +142,6 @@ export const ViewProject = () => {
       window.removeEventListener('touchstart', handleGlobalTouch);
     };
   }, []);
-
-  // Play wiggle animation when currentIndex changes
-  useEffect(() => {
-    playArrowWiggle();
-  }, [currentIndex]);
 
   // Mouse move near bottom triggers background reveal
   useEffect(() => {
@@ -191,7 +170,7 @@ export const ViewProject = () => {
       });
     }, { threshold: 0.5 });
 
-    const ids = ['#block-i', '#block-r', '#block-g', '#block-d'];
+    const ids = ['#block-i', '#block-r', '#block-g', '#block-d', '#block-a'];
 
     const checkAndObserve = () => {
       const targets = ids

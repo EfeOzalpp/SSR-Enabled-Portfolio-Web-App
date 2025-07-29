@@ -32,7 +32,7 @@
 
 /* Media query for devices 768px to 1024px */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .block-type-1 { height: 97dvh; flex-direction: column;}
+  .block-type-1 { height: 92dvh; flex-direction: column;}
 }
 
 /* Media query for devices >=1025px */

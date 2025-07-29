@@ -1,5 +1,5 @@
 // Fetch gallery images for the navigation menu
-import sanityClient from './sanityClient';
+import sanityClient from '../../utils/sanity';
 
 const fetchGallery = async () => {
   const query = `
@@ -30,7 +30,6 @@ const fetchGallery = async () => {
 
     const shuffledImages = flattenedImages.sort(() => Math.random() - 0.5);
 
-    console.log('Shuffled Gallery Data:', shuffledImages);
     return shuffledImages;
   } catch (error) {
     console.error('Error fetching gallery data:', error);

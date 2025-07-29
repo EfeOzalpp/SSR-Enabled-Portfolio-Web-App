@@ -1,0 +1,42 @@
+/* Block Type A styles */
+
+.block-type-a {width: 100%; background-color: rgb(15, 15, 18)}
+.block-a-content {width: 100%; height: 100%;}
+.svg-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* or a specific height like 100vh if needed */
+  width: 100%;
+  overflow: hidden;
+}
+
+.block-a-laptop, .block-a-tablet .block-a-phone {
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  touch-action: none;
+  pointer-events: none;
+  z-index: 1000;
+}
+.block-a-phone {height: calc(100% - 32px);} .block-a-tablet {height: calc(100% - 48px);}
+.block-a-laptop {height: calc(100% - 32px);}
+
+
+@media (max-width: 767px) {
+  .block-type-a {
+    height: 98dvh;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .block-type-a {
+    height: 92dvh;
+  }
+}
+
+@media (min-width: 1025px) {
+  .block-type-a {
+    height: 96dvh;
+  }
+}

@@ -6,12 +6,10 @@ import ScrollController from './utils/scroll-controller.tsx';
 import OpacityObserver from './utils/opacity-observer.tsx';
 import TitleObserver from './utils/title-observer.tsx';
 import ThemeColorUpdater from './utils/theme-color-updater.tsx';  
-import { GlobalTooltip } from './utils/global-tooltip.tsx';
 import { ProjectVisibilityProvider } from './utils/project-context.tsx';
 import { Helmet } from 'react-helmet';
 
 function Frontpage() {
-  const [mouseIdle, setMouseIdle] = useState(false);
 
 useEffect(() => {
   document.documentElement.classList.add('font-small');
@@ -20,11 +18,13 @@ useEffect(() => {
   const cssFiles = [
     '/styles/block-type-1.css',
     '/styles/block-type-g.css',
+    '/styles/block-type-a.css',
     '/styles/general-block.css',
     '/styles/font+theme.css',
     '/fonts/fonts1.css',
     '/fonts/epilogue.css',
     '/styles/loading-overlay.css',
+    '/styles/tooltip.css'
   ];
 
   const links = cssFiles.map((href) => {
@@ -66,7 +66,7 @@ useEffect(() => {
 }, []);
 
   return (
-    <ProjectVisibilityProvider setMouseIdle={setMouseIdle}>
+    <ProjectVisibilityProvider>
       <Helmet>
         <title>Efe Ozalp</title>
         <meta name="description" content="Efe Ozalp | WebApp Development, Visual Design, 3D Modeling" />
@@ -81,7 +81,6 @@ useEffect(() => {
         <ScrollController />
         <OpacityObserver />
         <TitleObserver />
-        <GlobalTooltip mouseIdle={mouseIdle} />
       </div>
     </ProjectVisibilityProvider>
   );

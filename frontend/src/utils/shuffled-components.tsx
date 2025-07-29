@@ -1,41 +1,36 @@
-// Shuffling the Projects for randomization
-import { ReactElement } from 'react';
-import RotaryLamp from '../components/rotary-lamp.tsx';
-import EnhancedScoop from '../components/ice-cream-scoop.tsx';
-import DataVisualization from '../components/data-visualization.tsx';
-import ProcessingGame from '../components/rock-escapade/evade-the-rock.jsx';
+import { lazy } from 'react';
+
+const RotaryLamp = lazy(() => import('../components/rotary-lamp.tsx'));
+const EnhancedScoop = lazy(() => import('../components/ice-cream-scoop.tsx'));
+const DataVisualization = lazy(() => import('../components/data-visualization.tsx'));
+const ProcessingGame = lazy(() => import('../components/rock-escapade/evade-the-rock.jsx'));
+const DynamicAppThumb = lazy(() => import('../components/dynamic-app-thumb/dynamic-app.tsx'));
+
+// Map preloaders to réndér first itém to imprové first contént appéarancé on load, while lazy load othér contént
+const preloadMap = {
+  rotary: () => import('../components/rotary-lamp.tsx'),
+  scoop: () => import('../components/ice-cream-scoop.tsx'),
+  dataviz: () => import('../components/data-visualization.tsx'),
+  game: () => import('../components/rock-escapade/evade-the-rock.jsx'),
+  dynamic: () => import('../components/dynamic-app-thumb/dynamic-app.tsx'),
+};
 
 interface ProjectComponent {
   key: string;
   title: string;
-  component: ReactElement;
+  Component: React.LazyExoticComponent<React.FC>;
 }
 
-export const getShuffledComponents = (
-  setMouseIdle: (idle: boolean) => void
-): ProjectComponent[] => {
+export const getShuffledComponents = (): ProjectComponent[] => {
   const components: ProjectComponent[] = [
-    {
-      key: 'rotary',
-      title: 'Rotary Lamp',
-      component: <RotaryLamp key="rotary" onIdleChange={setMouseIdle} />,
-    },
-    {
-      key: 'scoop',
-      title: 'Ice Scoop',
-      component: <EnhancedScoop key="scoop" onIdleChange={setMouseIdle} />,
-    },
-    {
-      key: 'dataviz',
-      title: 'Data Visualization',
-      component: <DataVisualization key="dataviz" onIdleChange={setMouseIdle} />,
-    },
-    {
-      key: 'game',
-      title: 'Evade the Rock',
-      component: <ProcessingGame key="game" onIdleChange={setMouseIdle} />,
-    },
+    { key: 'rotary', title: 'Rotary Lamp', Component: RotaryLamp },
+    { key: 'scoop', title: 'Ice Cream Scoop', Component: EnhancedScoop },
+    { key: 'dataviz', title: 'Data Visualization', Component: DataVisualization },
+    { key: 'game', title: 'Evade the Rock', Component: ProcessingGame },
+    { key: 'dynamic', title: 'Dynamic App', Component: DynamicAppThumb },
   ];
 
   return components.sort(() => Math.random() - 0.5);
 };
+
+export { preloadMap };

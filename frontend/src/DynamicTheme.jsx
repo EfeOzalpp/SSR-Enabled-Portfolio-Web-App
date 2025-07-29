@@ -113,6 +113,9 @@ function DynamicTheme() {
 
   const handleActivate = (alt1) => {
     const colors = colorMapping[alt1];
+     console.log('[👁️ Alt Activated]', alt1); // ✅ log the alt1 being detected
+      console.log('[🎨 Mapped Colors]', colors); // ✅ log associated colors
+
     if (colors && colors[0] !== activeColor) {
       setActiveColor(colors[2]);
       setMovingTextColors([colors[0], colors[1], colors[3]]);
@@ -126,6 +129,10 @@ function DynamicTheme() {
     }
   };
 
+  useEffect(() => {
+  console.log('[MOUNTING FireworksDisplay]');
+  return () => console.log('[UNMOUNTING FireworksDisplay]');
+}, []);
   return (
     <>
     <Helmet>

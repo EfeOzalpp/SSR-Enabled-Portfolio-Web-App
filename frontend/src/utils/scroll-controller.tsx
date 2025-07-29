@@ -1,5 +1,4 @@
-/* Snappy Scroll Behavior for the main grid */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
 import ViewProject from '../components/view-project.tsx';
 import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-case-study.tsx';
@@ -14,6 +13,8 @@ const ScrollController = () => {
     focusedProjectKey,
     setPreviousScrollY,
   } = useProjectVisibility();
+
+  const isGameFocused = focusedProjectKey === 'game';
 
   const touchStartY = useRef(0);
   const lastScrollTime = useRef(0);
@@ -30,7 +31,7 @@ const ScrollController = () => {
     if (width >= 1025) {
       setViewportStyle({ height: '96dvh', paddingBottom: '4dvh' });
     } else if (width >= 768) {
-      setViewportStyle({ height: '97dvh', paddingBottom: '3dvh' });
+      setViewportStyle({ height: '92dvh', paddingBottom: '8dvh' });
     } else {
       setViewportStyle({ height: '98dvh', paddingBottom: '2dvh' });
     }
@@ -46,52 +47,42 @@ const ScrollController = () => {
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleWheel = (e: WheelEvent) => {
-    if (isDragging || focusedProjectKey) return;
+    if (isDragging || isGameFocused) return;
 
     accumulatedDelta.current += e.deltaY;
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = setTimeout(() => accumulatedDelta.current = 0, 250);
 
-    if (scrollTimeout.current) {
-      clearTimeout(scrollTimeout.current);
-    }
-
-    scrollTimeout.current = setTimeout(() => {
-      accumulatedDelta.current = 0;
-    }, 250); // reset if they stop scrolling for 250ms
-
-    const SCROLL_THRESHOLD = 10000; // adjust this to taste
+    const SCROLL_THRESHOLD = 1000;
     const steps = Math.floor(accumulatedDelta.current / SCROLL_THRESHOLD);
 
     if (steps !== 0) {
       let newIndex = currentIndex + Math.sign(steps);
       newIndex = Math.max(0, Math.min(projectComponents.length - 1, newIndex));
-
       if (newIndex !== currentIndex) {
         setCurrentIndex(newIndex);
         window.dispatchEvent(new CustomEvent('arrowWiggle'));
-        accumulatedDelta.current = 0; // reset after scroll
+        accumulatedDelta.current = 0;
       }
     }
   };
 
-
   const handleTouchStart = (e: TouchEvent) => {
+    if (isGameFocused) return;
     touchStartY.current = e.touches[0].clientY;
   };
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (isDragging || focusedProjectKey) return;
+    if (isDragging || isGameFocused) return;
     const now = Date.now();
     if (now - lastScrollTime.current < SCROLL_DELAY) return;
 
     const deltaY = e.touches[0].clientY - touchStartY.current;
     let newIndex = currentIndex;
 
-    if (Math.abs(deltaY) > 30) {
-      if (deltaY > 0) {
-        newIndex = Math.max(currentIndex - 1, 0);
-      } else {
-        newIndex = Math.min(currentIndex + 1, projectComponents.length - 1);
-      }
+    if (Math.abs(deltaY) > 240) {
+      if (deltaY > 0) newIndex = Math.max(currentIndex - 1, 0);
+      else newIndex = Math.min(currentIndex + 1, projectComponents.length - 1);
 
       if (newIndex !== currentIndex) {
         setCurrentIndex(newIndex);
@@ -103,8 +94,7 @@ const ScrollController = () => {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (isDragging || focusedProjectKey) return;
-
+    if (isDragging || isGameFocused) return;
     let newIndex = currentIndex;
 
     if (e.key === 'ArrowDown') {
@@ -125,24 +115,24 @@ const ScrollController = () => {
 
     container.addEventListener('wheel', handleWheel);
     container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchmove', handleTouchMove);
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [projectComponents.length, currentIndex, isDragging, focusedProjectKey]);
+  }, [projectComponents.length, currentIndex, isDragging, isGameFocused]);
 
   useEffect(() => {
-  const container = scrollContainerRef.current;
-  if (!container) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  container.classList.add('no-snap');
-  const timeout = setTimeout(() => container.classList.remove('no-snap'), 800);
-  return () => clearTimeout(timeout);
+    container.classList.add('no-snap');
+    const timeout = setTimeout(() => container.classList.remove('no-snap'), 800);
+    return () => clearTimeout(timeout);
   }, [currentIndex]);
 
   useEffect(() => {
@@ -154,14 +144,10 @@ const ScrollController = () => {
 
   useEffect(() => {
     if (focusedProjectKey) {
-      const keysToHide = projectComponents
-        .filter(p => p.key !== focusedProjectKey)
-        .map(p => p.key);
+      const keysToHide = projectComponents.filter(p => p.key !== focusedProjectKey).map(p => p.key);
       setInvisibleKeys(new Set(keysToHide));
     } else {
-      const timeout = setTimeout(() => {
-        setInvisibleKeys(new Set());
-      }, 400);
+      const timeout = setTimeout(() => setInvisibleKeys(new Set()), 400);
       return () => clearTimeout(timeout);
     }
   }, [focusedProjectKey, projectComponents]);
@@ -194,8 +180,8 @@ const ScrollController = () => {
         scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
         scrollBehavior: 'smooth',
         paddingBottom: viewportStyle.paddingBottom,
-        scrollbarWidth: 'none', // Firefox
-        msOverflowStyle: 'none', // IE 10+
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
       }}
     >
       <style>
@@ -224,10 +210,10 @@ const ScrollController = () => {
               transition: 'opacity 0.4s ease, visibility 0.4s ease',
             }}
           >
-            <>
-              {item.component}
+            <Suspense fallback={<div style={{ height: '100vh' }}>Loading…</div>}>
+              <item.Component onIdleChange={() => {}} />
               {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
-            </>
+            </Suspense>
           </div>
         );
       })}

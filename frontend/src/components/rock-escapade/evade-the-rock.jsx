@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import desktopOnboarding from '../../svg/desktop-onboarding.json';
@@ -1143,7 +1144,7 @@ const RockEscapade = () => {
 
       let lastTouchPosition = null;
 
-            const handleTouchMove = (e) => {
+      const handleTouchMove = (e) => {
         if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
 
         const touch = e.touches[0];

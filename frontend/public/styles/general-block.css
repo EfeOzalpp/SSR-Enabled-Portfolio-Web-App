@@ -121,8 +121,8 @@
 }
 
 @media (max-width: 1024px) and (min-width: 768px) {
-  .view-project-wrapper {bottom: 3dvh;}
-  .view-project-btn {padding: 16px 40px 8px 40px;}
+  .view-project-wrapper {bottom: 8dvh;}
+  .view-project-btn {padding: 13px 40px 8px 40px;}
   .nav-menu { padding-bottom: 8px; }
   .arrow-svg { filter: drop-shadow(0 0px 14px rgba(0,0,0,0.6)); }
 }

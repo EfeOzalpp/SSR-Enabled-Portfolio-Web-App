@@ -4,8 +4,32 @@ import q5 from 'q5';
 
 const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onToggleFireworks }) => {
   const canvasRef = useRef(null);
-  const [fireworksEnabled, setFireworksEnabled] = useState(true); // No delay
+  const [fireworksEnabled, setFireworksEnabled] = useState(true);
   const fireworksRef = useRef([]);
+  const fireworksEnabledRef = useRef(true);
+
+  const isPageHiddenRef = useRef(false);
+  const hiddenStartTimeRef = useRef(0);
+  const hiddenDurationRef = useRef(0);
+
+  // Documént visibility
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        isPageHiddenRef.current = true;
+        hiddenStartTimeRef.current = performance.now();
+      } else if (document.visibilityState === 'visible') {
+        isPageHiddenRef.current = false;
+        const now = performance.now();
+        hiddenDurationRef.current += now - hiddenStartTimeRef.current;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Function to adjust brightness of a hex color
   function adjustBrightness(hex, multiplier) {
@@ -23,7 +47,23 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   }
 
+    const p5InstanceRef = useRef(null); // Track single p5 instance
+    const latestItems = useRef(items);
+    const latestColorMapping = useRef(colorMapping);
+    const latestLastKnownColor = useRef(lastKnownColor);
+
   useEffect(() => {
+    latestItems.current = items;
+    latestColorMapping.current = colorMapping;
+    latestLastKnownColor.current = lastKnownColor;
+    }, [items, colorMapping, lastKnownColor]);
+
+useEffect(() => {
+  let destroyed = false;
+
+  if (!canvasRef.current || p5InstanceRef.current || destroyed) return;
+
+
     const sketch = (p) => {
       let fireworks = fireworksRef.current;
       let lastFireworkTime = -8000;
@@ -426,71 +466,31 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
 
       function addNewFirework(fireworkType) {
         console.log(`Creating ${fireworkType} firework`);
-      
+
         const startX = p.width / 2;
         const startY = p.height;
-        let targetX, targetY;
-        let newTarget;
-      
-        // Determine screen width categories
-        const isMediumScreen = p.windowWidth >= 768 && p.windowWidth <= 1024;
-        const isLargeScreen = p.windowWidth > 1025;
-      
-        // Get top items based on screen size
-        const topAlt1 = items[0]?.alt1 || ''; // First visible item's alt1
-        const topAlt2 = items[1]?.alt1 || ''; // Second visible item's alt1
-        const topAlt3 = items[2]?.alt1 || ''; // Third visible item's alt1 (only for large screens)
-      
-        // If no valid items, skip creating the firework
-        if (
-          !colorMapping[topAlt1] &&
-          (!isMediumScreen || !colorMapping[topAlt2]) &&
-          (!isLargeScreen || !colorMapping[topAlt3])
-        ) {
-          return;
-        }
-      
-        // Randomly pick a top item based on screen size
-        const selectedAlt1 = isLargeScreen
-          ? [topAlt1, topAlt2, topAlt3][Math.floor(Math.random() * 3)] // Pick from the first three items
-          : isMediumScreen
-          ? [topAlt1, topAlt2][Math.floor(Math.random() * 2)] // Pick from the first two items
-          : topAlt1; // Only topAlt1 for smaller screens
-      
-        // Randomly pick a color index (0, 1, 3)
+
+        const selectedAlt1 = latestItems.current?.[0]?.alt1 || '';
         const indices = [0, 1, 3];
         const selectedColorIndex = indices[Math.floor(Math.random() * indices.length)];
-        console.log("Selected Alt1:", selectedAlt1);
-        console.log("Selected Color Index:", selectedColorIndex);
-      
-        // Retrieve the color for the selected index
-        const baseColorHex = colorMapping[selectedAlt1]?.[selectedColorIndex] || lastKnownColor || '#FFFFFF';
-        console.log("Base Color Hex:", baseColorHex);
-      
-        // Apply a brightness multiplier to the hex color
+
+        const baseColorHex = latestColorMapping.current[selectedAlt1]?.[selectedColorIndex] || latestLastKnownColor.current || '#FFFFFF';
         const brightnessMultiplier = p.random(0.9, 1.4);
         const adjustedColorHex = adjustBrightness(baseColorHex, brightnessMultiplier);
         const fireworkColor = p.color(adjustedColorHex);
-      
-        // Determine target location, ensuring it is sufficiently distant from the last launch position
-        do {
-          targetX = p.random(p.width * 0.3, p.width * 0.7);
-          targetY =
-            fireworkType === 'BLINKING'
-              ? p.random(p.height * 0.05, p.height * 0.2) // Higher explosions for blinking
-              : p.random(p.height * 0.5, p.height * 0.8); // Lower explosions for projectiles
-          newTarget = p.createVector(targetX, targetY);
-        } while (lastLaunchPosition && p.dist(newTarget, lastLaunchPosition) < minDistance);
-      
-        lastLaunchPosition = newTarget;
-      
-        // Create a new firework object with the selected color and type
-        if (fireworkType === 'BLINKING') {
-          fireworks.push(new Firework(startX, startY, targetX, targetY, fireworkColor, fireworkType));
-        } else if (fireworkType === 'PROJECTILE') {
-          fireworks.push(new Firework(startX, startY, targetX, targetY, fireworkColor, fireworkType));
-        }
-      }     
+
+        // Simplified fixed target positions
+        const targetX = p.width / 2 + p.random(-50, 50);
+        const targetY = fireworkType === 'BLINKING'
+          ? p.height * 0.2
+          : p.height * 0.7;
+
+        // Update last launch position for future enhancement
+        lastLaunchPosition = p.createVector(targetX, targetY);
+
+        // Create firework
+        fireworks.push(new Firework(startX, startY, targetX, targetY, fireworkColor, fireworkType));
+      }
 
       p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight);
@@ -499,45 +499,63 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
         lastFireworkTime = p.millis(); // Reset lastFireworkTime after the first launch
       };      
 
+      hiddenDurationRef.current = 0;
+      lastFireworkTime = 0;
+      
       let fireworkToggle = true; // Starts with BLINKING
       let nextFireworkDelay = p.random(2000, 8000); // Random delay between 2000ms and 5000ms
 
       p.draw = () => {
-        // Background color
         p.background('#1e1e1f');
 
-        if (!fireworksEnabled) {
-          return; // Skip rendering if disabled
+        if (!fireworksEnabledRef.current) {
+          fireworksRef.current.length = 0;
+          return;
         }
-      
+
         for (let firework of fireworks) {
           firework.update();
           firework.show();
         }
 
-        // Launch a new firework at random intervals
-        if (p.millis() - lastFireworkTime > nextFireworkDelay) {
-          const fireworkType = fireworkToggle ? 'BLINKING' : 'PROJECTILE';
-          addNewFirework(fireworkType); // Adds a firework based on the toggle state
-          fireworkToggle = !fireworkToggle; // Toggle to switch firework type
-          lastFireworkTime = p.millis();
-          nextFireworkDelay = p.random(2000, 8000); // Generate a new random delay
+        const adjustedTime = p.millis() - hiddenDurationRef.current;
+
+        // ✅ Fix: fallback in case adjustedTime went backward or got corrupted
+        if (adjustedTime < lastFireworkTime) {
+          console.warn("Adjusted time went backward or stale. Forcing firework reset.");
+          lastFireworkTime = adjustedTime - nextFireworkDelay - 1;
         }
-      };            
+
+        // ✅ Regular triggering condition
+        if (adjustedTime - lastFireworkTime > nextFireworkDelay) {
+          const fireworkType = fireworkToggle ? 'BLINKING' : 'PROJECTILE';
+          addNewFirework(fireworkType);
+          fireworkToggle = !fireworkToggle;
+          lastFireworkTime = adjustedTime;
+          nextFireworkDelay = p.random(2000, 8000);
+        }
+      };
     };
+    
+  p5InstanceRef.current = new q5(sketch, canvasRef.current);
 
-    const p5Instance = new q5(sketch, canvasRef.current);
+  return () => {
+    destroyed = true;
+    if (p5InstanceRef.current) {
+      p5InstanceRef.current.remove();
+      p5InstanceRef.current = null;
+    }
+    fireworksRef.current = [];
+  };
+}, []);
 
-    return () => {
-      p5Instance.remove();
-      fireworksRef.current = []; 
-    };
-  }, [fireworksEnabled, items, colorMapping, lastKnownColor]);
 
-  const toggleFireworks = useCallback((isEnabled) => {
-    console.log(`toggleFireworks called. isEnabled: ${isEnabled}`);
-    setFireworksEnabled(isEnabled);
-  }, []);
+const toggleFireworks = useCallback((isEnabled) => {
+  console.log(`toggleFireworks called. isEnabled: ${isEnabled}`);
+  setFireworksEnabled(isEnabled);
+  fireworksEnabledRef.current = isEnabled; // ✅ update live value for p5
+}, []);
+
 
   useEffect(() => {
     if (onToggleFireworks) {
@@ -548,4 +566,4 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
   return <div ref={canvasRef}></div>;
 };
 
-export default FireworksDisplay; //imagine missing a semicolon here
+export default FireworksDisplay;

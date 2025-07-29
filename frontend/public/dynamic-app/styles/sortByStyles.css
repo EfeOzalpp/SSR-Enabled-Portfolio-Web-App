@@ -3,7 +3,7 @@
 .sort-by-divider {padding-left: 1.6em; padding-right: 1.6em; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: flex-end; z-index: 350; position: relative; }
 .lottie-container {cursor: pointer;} 
 .custom-dropdown:hover div.selected-value, .custom-dropdown:hover span.custom-arrow {scale: 1.02; transition: ease-in 0.1s;}
-
+.students-heading, .sort-container, .selected-value h5 {pointer-events: none; user-select: none; touch-action: none;}
 /* Sort by filtering for mobile devices */
 @media screen and (max-width: 768px) { 
 /* Sort by general styles */    
@@ -72,7 +72,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-bottom: 3.2em; padding-left: 2.4em;}
-.lottie-container {width: 3.2em; height: 3.2em; z-index: 100; position: relative;}
+.lottie-container {width: 2.8em; height: 2.8em; z-index: 100; position: relative;}
 }
 
 

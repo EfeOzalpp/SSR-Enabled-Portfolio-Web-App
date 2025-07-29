@@ -21,6 +21,8 @@ const ThemeColorUpdater = () => {
       topColor = 'rgb(25, 25, 25)';
     } else if (activeProject === 'Data Visualization') {
       topColor = 'rgba(28, 30, 31, 1)';
+    } else if (activeProject === 'Dynamic App') {
+      topColor = 'rgba(28, 30, 31, 1)';
     }
 
     metaThemeColor.setAttribute('content', topColor);

@@ -4,7 +4,7 @@
 .top-bar-items {display: flex; align-items: center; justify-content: space-between; z-index: 700; position: relative;}
 .image-container-g::-webkit-scrollbar {display: none;}
 .top-bar-items.menu-open {backdrop-filter: none !important; -webkit-backdrop-filter: none !important;}
-
+.site-title {pointer-events: none; user-select: none; touch-action: none;}
 /* Mobile view */
 @media (max-width: 768px) {
 .navigation {position: fixed; top: 0; width: 100%; transition: transform 0.2s ease-in-out; z-index: 1000; align-items: center;}

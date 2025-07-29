@@ -3,10 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
 import { useVideoVisibility } from '../utils/video-observer.tsx';
-import ToolBar from '../utils/toolbar.tsx';
-import { setTooltipInfo } from '../utils/global-tooltip.tsx';
 
-const IceCreamScoop = ({ onIdleChange }) => {
+const IceCreamScoop = () => {
   const [data, setData] = useState(null);
   const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 45 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
@@ -25,18 +23,9 @@ const IceCreamScoop = ({ onIdleChange }) => {
     client
       .fetch(`*[_type == "mediaBlock" && title match "Ice Scoop"][0]{
         mediaOne { alt, asset->{url, _type} },
-        mediaTwo { alt, asset->{url, _type} },
-        tags
+        mediaTwo { alt, asset->{url, _type} }
       }`)
-      .then((res) => {
-        setData(res);
-        if (res?.tags?.length) {
-          setTooltipInfo({
-            tags: res.tags,
-            backgroundColor: 'rgba(147, 149, 146, 0.6)',
-          });
-        }
-      });
+      .then(setData);
   }, []);
 
   if (!data) return null;
@@ -46,10 +35,12 @@ const IceCreamScoop = ({ onIdleChange }) => {
     data.mediaTwo?.asset.url.match(/\.(mp4|webm|ogg)$/);
 
   return (
-    <section ref={containerRef} className="block-type-1" id="block-i" style={{ position: 'relative' }}>
-
-      <ToolBar onIdleChange={onIdleChange} />
-
+    <section
+      ref={containerRef}
+      className="block-type-1"
+      id="block-i"
+      style={{ position: 'relative' }}
+    >
       <div
         className="media-content-1"
         style={
@@ -61,14 +52,17 @@ const IceCreamScoop = ({ onIdleChange }) => {
                 top: 0,
                 transition: split <= 15 ? 'height 0.1s ease' : 'none',
               }
-            : { width: `${split}%`, height: '100%', position: 'absolute', left: 0 }
+            : {
+                width: `${split}%`,
+                height: '100%',
+                position: 'absolute',
+                left: 0,
+              }
         }
       >
         <img
           src={data.mediaOne?.asset.url}
           alt={data.mediaOne?.alt || 'Visual content'}
-          data-tooltip-id="global-tooltip"
-          data-tooltip-key="ice-scoop"
           className="media-item-1"
           id="icecream-media-1"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -107,16 +101,17 @@ const IceCreamScoop = ({ onIdleChange }) => {
             muted
             preload="metadata"
             aria-label={data.mediaTwo?.alt || 'Video content'}
-            data-tooltip-id="global-tooltip"
-            data-tooltip-key="ice-scoop"
-            style={{ pointerEvents: 'all', width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{
+              pointerEvents: 'all',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
           />
         ) : (
           <img
             src={data.mediaTwo?.asset.url}
             alt={data.mediaTwo?.alt || 'Visual content'}
-            data-tooltip-id="global-tooltip"
-            data-tooltip-key="ice-scoop"
             className="media-item-2"
             id="icecream-media-2"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}

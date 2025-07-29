@@ -2,9 +2,8 @@
 import { useEffect, useState, useRef } from 'react';
 import client from '../utils/sanity';
 import { useVideoVisibility } from '../utils/video-observer.tsx';
-import ToolBar from '../utils/toolbar.tsx';
 
-const DataVisualizationBlock = ({ onIdleChange }) => {
+const DataVisualizationBlock = () => {
   const [data, setData] = useState(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -31,9 +30,12 @@ const DataVisualizationBlock = ({ onIdleChange }) => {
   const altText = data.mediaOne?.alt || 'Data Visualization';
 
   return (
-    <section ref={containerRef} className="block-type-1" id="block-d" style={{ position: 'relative' }}>
-      <ToolBar onIdleChange={onIdleChange} />
-
+    <section
+      ref={containerRef}
+      className="block-type-1"
+      id="block-d"
+      style={{ position: 'relative' }}
+    >
       <div
         className="media-content"
         style={{
@@ -50,22 +52,19 @@ const DataVisualizationBlock = ({ onIdleChange }) => {
             playsInline
             muted
             preload="metadata"
-            id="data-visualization-media"
             aria-label={altText}
-            data-tooltip-id="global-tooltip"
-            data-tooltip-key="data-viz"
-            data-tooltip-content=" "
-            style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'all' }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              pointerEvents: 'all',
+            }}
           />
         ) : (
           <img
             src={data.mediaOne?.asset.url}
             alt={altText}
             className="media-item"
-            id="data-visualization-media"
-            data-tooltip-id="global-tooltip"
-            data-tooltip-key="data-viz"
-            data-tooltip-content=" "
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}

@@ -22,8 +22,6 @@ const setupAltObserver = (onActivate, onDeactivate) => {
         const alt1Value = imageElement.getAttribute('alt');
         const visibility = entry.intersectionRatio;
 
-        console.log(`Retrieved alt1 value: '${alt1Value}', visibility: ${visibility}`);
-
         if (visibility > 0.1 && visibility > highestVisibility) {
           if (currentlyActiveAlt1 !== alt1Value) {
             if (currentlyActiveAlt1) {
@@ -32,13 +30,11 @@ const setupAltObserver = (onActivate, onDeactivate) => {
             onActivate(alt1Value);
             currentlyActiveAlt1 = alt1Value;
             highestVisibility = visibility;
-            console.log(`Activated: ${alt1Value}`);
           }
         } else if (visibility <= 0.1 && currentlyActiveAlt1 === alt1Value) {
           onDeactivate(alt1Value);
           currentlyActiveAlt1 = null;
           highestVisibility = 0;
-          console.log(`Deactivated: ${alt1Value}`);
         }
       }
     });

@@ -1,4 +1,4 @@
 /* Firework q5-canvas styles */
 /* canvas {background-color: #1e1e1f;} /* Background colors just incase to avoid color flickering */
-.firework-divider {pointer-events: none; display: block; position: absolute; height: 60vw; width: 100%; background-color: #1e1e1f;}
-.q5Canvas {display: block; width: 100% !important; margin-top: -12vw; height: 125% !important; overflow: hidden; /* background-color: #1e1e1f; */}
+.firework-divider {margin-top: -4.8vw; pointer-events: none; display: block; position: absolute; height: 60vw; width: 100%; background-color: #1e1e1f;}
+.q5Canvas {display: block; width: 100% !important; height: 125% !important; overflow: hidden; /* background-color: #1e1e1f; */}

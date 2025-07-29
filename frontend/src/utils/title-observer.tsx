@@ -20,6 +20,8 @@ const ProjectSwitchObserver = () => {
             setActiveProject('Evade the Rock');
           } else if (target.id.includes('block-d')) {
             setActiveProject('Data Visualization');
+          } else if (target.id.includes('block-a')) {
+            setActiveProject('Dynamic App');
           }
         }
       });
@@ -27,7 +29,7 @@ const ProjectSwitchObserver = () => {
       threshold: Array.from({ length: 101 }, (_, i) => i / 100),
     });
 
-    const ids = ['#block-i', '#block-r', '#block-g', '#block-d'];
+    const ids = ['#block-i', '#block-r', '#block-g', '#block-d', '#block-a'];
 
     const checkAndObserve = () => {
       const targets = ids
@@ -56,8 +58,10 @@ const ProjectSwitchObserver = () => {
             setActiveProject('Rotary Lamp');
           } else if (el.id.includes('block-g')) {
             setActiveProject('Evade the Rock');
-          } else if (el.id.includes('block-d')) 
-            setActiveProject('Data Visualization');
+          } else if (el.id.includes('block-d')) {
+            setActiveProject('Data Visualization'); 
+          } else if (el.id.includes('block-a')) 
+            setActiveProject('Dynamic App');
         }
       });
     };

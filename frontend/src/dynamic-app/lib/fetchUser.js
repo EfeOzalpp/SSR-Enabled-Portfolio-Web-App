@@ -1,5 +1,5 @@
 /* Sort by function and image fetch for the UI-cards */
-import sanityClient from './sanityClient'; 
+import sanityClient from '../../utils/sanity';
 import imageUrlBuilder from '@sanity/image-url'; 
 
 const builder = imageUrlBuilder(sanityClient);

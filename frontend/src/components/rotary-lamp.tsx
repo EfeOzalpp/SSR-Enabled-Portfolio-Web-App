@@ -2,10 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
-import ToolBar from '../utils/toolbar.tsx';
 import { useVideoVisibility } from '../utils/video-observer.tsx';
 
-const RotaryLamp = ({ onIdleChange }) => {
+const RotaryLamp = () => {
   const [data, setData] = useState(null);
   const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 55 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
@@ -53,8 +52,6 @@ const RotaryLamp = ({ onIdleChange }) => {
       id="block-r"
       style={{ position: 'relative' }}
     >
-       <ToolBar onIdleChange={onIdleChange} />
-
       <div
         className="media-content-1"
         style={
@@ -79,8 +76,6 @@ const RotaryLamp = ({ onIdleChange }) => {
           alt={alt1}
           className="media-item-1"
           id="rotary-media-1"
-          data-tooltip-id="global-tooltip"
-          data-tooltip-key="rotary-lamp"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </div>
@@ -117,9 +112,12 @@ const RotaryLamp = ({ onIdleChange }) => {
             muted
             preload="metadata"
             aria-label={alt2}
-            data-tooltip-id="global-tooltip"
-            data-tooltip-key="rotary-lamp"
-            style={{ pointerEvents: 'all', width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{
+              pointerEvents: 'all',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
           />
         ) : (
           <img
@@ -127,8 +125,6 @@ const RotaryLamp = ({ onIdleChange }) => {
             alt={alt2}
             className="media-item-2"
             id="rotary-media-2"
-            data-tooltip-id="global-tooltip"
-            data-tooltip-key="rotary-lamp"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}
