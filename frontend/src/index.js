@@ -7,6 +7,25 @@ import DynamicTheme from './DynamicTheme';
 
 const path = window.location.pathname;
 
+const injectFonts = () => {
+  const fontUrls = [
+    '/dynamic-app/fonts/rubik.css',
+    '/dynamic-app/fonts/orbitron.css'
+  ];
+
+  fontUrls.forEach((href) => {
+    if (![...document.styleSheets].some(s => s.href?.includes(href))) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    }
+  });
+};
+
+// Inject fonts once on load
+injectFonts();
+
 if (path === '/' || path === '/home') {
   ReactDOM.createRoot(document.getElementById('efe-portfolio')).render(
      // <React.StrictMode>

@@ -63,7 +63,7 @@ const IceCreamScoop = () => {
         <img
           src={data.mediaOne?.asset.url}
           alt={data.mediaOne?.alt || 'Visual content'}
-          className="media-item-1"
+          className="media-item-1 tooltip-ice-scoop"
           id="icecream-media-1"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
@@ -94,7 +94,7 @@ const IceCreamScoop = () => {
           <video
             ref={videoRef}
             src={data.mediaTwo.asset.url}
-            className="media-item-2"
+            className="media-item-2 tooltip-ice-scoop"
             id="icecream-media-2"
             loop
             playsInline

@@ -10,7 +10,8 @@
 .coin-amount { padding-left: 8px; color: rgb(255, 205, 55); text-shadow: 0px 0px 32px rgb(25 25 25); }
 .high-score {  text-shadow: 0px 0px 32px rgb(25 25 25); padding: 3px; text-decoration: underline;}
 
-.block-g-onboarding { top: 0; left: 0; width: 100%; height: 100%; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; position: absolute; flex-direction: column; }
+.block-g-onboarding { top: 0; left: 0; width: 100%; height: 100%; background: transparent; display: flex; align-items: center; justify-content: center; z-index: 999; position: absolute; flex-direction: column; }
+.coin, .onboarding-text {cursor: pointer;} 
 
 .onboarding-text { text-shadow: 0px 0px 32px rgb(25 25 25); color: #fac23f;  mix-blend-mode: screen;}
 .onboarding-text:hover {color: #f6c552; scale: 1.06;}

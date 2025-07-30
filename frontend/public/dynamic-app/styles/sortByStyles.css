@@ -108,4 +108,9 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 /* Pause Button styles */
 .pause-button-wrapper {padding-left: 20%; padding-top: 12px;}
 .lottie-container {width: 3.2em; height: 3.2em; z-index: 100; position: relative;}
+
+#shadow-dynamic-app .sort-by-container {transform: scale(0.75);}
+#shadow-dynamic-app .sort-by-divider {padding-left: 10%; padding-right: 10%; padding-bottom: 3.2em; padding-top: 0px;}
+#shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container  {min-width: 42%;} 
+#shadow-dynamic-app .custom-arrow {top: 32%;}
 }

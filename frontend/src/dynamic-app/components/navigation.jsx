@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import fetchGallery from '../lib/fetchGallery';
 
-const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2 }) => {
+const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2, isInShadow = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isScrollingUp, setIsScrollingUp] = useState(true);
@@ -10,7 +10,10 @@ const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2 }) => {
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [hasShownScrollHint, setHasShownScrollHint] = useState(false);
 
-  const toggleMenu = () => setIsOpen((prev) => !prev);
+  const toggleMenu = () => {
+    if (isInShadow) return; // 🛑 no nav in shadow mock
+    setIsOpen((prev) => !prev);
+  };
   const handleCloseMenu = () => setIsOpen(false);
 
   const handleScroll = () => {
@@ -142,7 +145,7 @@ const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2 }) => {
   const edgeColor = adjustBrightness(activeColor, 0.8);
 
   return (
-    <nav className={`navigation ${isScrollingUp ? 'visible' : 'hidden'}`}>
+   <nav className={`navigation ${isScrollingUp ? 'visible' : 'hidden'} ${isInShadow ? 'navigation--shadow' : ''}`}>
       <div
         className={`top-bar-items ${isOpen ? 'menu-open' : ''}`}
         style={{

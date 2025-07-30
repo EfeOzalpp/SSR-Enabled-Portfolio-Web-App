@@ -2,3 +2,22 @@
 /* canvas {background-color: #1e1e1f;} /* Background colors just incase to avoid color flickering */
 .firework-divider {margin-top: -4.8vw; pointer-events: none; display: block; position: absolute; height: 60vw; width: 100%; background-color: #1e1e1f;}
 .q5Canvas {display: block; width: 100% !important; height: 125% !important; overflow: hidden; /* background-color: #1e1e1f; */}
+
+/* Shadow DOM */
+.firework-wrapper-shadow {
+  position: relative; /* makes .firework-divider scroll with layout */
+  width: 100%;
+  z-index: 0; /* behind overlapping UI */
+}
+
+.firework-divider-shadow {
+  position: absolute; /* allows z-index layering */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60vw; /* adjust as needed */
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(1.1);
+  background-color: #1e1e1f; /* fallback canvas background */
+}

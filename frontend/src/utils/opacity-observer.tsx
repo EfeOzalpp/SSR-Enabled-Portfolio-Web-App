@@ -32,7 +32,8 @@ const OpacityObserver = () => {
       '#rotary-media-1',
       '#rotary-media-2',
       '#block-g',
-      '#block-d'
+      '#block-d',
+      '#block-a',
     ];
 
     const applyFinalOpacity = (el: HTMLElement) => {

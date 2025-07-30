@@ -46,6 +46,7 @@ const DataVisualizationBlock = () => {
       >
         {isVideo ? (
           <video
+            className="tooltip-data-viz"
             ref={videoRef}
             src={data.mediaOne.asset.url}
             loop
@@ -64,7 +65,7 @@ const DataVisualizationBlock = () => {
           <img
             src={data.mediaOne?.asset.url}
             alt={altText}
-            className="media-item"
+            className="tooltip-data-viz"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         )}

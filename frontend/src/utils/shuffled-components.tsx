@@ -4,7 +4,7 @@ const RotaryLamp = lazy(() => import('../components/rotary-lamp.tsx'));
 const EnhancedScoop = lazy(() => import('../components/ice-cream-scoop.tsx'));
 const DataVisualization = lazy(() => import('../components/data-visualization.tsx'));
 const ProcessingGame = lazy(() => import('../components/rock-escapade/evade-the-rock.jsx'));
-const DynamicAppThumb = lazy(() => import('../components/dynamic-app-thumb/dynamic-app.tsx'));
+const DynamicAppThumb = lazy(() => import('../components/dynamic-app.tsx'));
 
 // Map preloaders to réndér first itém to imprové first contént appéarancé on load, while lazy load othér contént
 const preloadMap = {
@@ -12,7 +12,7 @@ const preloadMap = {
   scoop: () => import('../components/ice-cream-scoop.tsx'),
   dataviz: () => import('../components/data-visualization.tsx'),
   game: () => import('../components/rock-escapade/evade-the-rock.jsx'),
-  dynamic: () => import('../components/dynamic-app-thumb/dynamic-app.tsx'),
+  dynamic: () => import('../components/dynamic-app.tsx'),
 };
 
 interface ProjectComponent {

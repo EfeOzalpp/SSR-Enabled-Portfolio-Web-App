@@ -1,26 +1,69 @@
 /* Block Type A styles */
-
-.block-type-a {width: 100%; background-color: rgb(15, 15, 18)}
-.block-a-content {width: 100%; height: 100%;}
-.svg-wrapper {
+.block-type-a {
+  width: 100%;
+  background: #0f0f12;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%; /* or a specific height like 100vh if needed */
-  width: 100%;
+  align-items: center; /* center vertically too */
+  min-height: 60vh; /* optional fallback for very narrow screens */
+  padding: 0; /* ensure no spacing affects layout */
   overflow: hidden;
 }
 
-.block-a-laptop, .block-a-tablet .block-a-phone {
-  width: auto;
+.device-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 10; /* Match your SVG's true aspect */
+}
+
+.device-frame {
+  width: 100%;
   height: auto;
-  object-fit: contain;
-  touch-action: none;
+  display: block;
+  z-index: 1100;
+  position: relative;
   pointer-events: none;
+  touch-action: none;
+}
+
+.screen-overlay {
+  position: absolute;
+  top: 6%;   /* Tune this to match the SVG screen top */
+  left: 4%;  /* Tune this to match the left inset */
+  width: 92%;  /* width of visible screen area inside SVG */
+  height: 88%; /* height of visible screen area inside SVG */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
-.block-a-phone {height: calc(100% - 32px);} .block-a-tablet {height: calc(100% - 48px);}
-.block-a-laptop {height: calc(100% - 32px);}
+
+.embedded-app {
+  width: 100%;
+  height: 100%;
+  overflow: auto; /* optional */
+  background: black; /* if your app doesn't have a background */
+  scrollbar-width: none; 
+  -ms-overflow-style: none;  /* IE/Edge */
+}
+.embedded-app::-webkit-scrollbar {
+  display: none;               /* Chrome/Safari */
+}
+
+
+.hover-overlay {
+  position: absolute;
+  inset: 0; /* full size of .screen-overlay */
+  z-index: 5;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.hone {height: calc(100% - 32px);} .tablet {height: calc(100% - 48px);}
+.laptop {height: calc(100% - 32px);}
 
 
 @media (max-width: 767px) {

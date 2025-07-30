@@ -12,6 +12,8 @@ const ScrollController = () => {
     isDragging,
     focusedProjectKey,
     setPreviousScrollY,
+    isEmbeddedFocused,
+    setIsEmbeddedFocused,
   } = useProjectVisibility();
 
   const isGameFocused = focusedProjectKey === 'game';
@@ -47,7 +49,11 @@ const ScrollController = () => {
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleWheel = (e: WheelEvent) => {
-    if (isDragging || isGameFocused) return;
+      console.log('[🌀 Wheel Event]', { isEmbeddedFocused });
+  if (isDragging || isGameFocused || isEmbeddedFocused) {
+    console.log('[🛑 Scroll Blocked] Wheel ignored — embedded app is focused');
+    return;
+  }
 
     accumulatedDelta.current += e.deltaY;
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
@@ -68,12 +74,12 @@ const ScrollController = () => {
   };
 
   const handleTouchStart = (e: TouchEvent) => {
-    if (isGameFocused) return;
+    if (isGameFocused || isEmbeddedFocused) return;
     touchStartY.current = e.touches[0].clientY;
   };
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (isDragging || isGameFocused) return;
+    if (isDragging || isGameFocused || isEmbeddedFocused) return;
     const now = Date.now();
     if (now - lastScrollTime.current < SCROLL_DELAY) return;
 
@@ -94,7 +100,7 @@ const ScrollController = () => {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (isDragging || isGameFocused) return;
+    if (isDragging || isGameFocused || isEmbeddedFocused) return;
     let newIndex = currentIndex;
 
     if (e.key === 'ArrowDown') {
@@ -112,19 +118,51 @@ const ScrollController = () => {
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
+    
+    const embeddedEl = container.querySelector('.embedded-app');
+    if (!embeddedEl) return;
+
+    const handleEnter = () => {
+      setIsEmbeddedFocused(true);
+    }
+    const handleLeave = () => {
+      setIsEmbeddedFocused(false);
+    };
+
+    const handleEmbeddedWheel = (e: WheelEvent) => {
+      const el = e.currentTarget as HTMLElement;
+      const scrollTop = el.scrollTop;
+      const scrollHeight = el.scrollHeight;
+      const clientHeight = el.clientHeight;
+
+      const isAtTop = scrollTop === 0 && e.deltaY < 0;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight && e.deltaY > 0;
+
+      if (isAtTop || isAtBottom) {
+        setIsEmbeddedFocused(false);
+      }
+    };
 
     container.addEventListener('wheel', handleWheel);
     container.addEventListener('touchstart', handleTouchStart);
     container.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('keydown', handleKeyDown);
 
+    embeddedEl.addEventListener('pointerenter', handleEnter);
+    embeddedEl.addEventListener('pointerleave', handleLeave);
+    embeddedEl.addEventListener('wheel', handleEmbeddedWheel);
+
     return () => {
       container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('keydown', handleKeyDown);
+
+      embeddedEl.removeEventListener('pointerenter', handleEnter);
+      embeddedEl.removeEventListener('pointerleave', handleLeave);
+      embeddedEl.removeEventListener('wheel', handleEmbeddedWheel);
     };
-  }, [projectComponents.length, currentIndex, isDragging, isGameFocused]);
+  }, [projectComponents.length, currentIndex, isDragging, isGameFocused, isEmbeddedFocused, setIsEmbeddedFocused]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -176,8 +214,8 @@ const ScrollController = () => {
       className="SnappyScrollThingy"
       style={{
         height: viewportStyle.height,
-        overflowY: 'scroll',
-        scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
+        overflowY: isEmbeddedFocused || focusedProjectKey ? 'hidden' : 'scroll',
+        scrollSnapType: isEmbeddedFocused || focusedProjectKey  ? 'none' : 'y mandatory',
         scrollBehavior: 'smooth',
         paddingBottom: viewportStyle.paddingBottom,
         scrollbarWidth: 'none',

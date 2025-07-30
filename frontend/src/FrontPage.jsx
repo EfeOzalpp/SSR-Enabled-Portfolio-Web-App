@@ -7,6 +7,7 @@ import OpacityObserver from './utils/opacity-observer.tsx';
 import TitleObserver from './utils/title-observer.tsx';
 import ThemeColorUpdater from './utils/theme-color-updater.tsx';  
 import { ProjectVisibilityProvider } from './utils/project-context.tsx';
+import { initGlobalTooltip } from './utils/tooltip.ts';
 import { Helmet } from 'react-helmet';
 
 function Frontpage() {
@@ -63,6 +64,10 @@ useEffect(() => {
     document.removeEventListener('gesturechange', preventGesture);
     document.removeEventListener('gestureend', preventGesture);
   };
+}, []);
+
+useEffect(() => {
+  initGlobalTooltip();
 }, []);
 
   return (

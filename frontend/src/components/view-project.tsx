@@ -30,7 +30,7 @@ export const ViewProject = () => {
     'Rotary Lamp': '98, 102, 109',         // 🧊 Cool Graphite — matches metal & mood
     'Evade the Rock': '101, 86, 175',      // 🔮 Desaturated Purple — game-like, not loud
     'Data Visualization': '48, 152, 202',  // 📊 Calm Sky Blue — intelligent and clean
-    'Dynamic App': '0, 255, 133'           // 🍃 Neon Mint — remains your statement accent
+    'Dynamic App': '98, 102, 109'           // 🍃 Neon Mint — remains your statement accent
   };
 
   // Gets rgba background color based on active project and hover state

@@ -308,7 +308,7 @@ useEffect(() => {
           let baseCount;
         if (p.windowWidth < 768) {
           baseCount = type === 'BLINKING'
-            ? p.random(50, 150)
+            ? p.random(80, 150)
             : p.random(100, 200);
         } else if (p.windowWidth <= 1024) {
           baseCount = type === 'BLINKING'
@@ -465,30 +465,46 @@ useEffect(() => {
       }
 
       function addNewFirework(fireworkType) {
-        console.log(`Creating ${fireworkType} firework`);
 
         const startX = p.width / 2;
         const startY = p.height;
 
         const selectedAlt1 = latestItems.current?.[0]?.alt1 || '';
-        const indices = [0, 1, 3];
-        const selectedColorIndex = indices[Math.floor(Math.random() * indices.length)];
+        const colorArray = latestColorMapping.current[selectedAlt1] || [];
 
-        const baseColorHex = latestColorMapping.current[selectedAlt1]?.[selectedColorIndex] || latestLastKnownColor.current || '#FFFFFF';
-        const brightnessMultiplier = p.random(0.9, 1.4);
-        const adjustedColorHex = adjustBrightness(baseColorHex, brightnessMultiplier);
-        const fireworkColor = p.color(adjustedColorHex);
+        // Early exit if no colors are available
+        if (!colorArray.length) {
+          console.warn(`No colors available for alt1: '${selectedAlt1}'`);
+          return;
+        }
 
-        // Simplified fixed target positions
+        let topColorCount;
+        if (p.windowWidth >= 1025) {
+          topColorCount = 3;
+        } else if (p.windowWidth >= 768) {
+          topColorCount = 2;
+        } else {
+          topColorCount = 1;
+        }
+
+        // Safely extract just 0, 1, and 3 (skip index 2)
+        const usableColors = [
+          colorArray[0],
+          colorArray[1],
+          colorArray[3],
+        ].filter(Boolean); // filter out undefined if array is incomplete
+        if (usableColors.length === 0) return;
+
+        const randomHex = usableColors[Math.floor(p.random(usableColors.length))]; // Pick one color
+
+        const brightnessMultiplier = p.random(1, 1.4);
+        const adjustedHex = adjustBrightness(randomHex, brightnessMultiplier);
+        const fireworkColor = p.color(adjustedHex);
+
         const targetX = p.width / 2 + p.random(-50, 50);
-        const targetY = fireworkType === 'BLINKING'
-          ? p.height * 0.2
-          : p.height * 0.7;
+        const targetY = fireworkType === 'BLINKING' ? p.height * 0.2 : p.height * 0.7;
 
-        // Update last launch position for future enhancement
         lastLaunchPosition = p.createVector(targetX, targetY);
-
-        // Create firework
         fireworks.push(new Firework(startX, startY, targetX, targetY, fireworkColor, fireworkType));
       }
 
@@ -503,7 +519,7 @@ useEffect(() => {
       lastFireworkTime = 0;
       
       let fireworkToggle = true; // Starts with BLINKING
-      let nextFireworkDelay = p.random(2000, 8000); // Random delay between 2000ms and 5000ms
+      let nextFireworkDelay = p.random(2000, 5000); // Random delay between 2000ms and 5000ms
 
       p.draw = () => {
         p.background('#1e1e1f');
@@ -520,13 +536,13 @@ useEffect(() => {
 
         const adjustedTime = p.millis() - hiddenDurationRef.current;
 
-        // ✅ Fix: fallback in case adjustedTime went backward or got corrupted
+        // Fix: fallback in case adjustedTime went backward or got corrupted
         if (adjustedTime < lastFireworkTime) {
           console.warn("Adjusted time went backward or stale. Forcing firework reset.");
           lastFireworkTime = adjustedTime - nextFireworkDelay - 1;
         }
 
-        // ✅ Regular triggering condition
+        // Regular triggering condition
         if (adjustedTime - lastFireworkTime > nextFireworkDelay) {
           const fireworkType = fireworkToggle ? 'BLINKING' : 'PROJECTILE';
           addNewFirework(fireworkType);
@@ -551,7 +567,6 @@ useEffect(() => {
 
 
 const toggleFireworks = useCallback((isEnabled) => {
-  console.log(`toggleFireworks called. isEnabled: ${isEnabled}`);
   setFireworksEnabled(isEnabled);
   fireworksEnabledRef.current = isEnabled; // ✅ update live value for p5
 }, []);

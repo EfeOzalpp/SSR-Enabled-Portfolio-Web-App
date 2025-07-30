@@ -93,9 +93,10 @@ function DynamicTheme() {
     }, 400);
   }, []);
 
+  const isInShadowDOM = document.querySelector('.dynamic-app')?.getRootNode() instanceof ShadowRoot;
   useEffect(() => {
     if (!isLoading) {
-      setupIntersectionObserver(pauseAnimation);
+      setupIntersectionObserver(pauseAnimation, document, isInShadowDOM);
       setupAltObserver(handleActivate, handleDeactivate);
     }
   }, [isLoading, sortedImages, pauseAnimation]);

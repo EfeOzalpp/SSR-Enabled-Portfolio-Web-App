@@ -74,7 +74,7 @@ const RotaryLamp = () => {
         <img
           src={media1?.asset.url}
           alt={alt1}
-          className="media-item-1"
+          className="media-item-1 tooltip-rotary-lamp"
           id="rotary-media-1"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
@@ -105,7 +105,7 @@ const RotaryLamp = () => {
           <video
             ref={videoRef}
             src={media2.asset.url}
-            className="media-item-2"
+            className="media-item-2 tooltip-rotary-lamp"
             id="rotary-media-2"
             loop
             playsInline
@@ -123,7 +123,7 @@ const RotaryLamp = () => {
           <img
             src={media2?.asset.url}
             alt={alt2}
-            className="media-item-2"
+            className="media-item-2 tooltip-rotary-lamp"
             id="rotary-media-2"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />

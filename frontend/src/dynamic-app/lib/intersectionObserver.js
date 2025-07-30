@@ -1,7 +1,7 @@
 // Intersection Observer to Transform UI-cards based on visibility
 let observer = null; // Store the observer instance globally
 
-const setupIntersectionObserver = (pauseAnimation) => {
+const setupIntersectionObserver = (pauseAnimation, rootElement = document) => {
   if (observer) {
     observer.disconnect(); // Disconnect the observer if it already exists
     observer = null; // Clear the reference
@@ -17,7 +17,7 @@ const setupIntersectionObserver = (pauseAnimation) => {
     threshold: Array.from(Array(101).keys(), (x) => x / 100),
   };
 
-  const applyTransform = (percentage, imageContainer, imageContainer2) => {
+  const applyTransform = (percentage, imageContainer, imageContainer2, isShadowRoot = false) => {
 
     let imageContainerTransform, imageContainer2Transform;
     let imageContainerZIndex, imageContainer2ZIndex;
@@ -72,26 +72,50 @@ const setupIntersectionObserver = (pauseAnimation) => {
     }
     // Conditions for screen width above 1024px
     else if (window.innerWidth > 1024) {
-      if (percentage > 0.55) {
-        imageContainerTransform = 'translate(3.5vw, 0vw)';
-        imageContainer2Transform = 'translate(1vw, -30vw)';
-        imageContainerZIndex = '1';
-        imageContainer2ZIndex = '5';
-      } else if (percentage > 0.35 && percentage <= 0.55) {
-        imageContainerTransform = 'translate(3.5vw, 0vw)';
-        imageContainer2Transform = 'translate(1vw, -30vw)';
-        imageContainerZIndex = '5';
-        imageContainer2ZIndex = '1';
-      } else if (percentage > 0.15 && percentage <= 0.35) {
-        imageContainerTransform = 'translate(0vw, 0vw)';
-        imageContainer2Transform = 'translate(1vw, -30vw)';
-        imageContainerZIndex = '6';
-        imageContainer2ZIndex = '3';
+      if (isShadowRoot) {
+        if (percentage > 0.55) {
+          imageContainerTransform = 'translate(3.5vw, -5vw)';
+          imageContainer2Transform = 'translate(1vw, -23vw)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.35 && percentage <= 0.55) {
+          imageContainerTransform = 'translate(2.3vw, -6.6vw)';
+          imageContainer2Transform = 'translate(1vw, -24.4vw)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.15 && percentage <= 0.35) {
+          imageContainerTransform = 'translate(1.15vw, -8.2vw)';
+          imageContainer2Transform = 'translate(1vw, -26.2vw)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else {
+          imageContainerTransform = 'translate(0vw, -10vw)';
+          imageContainer2Transform = 'translate(0.5vw, -29vw)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
       } else {
-        imageContainerTransform = 'translate(0vw, 0vw)';
-        imageContainer2Transform = 'translate(1vw, -30vw)';
-        imageContainerZIndex = '5';
-        imageContainer2ZIndex = '1';
+        if (percentage > 0.55) {
+          imageContainerTransform = 'translate(3.5vw, 0vw)';
+          imageContainer2Transform = 'translate(1vw, -30vw)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.35 && percentage <= 0.55) {
+          imageContainerTransform = 'translate(3.5vw, 0vw)';
+          imageContainer2Transform = 'translate(1vw, -30vw)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else if (percentage > 0.15 && percentage <= 0.35) {
+          imageContainerTransform = 'translate(0vw, 0vw)';
+          imageContainer2Transform = 'translate(1vw, -30vw)';
+          imageContainerZIndex = '6';
+          imageContainer2ZIndex = '3';
+        } else {
+          imageContainerTransform = 'translate(0vw, 0vw)';
+          imageContainer2Transform = 'translate(1vw, -30vw)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
       }
     }
 
@@ -113,7 +137,12 @@ const setupIntersectionObserver = (pauseAnimation) => {
 
     const percentageAboveCenter = Math.max(0, Math.min(elementHeight, viewportCenter - elementTop)) / elementHeight;
 
-    applyTransform(percentageAboveCenter, imageContainer, imageContainer2);
+    applyTransform(
+    percentageAboveCenter,
+    imageContainer,
+    imageContainer2,
+    rootElement instanceof ShadowRoot
+    );
   };
 
   const observerCallback = (entries) => {
@@ -123,7 +152,7 @@ const setupIntersectionObserver = (pauseAnimation) => {
   };
 
   observer = new IntersectionObserver(observerCallback, observerOptions);
-  document.querySelectorAll('.card-container').forEach((card) => observer.observe(card));
+  rootElement.querySelectorAll('.card-container').forEach((card) => observer.observe(card));
 };
 
 export default setupIntersectionObserver;

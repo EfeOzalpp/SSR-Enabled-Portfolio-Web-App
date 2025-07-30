@@ -119,8 +119,7 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
 
   return (
     <div
-      className="block-g-onboarding"
-      onClick={handleClick}
+      className="block-g-onboarding tooltip-block-g"
       ref={containerRef}
       style={{
         opacity: isFadingOut ? 0 : 1,
@@ -129,8 +128,20 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
         alignItems: 'center',
       }}
     >
-      <div ref={lottieRef} className="coin"></div>
-      <h1 className="onboarding-text">Click to Play!</h1>
+      <div
+        ref={lottieRef}
+        className="coin"
+        onClick={handleClick} // 👈 Only clickable here
+        style={{ pointerEvents: 'auto' }}
+      ></div>
+
+      <h1
+        className="onboarding-text"
+        onClick={handleClick} // 👈 And here
+        style={{ pointerEvents: 'auto' }}
+      >
+        Click Here to Play!
+      </h1>
     </div>
   );
 };

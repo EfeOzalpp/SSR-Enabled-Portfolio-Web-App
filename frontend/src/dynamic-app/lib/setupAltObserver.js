@@ -1,17 +1,15 @@
-// Alt observer to change UI color theme based on visible alt
 let currentlyActiveAlt1 = null;
 let highestVisibility = 0;
 let debounceTimeout = null;
 
-const setupAltObserver = (onActivate, onDeactivate) => {
+const setupAltObserver = (onActivate, onDeactivate, rootElement = document) => {
   const observerOptions = {
     root: null,
     rootMargin: '0px',
-    threshold: Array.from(Array(101).keys(), (x) => x / 100), // React to small changes in visibility
+    threshold: Array.from(Array(101).keys(), (x) => x / 100),
   };
 
   const observerCallback = (entries) => {
-    // Sort entries by visibility in descending order
     entries.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
 
     entries.forEach((entry) => {
@@ -45,7 +43,7 @@ const setupAltObserver = (onActivate, onDeactivate) => {
   const triggerInitialActivation = () => {
     clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(() => {
-      const cards = Array.from(document.querySelectorAll('.card-container'));
+      const cards = Array.from(rootElement.querySelectorAll('.card-container'));
       const entries = cards.map((card) => {
         const boundingRect = card.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
@@ -59,11 +57,11 @@ const setupAltObserver = (onActivate, onDeactivate) => {
         };
       });
 
-      observerCallback(entries); // Trigger the evaluation with sorted entries
-    }, 50); // Reduced debounce time for quicker color application (adjust as needed)
+      observerCallback(entries);
+    }, 50);
   };
 
-  document.querySelectorAll('.card-container').forEach((card) => observer.observe(card));
+  rootElement.querySelectorAll('.card-container').forEach((card) => observer.observe(card));
   triggerInitialActivation();
 };
 

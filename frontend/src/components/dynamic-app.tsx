@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import client from '../../utils/sanity';
+import client from '../utils/sanity';
+import DynamicAppInbound from '../dynamic-app/dynamic-app-shadow.jsx';
+import { useProjectVisibility } from '../utils/project-context.tsx';
 
 const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
   if (width < 768) return 'phone';
@@ -10,8 +12,8 @@ const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
 const MinimalBlock = () => {
   const [svgMap, setSvgMap] = useState<Record<string, string>>({});
   const [device, setDevice] = useState<'phone' | 'tablet' | 'laptop'>(getDeviceType(window.innerWidth));
+  const { setIsEmbeddedFocused } = useProjectVisibility();
 
-  // Fetch SVGs once
   useEffect(() => {
     client
       .fetch(`*[_type == "svgAsset" && title in ["Laptop", "Tablet", "Phone"]]{
@@ -27,7 +29,6 @@ const MinimalBlock = () => {
       });
   }, []);
 
-  // Handle resize & update device
   useEffect(() => {
     const handleResize = () => {
       const newDevice = getDeviceType(window.innerWidth);
@@ -38,25 +39,17 @@ const MinimalBlock = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const deviceClass = `block-a-${device}`;
   const svgUrl = svgMap[device];
 
-  return (
-    <section className="block-type-a" id="block-a">
-      <div className="block-a-content">
-        <section className="svg-wrapper">
-          {svgUrl ? (
-            <img
-              src={`${svgUrl}?cb=${device}`} // optional cache-busting by device
-              alt={device}
-              className={deviceClass}
-            />
-          ) : (
-            <div className="svg-placeholder" />
-          )}
-        </section>
+return (
+  <section className="block-type-a" id="block-a">
+    <div className="device-wrapper">
+      <img src={svgUrl} alt={device} className={`device-frame ${device}`} />
+      <div className="screen-overlay">
+          <DynamicAppInbound onFocusChange={setIsEmbeddedFocused} />
       </div>
-    </section>
+    </div>
+  </section>
   );
 };
 
