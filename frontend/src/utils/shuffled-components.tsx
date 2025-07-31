@@ -27,7 +27,7 @@ export const getShuffledComponents = (): ProjectComponent[] => {
     { key: 'scoop', title: 'Ice Cream Scoop', Component: EnhancedScoop },
     { key: 'dataviz', title: 'Data Visualization', Component: DataVisualization },
     { key: 'game', title: 'Evade the Rock', Component: ProcessingGame },
-    { key: 'dynamic', title: 'Dynamic App', Component: DynamicAppThumb },
+    { key: 'dynamic', title: 'Dynamic App', Component: DynamicAppThumb, isLink: true },
   ];
 
   return components.sort(() => Math.random() - 0.5);

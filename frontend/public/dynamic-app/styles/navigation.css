@@ -234,5 +234,15 @@ animation: scrollHintMove 1s infinite alternate ease-in-out; transition: opacity
 .footer {position: relative; z-index: 8000; padding-top: 4.8em; padding-bottom: 6.2em;}
 .nav-link-2 {padding: 4px 0px 2px 48px; position: relative; width: 100%; display: inline-flex; justify-content: flex-start; align-items: center;}
 .nav-link-2:hover {scale: 1.008; transition: 0.05s ease-in; transform: translateX(2px); background-color: #222222;}
+#shadow-dynamic-app .footer {padding-left: 10em; padding-right: 10em; padding-top: 1.2em;}
+#shadow-dynamic-app .nav-link-2 {width: calc(100% - 48px);}
 }
-    
+
+@media (min-width: 2025px) {
+  .menu-icon {transform: scale(1.5);}
+  .top-bar-items {padding-top: 22px; padding-bottom: 22px;}
+  div.menu-item-2 {width: calc(50% + 180px); margin-left: calc(50% - 180px);}
+  .menu-nav {padding-top: 32.2em; padding-left: 70px;}
+  .scroll-hint {transform: scale(1.5) !important;}
+  .arrow1, .arrow3 {transform: scale(1.4);}
+ }    

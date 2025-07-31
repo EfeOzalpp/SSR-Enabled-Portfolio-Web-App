@@ -58,4 +58,15 @@ background: linear-gradient(to right, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0
 
 /* SVG icon styles for rotation and size */
 #Layer_12 {padding-left: 0.04em; padding-right: 0.04em; margin-top: 0.4em; width: 1.05em;  height: 1.05em; animation: rotate var(--animation-speed, 12s) linear infinite;}
+#shadow-dynamic-app  .moving-title {margin-top: 0.6em; width: 80%;}
+#shadow-dynamic-app #Layer_12 {width: 1.3em; height: 1.3em; margin-left: -0.2em;}
+#shadow-dynamic-app .moving-text {padding-right: 36px;}
+#shadow-dynamic-app span.svg-icon {padding-right: 36%; width: 1em !important; height: 1em !important; font-size: 85% !important;}
+#shadow-dynamic-app .svg-icon {transform: scale(0.8);}
+}
+
+@media screen and (min-width: 2025px) { 
+.moving-title {margin-top: -0.2vw;}
+#shadow-dynamic-app  .moving-title {margin-top: 0em;}
+.moving-text {padding-right: 186px;}
 }

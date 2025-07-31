@@ -1,7 +1,7 @@
 /* Block Type A styles */
 .block-type-a {
   width: 100%;
-  background: #0f0f12;
+  background: #191919;
   display: flex;
   justify-content: center;
   align-items: center; /* center vertically too */
@@ -13,7 +13,6 @@
 .device-wrapper {
   position: relative;
   width: 100%;
-  max-width: 1100px;
   margin: 0 auto;
   aspect-ratio: 16 / 10; /* Match your SVG's true aspect */
 }
@@ -45,7 +44,7 @@
   width: 100%;
   height: 100%;
   overflow: auto; /* optional */
-  background: black; /* if your app doesn't have a background */
+  background: #191919; /* if your app doesn't have a background */
   scrollbar-width: none; 
   -ms-overflow-style: none;  /* IE/Edge */
 }
@@ -78,8 +77,16 @@
   }
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 1025px) and (max-width: 2024px) {
   .block-type-a {
     height: 96dvh;
   }
+ .device-wrapper {max-width: 154dvh;}
+}
+
+@media (min-width: 2025px) {
+  .block-type-a {
+    height: 98dvh;
+  }
+   .device-wrapper {max-width: 120dvh;}
 }

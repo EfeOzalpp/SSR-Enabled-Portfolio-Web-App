@@ -4,6 +4,7 @@
 .lottie-container {cursor: pointer;} 
 .custom-dropdown:hover div.selected-value, .custom-dropdown:hover span.custom-arrow {scale: 1.02; transition: ease-in 0.1s;}
 .students-heading, .sort-container, .selected-value h5 {pointer-events: none; user-select: none; touch-action: none;}
+
 /* Sort by filtering for mobile devices */
 @media screen and (max-width: 768px) { 
 /* Sort by general styles */    
@@ -103,14 +104,29 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 .options-container {position: absolute; z-index: 1000; background: #222222; width: 100%; right: -1.6px;  top: calc(100% - 8px); padding-top: 8px; padding-bottom: 8px; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px;}
 
 /* Students Heading */
-.students-heading {position: relative; top: 36px; left: 18px;}
+.students-heading {position: relative; top: 36px; left: 0px;}
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-left: 20%; padding-top: 12px;}
 .lottie-container {width: 3.2em; height: 3.2em; z-index: 100; position: relative;}
 
-#shadow-dynamic-app .sort-by-container {transform: scale(0.75);}
-#shadow-dynamic-app .sort-by-divider {padding-left: 10%; padding-right: 10%; padding-bottom: 3.2em; padding-top: 0px;}
+#shadow-dynamic-app .sort-by-container {transform: scale(0.8);}
+#shadow-dynamic-app .sort-by-divider {padding-left: 8em; padding-right: 8em; padding-bottom: 2.4em; padding-top: 2.4em;}
 #shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container  {min-width: 42%;} 
-#shadow-dynamic-app .custom-arrow {top: 32%;}
+#shadow-dynamic-app .custom-arrow {top: 50%;}
+#shadow-dynamic-app .pause-button-wrapper {padding-left: 16em; padding-top: 1.2em; transform: scale(0.95);}
+#shadow-dynamic-app .students-heading {left: 4px;}
+#shadow-dynamic-app span.custom-arrow.open {transform: translateY(-50%) rotate(180deg) !important; top: 50% !important;}
+}
+@media screen and (min-width: 2025px) { 
+#shadow-dynamic-app .sort-by-container {transform: scale(0.95) !important;}
+#shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container {min-width: 33% !important;}
+.sort-by-container {transform: scale(1.1) !important; align-content: flex-end; flex-wrap: wrap; margin-right: 3%;}
+.sort-container2, .sort-container {min-width: 20% !important;}
+.sort-by-divider {padding-top: 96px; padding-left: 4%; padding-right: 4%;}
+#shadow-dynamic-app .sort-by-divider {padding-left: 8em; padding-right: 8em; padding-top: 16em !important; padding-bottom: 1.2em; padding-top: 0px;}
+.selected-value {padding: 16px 14px 16px 21px;}
+#shadow-dynamic-app .students-heading {left: 48px;}
+.sort-by-divider {padding-top: 256px;}
+.lottie-container {width: 4.2m; height: 4.2em;}
 }

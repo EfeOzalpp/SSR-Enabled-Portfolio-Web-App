@@ -1,13 +1,23 @@
 /* Nav menu */
-.nav-menu { pointer-events: none; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; padding-bottom: 16px; z-index: 1000; }
+.nav-menu {
+  user-select: none;           /* Prevents text selection */
+  -webkit-user-select: none;   /* Safari */
+  -ms-user-select: none;       /* IE/Edge */
+
+  -webkit-user-drag: none;     /* Prevents dragging in Safari */
+  -khtml-user-drag: none;      /* Older Safari */
+  -moz-user-select: none;      /* Firefox */
+  -o-user-select: none;        /* Opera */
+  pointer-events: auto;        /* Still allow click events */ 
+  display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; padding-bottom: 16px; z-index: 2000; }
 .nav-left { width: 50%; display: flex; justify-content: flex-start; padding-left: 16px; }
 .nav-right { padding: 24px; gap: 24px; display: flex; justify-content: flex-end;  width: fit-content; pointer-events: all;}
-.logo-svg { display: block; }
-.icon-svg { cursor: pointer; transition: transform 0.2s ease; }
+.logo-svg { display: block; user-select: none;}
+.icon-svg { cursor: pointer; transition: transform 0.2s ease; user-select: none;}
 .icon-svg:hover { transform: scale(1.1); }
 .title-lottie { width: 12.8em; pointer-events: all;}
 .title-lottie:hover { scale: 1.02; padding-left: 0.06em; }
-.github-lottie, .linkedin-lottie { width: 2.4em; pointer-events: all;}
+.github-lottie, .linkedin-lottie { width: 2.4em; pointer-events: all; user-select: none;}
 .github-lottie:hover, .linkedin-lottie:hover { scale: 1.03; }
 
 /* View Project */
@@ -129,7 +139,7 @@
 
 @media (min-width: 1025px) {
   .view-project-wrapper {bottom: 4dvh;}
-  .view-project-btn {padding: 4px 32px 0px 40px;}
+  .view-project-btn {padding: 4px 32px 0px 40px; }
   .nav-menu { padding-bottom: 4px; }
   .nav-right { padding-right: 28px; gap: 24px; }
   .arrow-svg { filter: drop-shadow(0 0px 18px rgba(0,0,0,0.6)); }

@@ -196,6 +196,7 @@ const NavMenu = () => {
         <a
           href="/"
           className="home-link"
+          draggable="false"
           onMouseDown={handleMouseDown}
           onClick={(e) => handleLinkClick(e, "/")}
           onTouchStart={handleLinkTouchStart}
@@ -211,6 +212,7 @@ const NavMenu = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="github-link"
+          draggable="false"
           onMouseDown={handleMouseDown}
           onClick={(e) => handleLinkClick(e, "https://github.com/EfeOzalpp")}
           onTouchStart={handleLinkTouchStart}
@@ -224,6 +226,7 @@ const NavMenu = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="linkedin-link"
+          draggable="false"
           onMouseDown={handleMouseDown}
           onClick={(e) =>
             handleLinkClick(e, "https://www.linkedin.com/in/efe-ozalp/")

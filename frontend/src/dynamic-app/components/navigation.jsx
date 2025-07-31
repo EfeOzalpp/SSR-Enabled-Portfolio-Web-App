@@ -207,6 +207,7 @@ const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2, isInShadow
                     key={index}
                     src={img.url}
                     alt={img.alt}
+                    draggable="false"
                     className={`gallery-image image-${index}`}
                   />
                 ))}

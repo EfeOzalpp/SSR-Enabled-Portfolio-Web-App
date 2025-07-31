@@ -58,29 +58,45 @@ h-name, h-name a {padding-left: 4%; width: 86%; flex-grow: 1; display: flex; jus
 @media screen and (min-width: 1025px) {
 .homePage-container {background-color: #1a1a1a;}
 .card-divider {padding-left: 0.8em; padding-right: 0.8em;}
-.UI-card-divider {top: calc(36vw); position: relative; padding-top: 2.4vw; z-index: 300; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;}   
-.card-container {margin-top: -133%; display: block; height: 100%; padding-bottom: 4.6vw;}
+.UI-card-divider {top: 28em; position: relative; padding-top: 4.4em; z-index: 300; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;}   
+.card-container {margin-top: -28em; display: block; height: 100%; padding-bottom: 4.6em;}
 
 /* For profile photo */
-.image-container img {width: 90%; height: 32vw; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 6px rgba(32, 32, 32, 0.08), 0 1px 3px rgba(33, 34, 32, 0.08);}
+.image-container img {width: 92%; object-fit: cover; height: 28em; border-radius: 4px; box-shadow: 0 4px 6px rgba(32, 32, 32, 0.08), 0 1px 3px rgba(33, 34, 32, 0.08);}
 .image-container {position: relative; display: flex; flex-direction: column;}
 
 /* For illustration */
-.image-container2 img {width: 92%; height: 32vw; object-fit: cover; border-radius: 4px;}
+.image-container2 img {width: 92%; height: 28em; object-fit: cover; border-radius: 4px;}
 .image-container2 {position: relative; display: flex; scale: 1.02; flex-direction: column; z-index: 1;}
 
 /* Link hit box styles */
-.ui-link-3::after {content: ''; position: absolute; border-radius: 4px; top: 0; left: 0; width: 92%; height: 32vw; background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.753));}
+.ui-link-3::after {content: '';position: absolute; border-radius: 4px; top: 0; left: 0; width: 92%; height: 28em; background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.753));}
 .ui-link {width: 100%;}
 
 /* Card title and icon */
-h-name, h-name a {width: 90%; flex-grow: 1; display: flex; justify-content: space-between; align-items: center; position: relative; color: white; margin-top: auto; z-index: 10; bottom: 1.8vw; padding-right: 0px;}
+h-name, h-name a {width: 90%; flex-grow: 1; display: flex; justify-content: space-between; align-items: center; position: relative; color: white; margin-top: auto; z-index: 10; bottom: 1.2em; padding-right: 0px;}
+#shadow-dynamic-app h-name, #shadow-dynamic-app h-name a {width: calc(98% - 16px);}
 .title-text {padding-left: 32px; position: absolute;}
+#shadow-dynamic-app .title-text{padding-left: 16px;}
 .svg-icon {width: 1em; height: 1em; padding-right: 7%; display: inline-block; margin-left: auto;} .svg-icon:hover {transform: translateX(2px); transition: transform 150ms ease-out;}
 }
 
 /* Shadow app stylé */
 #shadow-dynamic-app .homePage-container {background-color: transparent;}
-#shadow-dynamic-app .UI-card-divider {top: calc(26vw); padding-left: 10%; padding-right: 10%;}
-#shadow-dynamic-app .image-container img,  #shadow-dynamic-app .image-container2 img, #shadow-dynamic-app .ui-link-3::after {height: 20vw;} 
-#shadow-dynamic-app .card-container {padding-bottom: 8.4vw;}
+#shadow-dynamic-app .UI-card-divider {top: 24em; padding-left: 10em; padding-right: 10em;}
+#shadow-dynamic-app .image-container img,  #shadow-dynamic-app .image-container2 img, #shadow-dynamic-app .ui-link-3::after {height: 28em;} 
+#shadow-dynamic-app .card-container {padding-bottom: 1.4em !important; margin-top: -28em;}
+
+@media screen and (min-width: 2025px) {
+.image-container img, .image-container2 img {height: 44em; width: 74%; padding-left: 6%;}  
+#shadow-dynamic-app .image-container img, #shadow-dynamic-app .image-container2 img {width: 84%;}
+.ui-link-3::after {margin-left: 6%; height: 44em; width: 74%;} 
+#shadow-dynamic-app .ui-link-3::after {width: 84%;}
+#shadow-dynamic-app .UI-card-divider {padding-top: 7.4em;}
+.UI-card-divider {padding-top: 4.2em;}
+#shadow-dynamic-app h-name, #shadow-dynamic-app h-name a {width: 90%;}
+h-name, h-name a {width: 85%;}
+#shadow-dynamic-app .svg-icon {height: 1.2em;}
+.title-text { padding-left: calc(6% + 1.2em);}
+.ui-link-2 .custom-card-2 .svg-icon { padding-right: calc(7% + 1.2em);}
+ }

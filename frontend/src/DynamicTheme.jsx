@@ -40,6 +40,8 @@ function DynamicTheme() {
   const [cssReady, setCssReady] = useState(false);
   const [showNavigation, setShowNavigation] = useState(false);
   const toggleFireworksRef = useRef(null);
+  const dynamicAppRef = useRef(null);
+  const [showFireworks, setShowFireworks] = useState(true);
 
   useEffect(() => {
     const cssFiles = [
@@ -129,11 +131,50 @@ function DynamicTheme() {
       setActiveColor(lastKnownColor);
     }
   };
+  
+  useEffect(() => {
+    if (!dynamicAppRef.current) return;
+
+    const observer = new ResizeObserver(() => {
+      console.log('[Resize observed]', dynamicAppRef.current?.getBoundingClientRect());
+    });
+
+    observer.observe(dynamicAppRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-  console.log('[MOUNTING FireworksDisplay]');
-  return () => console.log('[UNMOUNTING FireworksDisplay]');
-}, []);
+  const fireworkContainer = document.querySelector('.firework-divider');
+
+  if (!fireworkContainer) {
+    console.warn('[FireworkObserver] Firework container not found');
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      const isVisible = entry.isIntersecting;
+      setShowFireworks((prev) => {
+        if (prev !== isVisible) {
+          console.log('[FireworkObserver] State changed:', isVisible);
+          return isVisible;
+        }
+        return prev;
+      });
+    },
+    {
+      threshold: 0.1,
+      root: null, // Not shadow, so default root
+    }
+  );
+
+  observer.observe(fireworkContainer);
+
+  return () => {
+    observer.disconnect();
+  };
+  }, []);
+
   return (
     <>
     <Helmet>
@@ -154,7 +195,7 @@ function DynamicTheme() {
       <meta name="twitter:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! This is the 2025 curation." />
       <meta name="twitter:image" content="https://www.example.com/image-path/twitter-image.jpg" />
     </Helmet>
-    <div className="dynamic-app">
+    <div className="dynamic-app" ref={dynamicAppRef}>
       {!cssReady ? (
         <div className="loading-screen" />
       ) : isLoading ? (
@@ -174,6 +215,7 @@ function DynamicTheme() {
           </div>
           <div className="firework-divider">
             <div className="section-divider"></div>
+          {showFireworks && (
             <FireworksDisplay
               colorMapping={colorMapping}
               items={sortedImages}
@@ -181,6 +223,7 @@ function DynamicTheme() {
               lastKnownColor={lastKnownColor}
               onToggleFireworks={handleSetToggleFireworks}
             />
+          )}
           </div>
           <div className="section-divider"></div>
           <div className="title-divider">

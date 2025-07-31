@@ -5,7 +5,7 @@ const Footer = ({ customArrowIcon2, linkArrowIcon }) => {
     <footer className="footer">
       <div className="footer-links">
         <div className="nav-item">
-          <Link to="https://dynamicmediainstitute.org/dmi-experience/" className="nav-link-2">
+          <div className="nav-link-2" role="button" tabIndex={0}>
             <div className="name">
               <h4>What is DMI?</h4>
             </div>
@@ -15,10 +15,10 @@ const Footer = ({ customArrowIcon2, linkArrowIcon }) => {
                 dangerouslySetInnerHTML={{ __html: customArrowIcon2 }}
               />
             )}
-          </Link>
+          </div>
         </div>
         <div className="nav-item">
-          <Link to="https://dynamicmediainstitute.org/student-work/case-studies/" className="nav-link-2">
+          <div className="nav-link-2" role="button" tabIndex={0}>
             <h4>Case Studies</h4>
             {customArrowIcon2 && (
               <div
@@ -26,7 +26,7 @@ const Footer = ({ customArrowIcon2, linkArrowIcon }) => {
                 dangerouslySetInnerHTML={{ __html: customArrowIcon2 }}
               />
             )}
-          </Link>
+          </div>
         </div>
       </div>
       <div className="footer-info">

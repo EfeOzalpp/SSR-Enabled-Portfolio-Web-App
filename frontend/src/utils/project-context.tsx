@@ -13,6 +13,7 @@ interface ProjectComponent {
   key: string;
   title: string;
   component: React.ReactElement;
+  isLink?: boolean;
 }
 
 interface ProjectVisibilityContextType {

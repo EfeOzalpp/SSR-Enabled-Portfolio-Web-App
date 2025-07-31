@@ -9,7 +9,7 @@ h-title a {color: #ffffff;}
 label p {color: #dbdbdb;}
 
 
-#shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.6em; padding-right: 1.6em; } 
+#shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.6em; padding-right: 1.6em; user-select: none;} 
 
 /* Mobile general styles */
 @media screen and (max-width: 768px) {
@@ -167,7 +167,7 @@ p, .p {
 @media screen and (min-width: 1025px) {
 
 /* General padding and spacers for Desktop */ 
-body #homePage {padding-left: 7.8em; padding-right: 7.8em;}
+body #homePage {padding-left: 12em; padding-right: 12em;}
 .section-divider {height: 4.8vw;} .section-divider2 {height: 1.2vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
 #shadow-dynamic-app .section-divider {height: 1.2vw;} .section-divider2 {height:0.8vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
 /* Fonts */
@@ -179,9 +179,10 @@ h1 {
   margin-top: 0vw; margin-bottom: 0.2vw;
 }
 
-#shadow-dynamic-app h1, #shadow-dynamic-app span  {
-transform: scale(0.75);
-} #shadow-dynamic-app h1 {line-height: 0.8;}
+#shadow-dynamic-app h1.title-with-icon .moving-text-wrapper, 
+#shadow-dynamic-app div.static-title, #shadow-dynamic-app span {
+} #shadow-dynamic-app h1 {line-height: 0.8; font-size: clamp(70px, 3.2vw, 102px); }
+#shadow-dynamic-app h4 {font-size: 120%;}
 
 h1 a:hover {font-size: calc(1.1 * clamp(50px, 8vw, 100px));}
 
@@ -207,6 +208,10 @@ h-name {
   font-family: 'rubik';
   font-weight: 500;
   letter-spacing: 0.4px;
+}
+
+#shadow-dynamic-app h-name {
+  font-size: clamp(10px, 1vw, 36px);
 }
 
 h4 {
@@ -242,4 +247,17 @@ p, .p {
   font-size: clamp(6px, 1vw, 24px);
   font-family: 'rubik'; font-weight: 400; letter-spacing: 0.4px;
  }  
+}
+
+@media screen and (min-width: 2025px) {
+  body #homePage {padding-left: 18.8em; padding-right: 18.8em;}
+  h-title {font-size: clamp(48px, 48px, 48px);}
+  #shadow-dynamic-app span.title-text {font-size: 80% !important; padding-left: 1.4em;}
+  #shadow-dynamic-app h5, h5 {color: #f6f6f6;
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-family: 'rubik';
+  font-weight: 400;
+  letter-spacing: 0.4px;
+  margin: 0px;
+}
 }

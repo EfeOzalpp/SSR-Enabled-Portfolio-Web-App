@@ -338,7 +338,7 @@ const playSegment = (() => {
               top: 0,
               bottom: 0,
               left: `${split}%`,
-              width: '6rem',
+              width: '6.4rem',
               cursor: 'ew-resize',
               transform: 'translateX(-50%)',
               height: 'calc(100% - 6em)',

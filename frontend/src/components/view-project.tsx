@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import { useProjectVisibility } from '../utils/project-context.tsx';
 import arrowData from '../svg/arrow.json';
+import linkData from '../svg/link.json';
 
 // ViewProject – The little CTA at the bottom that shows project title + arrow wiggle
 export const ViewProject = () => {
@@ -23,20 +24,24 @@ export const ViewProject = () => {
   const [hovered, setHovered] = useState(false);
 
   const lastActiveProject = useRef(activeProject);
-  
+
+  const currentProjectData = projectComponents.find(p => p.title === activeProject);
+  const isLinkProject = currentProjectData?.isLink === true;
+
   // Colors for each project background
   const projectColors: { [key: string]: string } = {
-    'Ice Cream Scoop': '234, 103, 97',     // 🍓 Soft Coral — friendly, grounded
-    'Rotary Lamp': '98, 102, 109',         // 🧊 Cool Graphite — matches metal & mood
-    'Evade the Rock': '101, 86, 175',      // 🔮 Desaturated Purple — game-like, not loud
-    'Data Visualization': '48, 152, 202',  // 📊 Calm Sky Blue — intelligent and clean
-    'Dynamic App': '98, 102, 109'           // 🍃 Neon Mint — remains your statement accent
-  };
+    'Ice Cream Scoop': '234, 103, 97',
+    'Rotary Lamp': '204, 85, 41',
+    'Evade the Rock': '101, 86, 175',
+    'Data Visualization': '48, 152, 202',
+    'Dynamic App': '120, 211, 255' 
+    };
+
 
   // Gets rgba background color based on active project and hover state
   const getBackgroundColor = () => {
     const rgb = projectColors[activeProject];
-    if (!rgb) return 'rgba(240, 240, 240, 0.6)';
+    if (!rgb) return 'rgba(240, 240, 240, 0.7)';
 
     // Hover increases opacity for more prominence
     const opacity = hovered ? 1 : 0.6;
@@ -44,15 +49,18 @@ export const ViewProject = () => {
   };
 
   // Sets up the arrow lottie on mount
+  // Sets up the arrow or link lottie based on activeProject
   useEffect(() => {
+    const animationData = activeProject === 'Dynamic App' ? linkData : arrowData;
+
     const arrowAnim = lottie.loadAnimation({
       container: arrowContainer.current!,
       renderer: 'svg',
       loop: false,
       autoplay: true,
-      animationData: arrowData,
+      animationData,
     });
-    arrowAnimRef.current = arrowAnim;
+      arrowAnimRef.current = arrowAnim;
 
     // Pauses arrow after stopFrame to hold it there
     const stopFrame = 40;
@@ -75,7 +83,7 @@ export const ViewProject = () => {
       arrowAnim.removeEventListener('enterFrame', onEnterFrame);
       arrowAnim.destroy();
     };
-  }, []);
+ }, [activeProject]);
 
   // Handles showing background on any interaction, hides after 2s
   const handleInteraction = () => {
@@ -196,8 +204,36 @@ export const ViewProject = () => {
   }, []);
 
   // Renders the button with dynamic background and arrow
-  return (
-    <div className="view-project-wrapper">
+return (
+  <div className="view-project-wrapper">
+    {isLinkProject ? (
+      <a
+        href="/dynamic-theme"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`view-project-btn ${!showBackground ? 'no-bg' : ''}`}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onTouchStart={(e) => { handleTouchStart(e as any); setHovered(true); }}
+        onTouchEnd={(e) => { handleTouchEnd(e as any); setHovered(false); }}
+        onTouchCancel={() => setHovered(false)}
+      >
+        <div
+          className={`view-project-background ${!showBackground ? 'no-bg' : ''}`}
+          style={{
+            backgroundColor: getBackgroundColor(),
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            borderRadius: 'inherit',
+            zIndex: 0,
+          }}
+        />
+        <h2 className="project-view" style={{ position: 'relative', zIndex: 1 }}>{activeProject}</h2>
+        <div ref={arrowContainer} className="view-project-arrow" style={{ position: 'relative', zIndex: 1 }}></div>
+      </a>
+    ) : (
       <button
         className={`view-project-btn ${!showBackground ? 'no-bg' : ''}`}
         onMouseEnter={() => setHovered(true)}
@@ -222,7 +258,8 @@ export const ViewProject = () => {
         <h2 className="project-view" style={{ position: 'relative', zIndex: 1 }}>{activeProject}</h2>
         <div ref={arrowContainer} className="view-project-arrow" style={{ position: 'relative', zIndex: 1 }}></div>
       </button>
-    </div>
+    )}
+  </div>
   );
 };
 

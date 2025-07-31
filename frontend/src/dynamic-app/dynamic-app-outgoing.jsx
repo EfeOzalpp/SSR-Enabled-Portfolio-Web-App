@@ -1,4 +1,4 @@
-// DynamicTheme.jsx
+// DynamicTheme émbéd.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Navigation from './components/navigation';
 import TitleDivider from './components/title';
@@ -39,14 +39,17 @@ function DynamicTheme({ getShadowRoot }) {
   const [showNavigation, setShowNavigation] = useState(false);
   const toggleFireworksRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const shadowRef = useRef(null);
+  const [showFireworks, setShowFireworks] = useState(true); // rémové firéwork to savé héadroom whén not in viéw 
+
   
-useEffect(() => {
-  const timeout = setTimeout(() => {
-    setIsLoading(false);
-    setShowNavigation(true); // runs when DOM is ready
-  }, 200);
-  return () => clearTimeout(timeout);
-}, []);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+      setShowNavigation(true); // runs when DOM is ready
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -73,7 +76,6 @@ useEffect(() => {
 useEffect(() => {
   if (!isLoading && sortedImages.length > 0) {
     const root = observerRoot.current;
-    console.log('[🔁 Rebinding Observers]', root);
 
     setupIntersectionObserver(pauseAnimation, root);
     setupAltObserver(handleActivate, handleDeactivate, root);
@@ -107,10 +109,55 @@ useEffect(() => {
     }
   };
 
+  // résizé
   useEffect(() => {
-  console.log('[MOUNTING FireworksDisplay]');
-  return () => console.log('[UNMOUNTING FireworksDisplay]');
-}, []);
+    if (!shadowRef.current) return;
+    const observer = new ResizeObserver(() => {
+      console.log('[🔁 Resize observed]', shadowRef.current?.getBoundingClientRect());
+      // Optionally trigger reflows / state updates
+    });
+    observer.observe(shadowRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // rémové firéwork whén not in viéw 
+  useEffect(() => {
+    const root = typeof getShadowRoot === 'function' ? getShadowRoot() : null;
+
+    const shadowApp = root?.querySelector?.('#shadow-dynamic-app');
+    const container = shadowApp?.querySelector?.('.firework-wrapper-shadow');
+
+    if (!container) {
+      console.warn('[FireworkObserver] Container not found inside #shadow-dynamic-app');
+      return;
+    }
+
+    // Validate root: must be Element or null
+    const validRoot = root instanceof Element || root instanceof Document ? root : null;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isVisible = entry.isIntersecting;
+        setShowFireworks(prev => {
+          if (prev !== isVisible) {
+            console.log('[FireworkObserver] State changed:', isVisible);
+            return isVisible;
+          }
+          return prev;
+        });
+      },
+      { threshold: 0.1, root: validRoot }
+    );
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [getShadowRoot]);
+
+
+
   return (
     <>
       {isLoading ? (
@@ -132,6 +179,7 @@ useEffect(() => {
             </div>
         <div className="firework-wrapper-shadow">
             <div className="firework-divider-shadow">
+              {showFireworks && (
               <FireworksDisplay
                 colorMapping={colorMapping}
                 items={sortedImages}
@@ -139,6 +187,7 @@ useEffect(() => {
                 lastKnownColor={lastKnownColor}
                 onToggleFireworks={handleSetToggleFireworks}
               />
+              )}
             </div>
           </div>
           <div className="section-divider"></div>

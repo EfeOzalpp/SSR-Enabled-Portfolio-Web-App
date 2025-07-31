@@ -1,6 +1,6 @@
 /* Firework q5-canvas styles */
 /* canvas {background-color: #1e1e1f;} /* Background colors just incase to avoid color flickering */
-.firework-divider {margin-top: -4.8vw; pointer-events: none; display: block; position: absolute; height: 60vw; width: 100%; background-color: #1e1e1f;}
+.firework-divider {margin-top: -12.8em; pointer-events: none; display: block; position: absolute; height: 60vw; width: 100%; background-color: #1e1e1f;}
 .q5Canvas {display: block; width: 100% !important; height: 125% !important; overflow: hidden; /* background-color: #1e1e1f; */}
 
 /* Shadow DOM */
@@ -15,9 +15,15 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 60vw; /* adjust as needed */
+  height: 40vw; /* adjust as needed */
   z-index: 0;
   pointer-events: none;
-  transform: scale(1.1);
+  transform: scale(1.3);
   background-color: #1e1e1f; /* fallback canvas background */
+}
+
+@media screen and (min-width: 2025px) {
+.firework-divider-shadow  {transform: scale(2.2);}
+.firework-divider  {margin-top: -29.8em; transform: scale(2);}
+.firework-divider-shadow {height: 32vw !important;}
 }

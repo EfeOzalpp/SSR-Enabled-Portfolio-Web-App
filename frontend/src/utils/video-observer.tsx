@@ -23,6 +23,7 @@ export const useVideoVisibility = (
         }
         return;
       }
+      if (!video.src) return;
 
       // Preload the video early
       video.load();
@@ -33,8 +34,9 @@ export const useVideoVisibility = (
           const isVisible = entry.isIntersecting;
 
           if (isVisible) {
-            video.play().catch(() => {
-              // Ignore autoplay block errors
+            video.play().catch((err) => {
+              console.warn("Autoplay blocked, retrying in 500ms", err);
+              setTimeout(() => video.play().catch(() => {}), 500);
             });
           } else {
             video.pause();
