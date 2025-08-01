@@ -65,26 +65,40 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document, rootE
     }
     // Conditions for screen width between 768px and 1024px
     else if (window.innerWidth > 768 && window.innerWidth <= 1024) {
-      if (percentage > 0.55) {
-        imageContainerTransform = 'translate(4em, -4em)';
-        imageContainer2Transform = 'translate(1em, -60em)';
-        imageContainerZIndex = '1';
-        imageContainer2ZIndex = '5';
-      } else if (percentage > 0.35 && percentage <= 0.55) {
-        imageContainerTransform = 'translate(3em, -5.4em)';
-        imageContainer2Transform = 'translate(0.95em, -61.3em)';
-        imageContainerZIndex = '5';
-        imageContainer2ZIndex = '1';
-      } else if (percentage > 0.15 && percentage <= 0.35) {
-        imageContainerTransform = 'translate(1.6em, -6.2em)';
-        imageContainer2Transform = 'translate(0.87em, -62.7em)';
-        imageContainerZIndex = '5';
-        imageContainer2ZIndex = '1';
+      if (isShadowRoot) {
+        if (percentage > 0.5) {
+          imageContainerTransform = 'translate(0em, 1.5em)';
+          imageContainer2Transform = 'translate(1em, -21em)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.15 && percentage <= 0.5) {
+          imageContainerTransform = 'translate(-0.5em, 0.64em)';
+          imageContainer2Transform = 'translate(0.5em, -22em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else {
+          imageContainerTransform = 'translate(-1em, 0em)';
+          imageContainer2Transform = 'translate(0em, -23em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
       } else {
-        imageContainerTransform = 'translate(-1em, -7em)';
-        imageContainer2Transform = 'translate(0.8em, -64em)';
-        imageContainerZIndex = '5';
-        imageContainer2ZIndex = '1';
+        if (percentage > 0.55) {
+          imageContainerTransform = 'translate(1em, 2em)';
+          imageContainer2Transform = 'translate(-1em, -27em)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.15 && percentage <= 0.55) {
+          imageContainerTransform = 'translate(0em, 1em)';
+          imageContainer2Transform = 'translate(-0.5em, -28em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else {
+          imageContainerTransform = 'translate(-1em, 0em)';
+          imageContainer2Transform = 'translate(0em, -29em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
       }
     }
     // Conditions for screen width above 1024px
@@ -166,6 +180,14 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document, rootE
         isMouseInsideShadowRoot = true;
         // Reconnect the observer
         rootElement.querySelectorAll('.card-container').forEach((card) => observer.observe(card));
+      });
+
+      // Support touch-based or drag-based activation inside Shadow DOM
+      shadowAppEl.addEventListener('pointerdown', () => {
+        if (!isMouseInsideShadowRoot) {
+          isMouseInsideShadowRoot = true;
+          rootElement.querySelectorAll('.card-container').forEach((card) => observer.observe(card));
+        }
       });
 
       shadowAppEl.addEventListener('mouseleave', () => {

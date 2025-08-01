@@ -44,9 +44,11 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 /* Sort by filtering for tablet devices */
 @media screen and (min-width: 768px) and (max-width: 1024px) { 
 /* Sort by general styles */  
-.sort-by-divider {z-index: 350; position: relative; padding-left: 2.2em; padding-right: 2.2em; padding-bottom: 1.2em;}
+.sort-by-divider {z-index: 350; position: relative; padding-left: 9%; padding-right: 2.4em; padding-bottom: 1.2em;}
+#shadow-dynamic-app  .sort-by-divider {padding-left: 3.4em;}
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {display: flex; align-items: center; z-index: 10; position: relative;flex-direction: column; align-items: center; padding-right: 16px; min-width: 26%;}
+#shadow-dynamic-app .sort-by-container {min-width: 36%;}
 .sort-container2 {min-width: 100%; align-self: flex-end;} 
 .sort-container {align-self: flex-start; position: relative; bottom: -6px; left: 4px;}
 
@@ -57,12 +59,16 @@ appearance: none; -webkit-appearance: none; -moz-appearance: none; }
 /* Arrow state */
 .custom-arrow {position: absolute; right: 20px; top: 50%; transform: translateY(-50%); pointer-events: none;}
 .custom-arrow div {width: 21px; height: 21px;}
+#shadow-dynamic-app .custom-arrow div {width: 18px; height: 18px;}
 .custom-arrow.open {transform: translateY(-50%) rotate(180deg);}
 
 /* Selected option style changes */
 div.option.selected {background-color: #252527;}
 .selected-value {padding: 16px 16px 16px 20px;}
+#shadow-dynamic-app .selected-value {padding: 12px 12px 12px 16px;}
 .option, div.option.selected {color: #ffffff; font-size: clamp(8px, 2.2vw, 20px); font-family: 'rubik'; font-weight: 300; letter-spacing: 0.4px; padding-left: 20px;}
+#shadow-dynamic-app div.option.selected {padding-top: 14px; padding-bottom: 14px;}
+#shadow-dynamic-app .option {padding-bottom: 12px; padding-top: 12px;}
 .option:hover {scale: 1.02; transition: 0.05s ease-in; transform: translateX(2px);}
 div.option.selected:hover {scale: 1; transform: translateX(0px);}
 .option {padding-bottom: 16px; padding-top: 16px;} div.option.selected {padding-top: 18px; padding-bottom: 18px;}
@@ -72,7 +78,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 .students-heading {position: relative; top: 36px;}
 
 /* Pause Button styles */
-.pause-button-wrapper {padding-bottom: 3.2em; padding-left: 2.4em;}
+.pause-button-wrapper {padding-bottom: 4.8em; padding-left: 6%;}
 .lottie-container {width: 2.8em; height: 2.8em; z-index: 100; position: relative;}
 }
 

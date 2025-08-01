@@ -64,21 +64,27 @@ const playSegment = (() => {
   };
 })();
 
+  const getContainerHeightRatio = () => {
+    const width = window.innerWidth;
+    if (width < 768) return 0.98;
+    if (width < 1025) return 0.92;
+    return 0.96;
+  };
 
   const handlePointerMove = (clientX, clientY) => {
     if (!isDraggingRef.current) return;
     if (typeof clientX !== 'number' || typeof clientY !== 'number') return;
 
     const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const isNowPortrait = viewportHeight > viewportWidth;
+    const containerHeight = window.innerHeight * getContainerHeightRatio();
+    const isNowPortrait = containerHeight  > viewportWidth;
 
     let newSplit = isNowPortrait
-      ? (clientY / viewportHeight) * 100
+      ? (clientY / containerHeight ) * 100
       : (clientX / viewportWidth) * 100;
 
     newSplit = isNowPortrait
-      ? Math.max(25, Math.min(100, newSplit))
+      ? Math.max(20, Math.min(100, newSplit))
       : Math.max(0, Math.min(100, newSplit));
 
     setSplit(newSplit);

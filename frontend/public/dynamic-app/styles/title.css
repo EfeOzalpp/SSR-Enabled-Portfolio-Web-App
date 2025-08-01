@@ -24,12 +24,12 @@ background: linear-gradient(to right, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0
 
 /* Hero title for tablet devices */
 @media screen and (min-width: 768px) and (max-width: 1024px) {
-.title-container {background-color: #1e1e1f; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding-top: 2.6em; padding-bottom: 2.8em; padding-left: 1.4em;}
+.title-container {background-color: #1e1e1f; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding-top: 2.6em; padding-bottom: 2.8em; padding-left: 2.4em;}
+#shadow-dynamic-app .title-container {padding-top: 1.6em;}
 .static-title {margin-bottom: 20px; padding-left: 2.4em; padding-right: 50%;  z-index: 3;}
-
 /* Moving title styles */
 .title-with-icon {display: flex; align-items: center; white-space: nowrap;}
-.moving-title {position: relative; margin-top: -2.2em; width: 100%; overflow: hidden; z-index: 2;}
+.moving-title {position: relative; margin-top: -2.6em; width: 100%; overflow: hidden; z-index: 2;}
 .moving-title::before {content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; 
 background: linear-gradient(to right, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0) 5%), linear-gradient(to left, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0) 5%);}
 .moving-title h1 {font-weight: 200 !important; letter-spacing: -0.4px;}

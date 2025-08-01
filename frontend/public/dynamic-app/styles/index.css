@@ -9,8 +9,8 @@ h-title a {color: #ffffff;}
 label p {color: #dbdbdb;}
 
 
-#shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.6em; padding-right: 1.6em; user-select: none;} 
-
+#shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.6em; padding-right: 1.6em; user-select: none; overflow: hidden;} 
+#shadow-dynamic-app .menu-item {display: none;}
 /* Mobile general styles */
 @media screen and (max-width: 768px) {
 
@@ -90,11 +90,17 @@ p, .p {
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 
 /* General padding and spacers for tablet */ 
-.section-divider {height: 4.6em;} .section-divider2 {height: 0.4em;} .section-divider3 {height: 0.4em;; margin-top: -0.6em;}
+.section-divider {height: 4.6em;} .section-divider2 {height: 0.4em;} .section-divider3 {height: 0.4em; margin-top: -0.6em;}
+#shadow-dynamic-app .section-divider {height: 1.2em;}
+#shadow-dynamic-app h1 {font-size: clamp(72px, 3.6em, 120px);}
+#shadow-dynamic-app h5 {font-size: clamp(12px, 0.9em, 21px);}
+#shadow-dynamic-app h3 {font-size: clamp(20px, 2em, 56px);}
+#shadow-dynamic-app h4 {font-size: clamp(14px, 1.6em, 32px);}
+#shadow-dynamic-app h-name,  #shadow-dynamic-app h-name a {font-size: clamp(12px, 1.2em, 36px); width: 86%; bottom: 1.2em;}
 
 /* Fonts */
 h1 {
-  font-size: clamp(86px, 10.6vw, 148px); 
+  font-size: clamp(86px, 10.6vw, 140px); 
   color: #f0f0f0;
   font-family: 'Orbitron', 'Oxygen', 'ubuntu', 'Cantarell', sans-serif; 
   font-weight: 400;
@@ -121,7 +127,7 @@ h3 {
 
 h-name {
   color: #f4f4f4;
-  font-size: clamp(10px, 2.8vw, 40px);
+  font-size: clamp(10px, 2.2vw, 36px);
   font-family: 'rubik';
   font-weight: 500;
   letter-spacing: 0.4px;  

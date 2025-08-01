@@ -86,7 +86,7 @@ const ScrollController = () => {
     const deltaY = e.touches[0].clientY - touchStartY.current;
     let newIndex = currentIndex;
 
-    if (Math.abs(deltaY) > 240) {
+    if (Math.abs(deltaY) > 800) {
       if (deltaY > 0) newIndex = Math.max(currentIndex - 1, 0);
       else newIndex = Math.min(currentIndex + 1, projectComponents.length - 1);
 
@@ -129,6 +129,14 @@ const ScrollController = () => {
       setIsEmbeddedFocused(false);
     };
 
+    const handleTouchStart = () => {
+    setIsEmbeddedFocused(true);
+    };
+
+    const handleTouchEnd = () => {
+    setIsEmbeddedFocused(false);
+    };
+
     const handleEmbeddedWheel = (e: WheelEvent) => {
       const el = e.currentTarget as HTMLElement;
       const scrollTop = el.scrollTop;
@@ -151,6 +159,8 @@ const ScrollController = () => {
     embeddedEl.addEventListener('pointerenter', handleEnter);
     embeddedEl.addEventListener('pointerleave', handleLeave);
     embeddedEl.addEventListener('wheel', handleEmbeddedWheel);
+    embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+    embeddedEl.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       container.removeEventListener('wheel', handleWheel);
@@ -161,6 +171,7 @@ const ScrollController = () => {
       embeddedEl.removeEventListener('pointerenter', handleEnter);
       embeddedEl.removeEventListener('pointerleave', handleLeave);
       embeddedEl.removeEventListener('wheel', handleEmbeddedWheel);
+      embeddedEl.removeEventListener('touchstart', handleTouchStart);
     };
   }, [projectComponents.length, currentIndex, isDragging, isGameFocused, isEmbeddedFocused, setIsEmbeddedFocused]);
 

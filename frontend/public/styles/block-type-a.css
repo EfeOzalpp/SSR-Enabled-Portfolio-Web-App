@@ -1,7 +1,7 @@
 /* Block Type A styles */
 .block-type-a { width: 100%; background: #191919; display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 0; overflow: hidden; }
 
-.device-wrapper { position: relative; width: 100%; margin: 0 auto; aspect-ratio: 16 / 10; }
+.device-wrapper { position: relative; width: 100%; margin: 0 auto; }
 .device-frame { width: 100%; height: auto; display: block; z-index: 1100; position: relative; pointer-events: none; touch-action: none; }
 .screen-overlay { position: absolute; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 1000; }
 
@@ -11,7 +11,7 @@
 /* only on phoné */
 .phone { height: calc(100% - 32px); }
 /* only on tablét */
-.tablet { height: 100%; }
+.tablet { height: 84%; padding-top: 12%;}
 /* only on laptop */
 .laptop { height: calc(100% - 32px); }
 
@@ -22,19 +22,20 @@
 
 @media (min-width: 768px) and (max-width: 1024px) {
   .block-type-a {height: 92dvh; }
-  .device-wrapper {max-width: 120dvh; }
-  .screen-overlay  {top: 5%;  left: 6%; width: 88%; height: 90%;} 
+  .device-wrapper {width: 96dvh; aspect-ratio: 3 / 4;}
+  .device-frame {display: block; margin: 0 auto;}
+  .screen-overlay  {top: 13%;  left: 13%; width: 74%; height: 78%;} 
 
 }
 
 @media (min-width: 1025px) and (max-width: 2024px) {
   .block-type-a {height: 96dvh; }
-  .device-wrapper {max-width: 154dvh; }
+  .device-wrapper {max-width: 154dvh; aspect-ratio: 16 / 10;}
   .screen-overlay  {top: 6%; left: 4%; width: 92%; height: 88%;} 
 }
 
 @media (min-width: 2025px) {
   .block-type-a {height: 98dvh; }
-  .device-wrapper {max-width: 120dvh; }
+  .device-wrapper {max-width: 120dvh; aspect-ratio: 16 / 10;}
   .screen-overlay  {top: 6%; left: 4%; width: 92%; height: 88%;} 
 }

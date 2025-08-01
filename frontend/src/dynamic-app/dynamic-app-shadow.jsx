@@ -25,6 +25,29 @@ const DynamicAppInbound = ({ onFocusChange }) => {
       initGlobalTooltip(shadowRoot); // Initialize once root is known
     }
   }, [shadowRoot]);
+  
+  useEffect(() => {
+    const el = shadowRef.current;
+
+    if (!el) return;
+
+    const handleTouchStart = () => {
+      onFocusChange?.(true);
+    };
+
+    const handleTouchEnd = () => {
+      // You can uncomment the line below if you want to blur on end
+      // onFocusChange?.(false);
+    };
+
+    el.addEventListener('touchstart', handleTouchStart, { passive: true });
+    el.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [shadowRef.current, onFocusChange]);
 
   return (
     <div className="embedded-app">

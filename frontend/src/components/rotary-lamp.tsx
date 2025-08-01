@@ -6,7 +6,7 @@ import { useVideoVisibility } from '../utils/video-observer.tsx';
 
 const RotaryLamp = () => {
   const [data, setData] = useState(null);
-  const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 55 : 50));
+  const [split, setSplit] = useState(() => (window.innerWidth < 1024 ? 55 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -57,11 +57,11 @@ const RotaryLamp = () => {
         style={
           isPortrait
             ? {
-                height: split <= 15 ? '0%' : `${split}%`,
+                height: split <= 20 ? '0%' : `${split}%`,
                 width: '100%',
                 position: 'absolute',
                 top: 0,
-                transition: split <= 15 ? 'height 0.1s ease' : 'none',
+                transition: split <= 20 ? 'height 0.1s ease' : 'none',
               }
             : {
                 width: `${split}%`,
@@ -87,11 +87,11 @@ const RotaryLamp = () => {
         style={
           isPortrait
             ? {
-                height: split <= 25 ? '100%' : `${100 - split}%`,
+                height: split <= 20 ? '100%' : `${100 - split}%`,
                 width: '100%',
                 position: 'absolute',
-                top: split <= 25 ? '0%' : `${split}%`,
-                transition: split <= 25 ? 'height 0.1s ease, top 0.1s ease' : 'none',
+                top: split <= 20 ? '0%' : `${split}%`,
+                transition: split <= 20 ? 'height 0.1s ease, top 0.1s ease' : 'none',
               }
             : {
                 width: `${100 - split}%`,

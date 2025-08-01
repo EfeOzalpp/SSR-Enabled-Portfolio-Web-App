@@ -143,7 +143,8 @@ div.menu-item-2 {box-sizing: border-box; padding-left: 1.6em; padding-right: 2.2
 /* SVG icon styles */
 .arrow1 {width: 1.6em; height: 1.6em; padding-right: 25%; display: inline-block; margin-left: auto;}
 .arrow2 {width: 23px; height: 23px; transform: rotate(180deg); display: inline-block;}
-.arrow3 {width: 1.6em; height: 1.6em; padding-right: 25%; display: inline-block; margin-left: auto;}
+.arrow3 {width: 1.6em; height: 1.6em; padding-right: 16%; display: inline-block; margin-left: auto;}
+#shadow-dynamic-app .arrow3 {padding-right: 2%;}
 
 /* Full progress bar container */
 .scroll-indicator {position: relative; height: 100%; width: 6px; margin: 0; top: 0;
@@ -157,7 +158,8 @@ animation: scrollHintMove 1s infinite alternate ease-in-out;}
 @keyframes scrollHintMove {0% {bottom: 12%; } 100% {bottom: 10%;}}
 
 /* Footer */
-.footer {position: relative; z-index: 8000; padding-top: 3.4em; padding-bottom: 8.2em;}
+.footer {position: relative; z-index: 8000; padding-top: 3.6em; padding-bottom: 9.6em; padding-left: 6%; padding-right: 10%;}
+#shadow-dynamic-app .footer {padding-top: 2.4em; padding-right: 12%; padding-bottom: 10em;}
 .nav-link-2 {padding: 3px 38px 7px 38px; position: relative; width: 92%; display: inline-flex; justify-content: flex-start; align-items: center;}
 .nav-link-2:hover {scale: 1.008; transition: 0.05s ease-in; transform: translateX(1px); background-color: #222222; border-radius: 2px;}
 }
