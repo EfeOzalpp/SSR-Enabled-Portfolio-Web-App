@@ -90,16 +90,16 @@ p, .p {
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 
 /* General padding and spacers for tablet */ 
-.section-divider {height: 8.4vw;} .section-divider2 {height: 1.8vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
+.section-divider {height: 4.6em;} .section-divider2 {height: 0.4em;} .section-divider3 {height: 0.4em;; margin-top: -0.6em;}
 
 /* Fonts */
 h1 {
-  font-size: clamp(52px, 7.6vw, 118px); 
+  font-size: clamp(86px, 10.6vw, 148px); 
   color: #f0f0f0;
   font-family: 'Orbitron', 'Oxygen', 'ubuntu', 'Cantarell', sans-serif; 
   font-weight: 400;
   margin-top: 0vw; margin-bottom: 0.2vw; letter-spacing: -0.4px;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 h1 a:hover {font-size: calc(1.1 * clamp(50px, 8vw, 100px));}

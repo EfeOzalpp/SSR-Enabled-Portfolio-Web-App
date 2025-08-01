@@ -44,9 +44,9 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 /* Sort by filtering for tablet devices */
 @media screen and (min-width: 768px) and (max-width: 1024px) { 
 /* Sort by general styles */  
-.sort-by-divider {z-index: 350; position: relative; padding-left: 3.2em; padding-right: 3.2em;}
+.sort-by-divider {z-index: 350; position: relative; padding-left: 2.2em; padding-right: 2.2em; padding-bottom: 1.2em;}
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
-.sort-by-container {display: flex; align-items: center; z-index: 10; position: relative;flex-direction: column; align-items: center; padding-right: 16px; min-width: 30%;}
+.sort-by-container {display: flex; align-items: center; z-index: 10; position: relative;flex-direction: column; align-items: center; padding-right: 16px; min-width: 26%;}
 .sort-container2 {min-width: 100%; align-self: flex-end;} 
 .sort-container {align-self: flex-start; position: relative; bottom: -6px; left: 4px;}
 
@@ -61,7 +61,7 @@ appearance: none; -webkit-appearance: none; -moz-appearance: none; }
 
 /* Selected option style changes */
 div.option.selected {background-color: #252527;}
-.selected-value {padding: 20px 20px 20px 24px;}
+.selected-value {padding: 16px 16px 16px 20px;}
 .option, div.option.selected {color: #ffffff; font-size: clamp(8px, 2.2vw, 20px); font-family: 'rubik'; font-weight: 300; letter-spacing: 0.4px; padding-left: 20px;}
 .option:hover {scale: 1.02; transition: 0.05s ease-in; transform: translateX(2px);}
 div.option.selected:hover {scale: 1; transform: translateX(0px);}

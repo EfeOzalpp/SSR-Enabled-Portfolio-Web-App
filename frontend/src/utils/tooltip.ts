@@ -1,3 +1,4 @@
+// utils/global-tooltip.ts
 type TooltipInfo = {
   tags: string[];
   backgroundColor: string;
@@ -8,16 +9,30 @@ const tooltipDataCache: Record<string, TooltipInfo> = {};
 const backgroundColorMap: Record<string, string> = {
   'rotary-lamp': 'rgba(204, 85, 41, 0.6)',
   'ice-scoop': 'rgba(234, 103, 97, 0.6)',
-  'data-viz': 'rgba(48, 152, 202, 0.8)',
+  'data-viz': 'rgba(153, 199, 7, 0.8)',
   'block-g': 'rgba(101, 86, 175, 0.6)',
   'Dynamic App': 'rgba(120, 211, 255, 0.6)',
 };
 
+const createTooltipDOM = () => {
+  const el = document.createElement('div');
+  el.id = 'custom-global-tooltip';
+  el.style.position = 'fixed';
+  el.style.pointerEvents = 'none';
+  el.style.zIndex = '9999';
+  el.style.opacity = '0';
+  el.style.visibility = 'hidden';
+  el.style.backdropFilter = 'blur(8px)';
+  el.style.color = '#fff';
+  el.style.transition = 'opacity 0.3s ease, visibility 0.3s ease';
+  el.className = 'custom-tooltip-blur';
+  document.body.appendChild(el);
+  return el;
+};
+
+
 let tooltipEl: HTMLDivElement | null = null;
 let currentKey = '';
-let lastMouseX = -1;
-let lastMouseY = -1;
-let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const fetchTooltipDataForKey = async (key: string): Promise<TooltipInfo> => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
@@ -49,32 +64,22 @@ export const fetchTooltipDataForKey = async (key: string): Promise<TooltipInfo> 
   return info;
 };
 
-export const initGlobalTooltip = (rootElement: Document | ShadowRoot = document) => {
-  if (tooltipEl) return; // Prevent multiple initializations
+export const initGlobalTooltip = () => {
+  if (tooltipEl) return;
+  tooltipEl = createTooltipDOM();
 
-  // Tooltip DOM setup
-  const el = document.createElement('div');
-  el.id = 'custom-global-tooltip';
-  el.className = 'custom-tooltip-blur';
-  Object.assign(el.style, {
-    position: 'fixed',
-    pointerEvents: 'none',
-    zIndex: '9999',
-    opacity: '0',
-    visibility: 'hidden',
-    backdropFilter: 'blur(8px)',
-    color: '#fff',
-    transition: 'opacity 0.3s ease, visibility 0.3s ease',
-  });
-
-  (rootElement === document ? document.body : rootElement).appendChild(el);
-  tooltipEl = el;
+  let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const showTooltip = () => {
     if (hideTimeout) clearTimeout(hideTimeout);
     tooltipEl!.style.opacity = '1';
     tooltipEl!.style.visibility = 'visible';
-    hideTimeout = setTimeout(hideTooltip, 2000);
+
+    hideTimeout = setTimeout(() => {
+      tooltipEl!.style.opacity = '0';
+      tooltipEl!.style.visibility = 'hidden';
+      currentKey = '';
+    }, 2000);
   };
 
   const hideTooltip = () => {
@@ -84,45 +89,105 @@ export const initGlobalTooltip = (rootElement: Document | ShadowRoot = document)
     currentKey = '';
   };
 
-  const handleMouseMove = async (e: MouseEvent) => {
-    lastMouseX = e.clientX;
-    lastMouseY = e.clientY;
+  let lastMouseX = -1;
+  let lastMouseY = -1;
 
-    const target = e.target as HTMLElement;
-    if (!target || !(target instanceof HTMLElement)) return;
+  let lastHoveredKey = '';
+  setInterval(() => {
+    const el = document.elementFromPoint(lastMouseX, lastMouseY) as HTMLElement | null;
+    if (!el) {
+      hideTooltip();
+      lastHoveredKey = '';
+      return;
+    }
 
-    const tooltipClass = [...target.classList].find(cls => cls.startsWith('tooltip-'));
+    const classList = [...el.classList];
+    const tooltipClass = classList.find((cls) => cls.startsWith('tooltip-'));
+
     if (!tooltipClass) {
       hideTooltip();
+      lastHoveredKey = '';
       return;
     }
 
     const key = tooltipClass.replace('tooltip-', '');
 
-    // Tooltip positioning
+    if (key !== lastHoveredKey) {
+      lastHoveredKey = key;
+      const syntheticEvent = new MouseEvent('mousemove', {
+        clientX: lastMouseX,
+        clientY: lastMouseY,
+        bubbles: true,
+      });
+      el.dispatchEvent(syntheticEvent);
+    }
+  }, 150);
+
+  document.addEventListener('mousemove', async (e) => {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const classList = [...target.classList];
+    const tooltipClass = classList.find((cls) => cls.startsWith('tooltip-'));
+
+    if (!tooltipClass) {
+      currentKey = '';
+      tooltipEl!.style.opacity = '0';
+      tooltipEl!.style.visibility = 'hidden';
+      return;
+    }
+
+    const key = tooltipClass.replace('tooltip-', '');
+
+    // Always update position
     requestAnimationFrame(() => {
       const rect = tooltipEl!.getBoundingClientRect();
-      const cx = e.clientX;
-      const cy = e.clientY;
+      const padding = 0;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const padding = 0;
+      const cx = e.clientX;
+      const cy = e.clientY;
 
-      let left = cx + padding;
-      let top = cy - rect.height / 2;
+      let left: number;
+      let top: number;
 
-      if (cy < rect.height + 20) top = cy + 6;
-      if (cy + rect.height > vh - 20) top = cy - rect.height - 12;
-      if (cx + rect.width > vw - 20) left = cx - rect.width - 18;
+      const nearTop = cy < rect.height + padding + 20;
+      const nearBottom = cy + rect.height + padding > vh - 20;
+      const nearRight = cx + rect.width + padding > vw - 20;
+      const nearLeft = cx < rect.width + padding + 20;
 
-      tooltipEl!.style.left = `${Math.max(padding, Math.min(left, vw - rect.width))}px`;
-      tooltipEl!.style.top = `${Math.max(padding, Math.min(top, vh - rect.height))}px`;
+      if (nearBottom) {
+        top = cy - rect.height - padding - 12;
+        left = cx - rect.width * 0.15;
+      } else if (nearTop) {
+        top = cy + padding + 6;
+        left = cx - rect.width * 0.15;
+      } else if (nearRight) {
+        top = cy - rect.height / 2;
+        left = cx - rect.width - padding - 18;
+      } else if (nearLeft) {
+        top = cy - rect.height / 2;
+        left = cx + padding;
+      } else {
+        top = cy - rect.height / 2;
+        left = cx + padding;
+      }
+
+      left = Math.max(padding, Math.min(left, vw - rect.width - padding));
+      top = Math.max(padding, Math.min(top, vh - rect.height - padding));
+
+      tooltipEl!.style.left = `${left}px`;
+      tooltipEl!.style.top = `${top}px`;
     });
 
+    // If new key, update content
     if (key !== currentKey) {
       currentKey = key;
       const info = await fetchTooltipDataForKey(key);
-      tooltipEl!.innerHTML = info.tags.map(tag => `<p class="tooltip-tag">${tag}</p>`).join('');
+      tooltipEl!.innerHTML = info.tags.map((tag) => `<p class="tooltip-tag">${tag}</p>`).join('');
       tooltipEl!.style.backgroundColor = info.backgroundColor;
       showTooltip();
     } else {
@@ -130,42 +195,7 @@ export const initGlobalTooltip = (rootElement: Document | ShadowRoot = document)
         showTooltip();
       }
     }
-  };
+  });
 
-  const handleMouseOut = () => hideTooltip();
-
-  // Bind to both main and shadow DOM
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseout', handleMouseOut);
-  if (rootElement !== document) {
-    rootElement.addEventListener('mousemove', handleMouseMove);
-    rootElement.addEventListener('mouseout', handleMouseOut);
-  }
-
-  // Polling fallback (elementFromPoint)
-  setInterval(() => {
-    const el = (rootElement as any).elementFromPoint?.(lastMouseX, lastMouseY)
-            || document.elementFromPoint(lastMouseX, lastMouseY);
-
-    if (!el || !(el instanceof HTMLElement)) {
-      hideTooltip();
-      return;
-    }
-
-    const tooltipClass = [...el.classList].find(cls => cls.startsWith('tooltip-'));
-    if (!tooltipClass) {
-      hideTooltip();
-      return;
-    }
-
-    const key = tooltipClass.replace('tooltip-', '');
-    if (key !== currentKey) {
-      const synthetic = new MouseEvent('mousemove', {
-        clientX: lastMouseX,
-        clientY: lastMouseY,
-        bubbles: true,
-      });
-      el.dispatchEvent(synthetic);
-    }
-  }, 150);
+  document.addEventListener('mouseout', hideTooltip);
 };

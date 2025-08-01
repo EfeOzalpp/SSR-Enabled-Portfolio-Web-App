@@ -33,7 +33,7 @@ export const ViewProject = () => {
     'Ice Cream Scoop': '234, 103, 97',
     'Rotary Lamp': '204, 85, 41',
     'Evade the Rock': '101, 86, 175',
-    'Data Visualization': '48, 152, 202',
+    'Data Visualization': '153, 199, 7',
     'Dynamic App': '120, 211, 255' 
     };
 

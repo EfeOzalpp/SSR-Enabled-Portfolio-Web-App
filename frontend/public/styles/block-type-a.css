@@ -1,92 +1,40 @@
 /* Block Type A styles */
-.block-type-a {
-  width: 100%;
-  background: #191919;
-  display: flex;
-  justify-content: center;
-  align-items: center; /* center vertically too */
-  min-height: 60vh; /* optional fallback for very narrow screens */
-  padding: 0; /* ensure no spacing affects layout */
-  overflow: hidden;
-}
+.block-type-a { width: 100%; background: #191919; display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 0; overflow: hidden; }
 
-.device-wrapper {
-  position: relative;
-  width: 100%;
-  margin: 0 auto;
-  aspect-ratio: 16 / 10; /* Match your SVG's true aspect */
-}
+.device-wrapper { position: relative; width: 100%; margin: 0 auto; aspect-ratio: 16 / 10; }
+.device-frame { width: 100%; height: auto; display: block; z-index: 1100; position: relative; pointer-events: none; touch-action: none; }
+.screen-overlay { position: absolute; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 1000; }
 
-.device-frame {
-  width: 100%;
-  height: auto;
-  display: block;
-  z-index: 1100;
-  position: relative;
-  pointer-events: none;
-  touch-action: none;
-}
+.embedded-app { width: 100%; height: 100%; overflow: auto; background: #191919; scrollbar-width: none; -ms-overflow-style: none; }
+.embedded-app::-webkit-scrollbar { display: none; }
 
-.screen-overlay {
-  position: absolute;
-  top: 6%;   /* Tune this to match the SVG screen top */
-  left: 4%;  /* Tune this to match the left inset */
-  width: 92%;  /* width of visible screen area inside SVG */
-  height: 88%; /* height of visible screen area inside SVG */
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
+/* only on phoné */
+.phone { height: calc(100% - 32px); }
+/* only on tablét */
+.tablet { height: 100%; }
+/* only on laptop */
+.laptop { height: calc(100% - 32px); }
 
-.embedded-app {
-  width: 100%;
-  height: 100%;
-  overflow: auto; /* optional */
-  background: #191919; /* if your app doesn't have a background */
-  scrollbar-width: none; 
-  -ms-overflow-style: none;  /* IE/Edge */
-}
-.embedded-app::-webkit-scrollbar {
-  display: none;               /* Chrome/Safari */
-}
-
-
-.hover-overlay {
-  position: absolute;
-  inset: 0; /* full size of .screen-overlay */
-  z-index: 5;
-  background: transparent;
-  pointer-events: auto;
-}
-
-.hone {height: calc(100% - 32px);} .tablet {height: calc(100% - 48px);}
-.laptop {height: calc(100% - 32px);}
-
-
+/* Media Queries */
 @media (max-width: 767px) {
-  .block-type-a {
-    height: 98dvh;
-  }
+  .block-type-a { height: 98dvh; }
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
-  .block-type-a {
-    height: 92dvh;
-  }
+  .block-type-a {height: 92dvh; }
+  .device-wrapper {max-width: 120dvh; }
+  .screen-overlay  {top: 5%;  left: 6%; width: 88%; height: 90%;} 
+
 }
 
 @media (min-width: 1025px) and (max-width: 2024px) {
-  .block-type-a {
-    height: 96dvh;
-  }
- .device-wrapper {max-width: 154dvh;}
+  .block-type-a {height: 96dvh; }
+  .device-wrapper {max-width: 154dvh; }
+  .screen-overlay  {top: 6%; left: 4%; width: 92%; height: 88%;} 
 }
 
 @media (min-width: 2025px) {
-  .block-type-a {
-    height: 98dvh;
-  }
-   .device-wrapper {max-width: 120dvh;}
+  .block-type-a {height: 98dvh; }
+  .device-wrapper {max-width: 120dvh; }
+  .screen-overlay  {top: 6%; left: 4%; width: 92%; height: 88%;} 
 }

@@ -132,16 +132,13 @@ function DynamicTheme() {
     }
   };
   
-  useEffect(() => {
-    if (!dynamicAppRef.current) return;
-
-    const observer = new ResizeObserver(() => {
-      console.log('[Resize observed]', dynamicAppRef.current?.getBoundingClientRect());
+  const observer = new ResizeObserver(() => {
+    requestAnimationFrame(() => {
+      const rect = dynamicAppRef.current?.getBoundingClientRect();
+      console.log('[Resize observed]', rect);
+      // Avoid updating state directly here unless batched or debounced
     });
-
-    observer.observe(dynamicAppRef.current);
-    return () => observer.disconnect();
-  }, []);
+  });
 
   useEffect(() => {
   const fireworkContainer = document.querySelector('.firework-divider');
