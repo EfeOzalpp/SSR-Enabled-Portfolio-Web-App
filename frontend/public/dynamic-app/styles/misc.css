@@ -26,7 +26,14 @@
 .firework-divider-shadow {height: 60vw;}
 }
 @media screen and (min-width: 1025px) {
+.firework-divider {margin-top: -10.8em;} 
+.firework-divider-shadow {transform: scale(0.95);
+height: 50vw;} 
+}
+@media screen and (min-width: 1225px) {
 .firework-divider {margin-top: -12.8em;}  
+.firework-divider-shadow {transform: scale(1.15);
+height: 46vw;} 
 }
 @media screen and (min-width: 2025px) {
 .firework-divider-shadow  {transform: scale(2.2);}

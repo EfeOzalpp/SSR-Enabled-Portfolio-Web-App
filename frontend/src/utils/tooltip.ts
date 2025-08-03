@@ -1,4 +1,6 @@
 // utils/global-tooltip.ts
+import { isMobile, isTablet } from 'react-device-detect';
+
 type TooltipInfo = {
   tags: string[];
   backgroundColor: string;
@@ -93,7 +95,11 @@ export const initGlobalTooltip = () => {
   let lastMouseY = -1;
 
   let lastHoveredKey = '';
-  setInterval(() => {
+  let ticking = false;
+  let isScrolling = false;
+  let scrollCheckTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const checkHoveredElementOnScroll = async () => {
     const el = document.elementFromPoint(lastMouseX, lastMouseY) as HTMLElement | null;
     if (!el) {
       hideTooltip();
@@ -101,9 +107,7 @@ export const initGlobalTooltip = () => {
       return;
     }
 
-    const classList = [...el.classList];
-    const tooltipClass = classList.find((cls) => cls.startsWith('tooltip-'));
-
+    const tooltipClass = [...el.classList].find((cls) => cls.startsWith('tooltip-'));
     if (!tooltipClass) {
       hideTooltip();
       lastHoveredKey = '';
@@ -112,16 +116,79 @@ export const initGlobalTooltip = () => {
 
     const key = tooltipClass.replace('tooltip-', '');
 
-    if (key !== lastHoveredKey) {
-      lastHoveredKey = key;
-      const syntheticEvent = new MouseEvent('mousemove', {
-        clientX: lastMouseX,
-        clientY: lastMouseY,
-        bubbles: true,
-      });
-      el.dispatchEvent(syntheticEvent);
+    if (key !== currentKey) {
+      currentKey = key;
+      const info = await fetchTooltipDataForKey(key);
+      tooltipEl!.innerHTML = info.tags.map((tag) => `<p class="tooltip-tag">${tag}</p>`).join('');
+      tooltipEl!.style.backgroundColor = info.backgroundColor;
+      showTooltip();
+    } else {
+      if (tooltipEl!.style.opacity === '0' || tooltipEl!.style.visibility === 'hidden') {
+        showTooltip();
+      }
     }
-  }, 150);
+
+    // Update position manually since there's no mousemove
+    requestAnimationFrame(() => {
+      const rect = tooltipEl!.getBoundingClientRect();
+      const padding = 0;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const cx = lastMouseX;
+      const cy = lastMouseY;
+
+      let left: number;
+      let top: number;
+
+      const nearTop = cy < rect.height + padding + 20;
+      const nearBottom = cy + rect.height + padding > vh - 20;
+      const nearRight = cx + rect.width + padding > vw - 20;
+      const nearLeft = cx < rect.width + padding + 20;
+
+      if (nearBottom) {
+        top = cy - rect.height - padding - 12;
+        left = cx - rect.width * 0.15;
+      } else if (nearTop) {
+        top = cy + padding + 6;
+        left = cx - rect.width * 0.15;
+      } else if (nearRight) {
+        top = cy - rect.height / 2;
+        left = cx - rect.width - padding - 18;
+      } else if (nearLeft) {
+        top = cy - rect.height / 2;
+        left = cx + padding;
+      } else {
+        top = cy - rect.height / 2;
+        left = cx + padding;
+      }
+
+      left = Math.max(padding, Math.min(left, vw - rect.width - padding));
+      top = Math.max(padding, Math.min(top, vh - rect.height - padding));
+
+      tooltipEl!.style.left = `${left}px`;
+      tooltipEl!.style.top = `${top}px`;
+    });
+  };
+
+  const onScroll = () => {
+    isScrolling = true;
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        checkHoveredElementOnScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+
+    if (scrollCheckTimeout) clearTimeout(scrollCheckTimeout);
+    scrollCheckTimeout = setTimeout(() => {
+      isScrolling = false;
+    }, 150); // stop checking after 150ms of no scroll
+  };
+
+if (!isMobile && !isTablet) {
+  window.addEventListener("scroll", onScroll, true);
+}
 
   document.addEventListener('mousemove', async (e) => {
     lastMouseX = e.clientX;

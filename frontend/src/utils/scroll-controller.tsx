@@ -6,21 +6,12 @@ import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-c
 const ScrollController = () => {
   const {
     currentIndex,
-    setCurrentIndex,
     projectComponents,
     scrollContainerRef,
-    isDragging,
     focusedProjectKey,
-    setPreviousScrollY,
-    isEmbeddedFocused,
-    setIsEmbeddedFocused,
   } = useProjectVisibility();
 
   const isGameFocused = focusedProjectKey === 'game';
-
-  const touchStartY = useRef(0);
-  const lastScrollTime = useRef(0);
-  const SCROLL_DELAY = 300;
 
   const [justExitedFocusKey, setJustExitedFocusKey] = useState<string | null>(null);
   const [invisibleKeys, setInvisibleKeys] = useState<Set<string>>(new Set());
@@ -45,150 +36,34 @@ const ScrollController = () => {
     return () => window.removeEventListener('resize', updateViewportStyle);
   }, []);
 
-  const accumulatedDelta = useRef(0);
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  const handleWheel = (e: WheelEvent) => {
-      console.log('[🌀 Wheel Event]', { isEmbeddedFocused });
-  if (isDragging || isGameFocused || isEmbeddedFocused) {
-    console.log('[🛑 Scroll Blocked] Wheel ignored — embedded app is focused');
-    return;
-  }
-
-    accumulatedDelta.current += e.deltaY;
-    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-    scrollTimeout.current = setTimeout(() => accumulatedDelta.current = 0, 250);
-
-    const SCROLL_THRESHOLD = 1000;
-    const steps = Math.floor(accumulatedDelta.current / SCROLL_THRESHOLD);
-
-    if (steps !== 0) {
-      let newIndex = currentIndex + Math.sign(steps);
-      newIndex = Math.max(0, Math.min(projectComponents.length - 1, newIndex));
-      if (newIndex !== currentIndex) {
-        setCurrentIndex(newIndex);
-        window.dispatchEvent(new CustomEvent('arrowWiggle'));
-        accumulatedDelta.current = 0;
-      }
-    }
-  };
-
-  const handleTouchStart = (e: TouchEvent) => {
-    if (isGameFocused || isEmbeddedFocused) return;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchMove = (e: TouchEvent) => {
-    if (isDragging || isGameFocused || isEmbeddedFocused) return;
-    const now = Date.now();
-    if (now - lastScrollTime.current < SCROLL_DELAY) return;
-
-    const deltaY = e.touches[0].clientY - touchStartY.current;
-    let newIndex = currentIndex;
-
-    if (Math.abs(deltaY) > 800) {
-      if (deltaY > 0) newIndex = Math.max(currentIndex - 1, 0);
-      else newIndex = Math.min(currentIndex + 1, projectComponents.length - 1);
-
-      if (newIndex !== currentIndex) {
-        setCurrentIndex(newIndex);
-        window.dispatchEvent(new CustomEvent('arrowWiggle'));
-        lastScrollTime.current = now;
-        touchStartY.current = e.touches[0].clientY;
-      }
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (isDragging || isGameFocused || isEmbeddedFocused) return;
-    let newIndex = currentIndex;
-
-    if (e.key === 'ArrowDown') {
-      newIndex = Math.min(currentIndex + 1, projectComponents.length - 1);
-    } else if (e.key === 'ArrowUp') {
-      newIndex = Math.max(currentIndex - 1, 0);
-    }
-
-    if (newIndex !== currentIndex) {
-      setCurrentIndex(newIndex);
-      window.dispatchEvent(new CustomEvent('arrowWiggle'));
-    }
-  };
-
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    
-    const embeddedEl = container.querySelector('.embedded-app');
-    if (!embeddedEl) return;
-
-    const handleEnter = () => {
-      setIsEmbeddedFocused(true);
-    }
-    const handleLeave = () => {
-      setIsEmbeddedFocused(false);
-    };
-
-    const handleTouchStart = () => {
-    setIsEmbeddedFocused(true);
-    };
-
-    const handleTouchEnd = () => {
-    setIsEmbeddedFocused(false);
-    };
-
-    const handleEmbeddedWheel = (e: WheelEvent) => {
-      const el = e.currentTarget as HTMLElement;
-      const scrollTop = el.scrollTop;
-      const scrollHeight = el.scrollHeight;
-      const clientHeight = el.clientHeight;
-
-      const isAtTop = scrollTop === 0 && e.deltaY < 0;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight && e.deltaY > 0;
-
-      if (isAtTop || isAtBottom) {
-        setIsEmbeddedFocused(false);
-      }
-    };
-
-    container.addEventListener('wheel', handleWheel);
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('keydown', handleKeyDown);
-
-    embeddedEl.addEventListener('pointerenter', handleEnter);
-    embeddedEl.addEventListener('pointerleave', handleLeave);
-    embeddedEl.addEventListener('wheel', handleEmbeddedWheel);
-    embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
-    embeddedEl.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('keydown', handleKeyDown);
-
-      embeddedEl.removeEventListener('pointerenter', handleEnter);
-      embeddedEl.removeEventListener('pointerleave', handleLeave);
-      embeddedEl.removeEventListener('wheel', handleEmbeddedWheel);
-      embeddedEl.removeEventListener('touchstart', handleTouchStart);
-    };
-  }, [projectComponents.length, currentIndex, isDragging, isGameFocused, isEmbeddedFocused, setIsEmbeddedFocused]);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
     container.classList.add('no-snap');
     const timeout = setTimeout(() => container.classList.remove('no-snap'), 800);
     return () => clearTimeout(timeout);
   }, [currentIndex]);
 
+  // Résizé logic
   useEffect(() => {
-    const targetEl = projectRefs.current[projectComponents[currentIndex]?.key];
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+
+    const onResize = () => {
+      updateViewportStyle();
+
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const targetEl = projectRefs.current[projectComponents[currentIndex]?.key];
+        if (targetEl) {
+          requestAnimationFrame(() => {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+      }, 400); // Let layout settle first
+    };
+
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [currentIndex, projectComponents]);
 
   useEffect(() => {
@@ -219,27 +94,123 @@ const ScrollController = () => {
     }
   }, [focusedProjectKey, justExitedFocusKey]);
 
+  // émbéddéd app top - bottom détéction to triggér synthéthic scroll for snappyscrollthingy
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) {
+      console.log('❌ scrollContainerRef not available.');
+      return;
+    }
+
+    let embeddedEl: HTMLElement | null = null;
+    let retries = 0;
+    const maxRetries = 10;
+
+    const attachHandlers = () => {
+      embeddedEl = document.querySelector('.embedded-app');
+      if (!embeddedEl) {
+        retries++;
+        if (retries <= maxRetries) {
+          console.log(`🔄 Retrying to find .embedded-app (${retries}/${maxRetries})...`);
+          setTimeout(attachHandlers, 300);
+        } else {
+          console.warn('⚠️ Failed to find .embedded-app.');
+        }
+        return;
+      }
+
+      console.log('✅ .embedded-app found. Attaching scroll and touch handlers.');
+
+      // WHEEL SUPPORT
+      const handleWheel = (e: WheelEvent) => {
+        const deltaY = e.deltaY;
+        const scrollTop = embeddedEl!.scrollTop;
+        const scrollHeight = embeddedEl!.scrollHeight;
+        const clientHeight = embeddedEl!.clientHeight;
+
+        const atTop = scrollTop <= 0;
+        const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+        if (deltaY < 0 && atTop) {
+          console.log('🔼 Wheel: at top → synthetic scroll UP');
+          e.preventDefault();
+          scrollContainer.scrollBy({ top: -300, behavior: 'smooth' });
+        } else if (deltaY > 0 && atBottom) {
+          console.log('🔽 Wheel: at bottom → synthetic scroll DOWN');
+          e.preventDefault();
+          scrollContainer.scrollBy({ top: 300, behavior: 'smooth' });
+        }
+      };
+
+      embeddedEl.addEventListener('wheel', handleWheel, { passive: false });
+
+      // TOUCH SUPPORT
+      let startY = 0;
+
+      const handleTouchStart = (e: TouchEvent) => {
+        if (e.touches.length === 1) {
+          startY = e.touches[0].clientY;
+        }
+      };
+
+      const handleTouchMove = (e: TouchEvent) => {
+        if (e.touches.length !== 1) return;
+
+        const currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+
+        const scrollTop = embeddedEl!.scrollTop;
+        const scrollHeight = embeddedEl!.scrollHeight;
+        const clientHeight = embeddedEl!.clientHeight;
+
+        const atTop = scrollTop <= 0;
+        const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+        const scrollAmount = Math.max(100, window.innerHeight * 0.9);
+
+        if (deltaY > 5 && atTop) {
+          console.log('📱 Touch: drag down at top → synthetic scroll UP');
+          e.preventDefault();
+          scrollContainer.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+        } else if (deltaY < -5 && atBottom) {
+          console.log('📱 Touch: drag up at bottom → synthetic scroll DOWN');
+          e.preventDefault();
+          scrollContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+        }
+      };
+
+      embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+      embeddedEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+      // CLEANUP
+      return () => {
+        embeddedEl?.removeEventListener('wheel', handleWheel);
+        embeddedEl?.removeEventListener('touchstart', handleTouchStart);
+        embeddedEl?.removeEventListener('touchmove', handleTouchMove);
+      };
+    };
+
+    const cleanup = attachHandlers();
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, []);
+
   return (
     <div
       ref={scrollContainerRef}
       className="SnappyScrollThingy"
       style={{
         height: viewportStyle.height,
-        overflowY: isEmbeddedFocused || focusedProjectKey ? 'hidden' : 'scroll',
-        scrollSnapType: isEmbeddedFocused || focusedProjectKey  ? 'none' : 'y mandatory',
+        overflowY: 'scroll',
+        scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
         scrollBehavior: 'smooth',
         paddingBottom: viewportStyle.paddingBottom,
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
       }}
     >
-      <style>
-        {`
-          .SnappyScrollThingy::-webkit-scrollbar {
-            display: none;
-          }
-        `}
-      </style>
+      <style>{`.SnappyScrollThingy::-webkit-scrollbar { display: none; }`}</style>
 
       {projectComponents.map((item) => {
         const isFocused = focusedProjectKey === item.key;
@@ -259,10 +230,12 @@ const ScrollController = () => {
               transition: 'opacity 0.4s ease, visibility 0.4s ease',
             }}
           >
-            <Suspense fallback={<div style={{ height: '100vh' }}>Loading…</div>}>
-              <item.Component onIdleChange={() => {}} />
-              {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
-            </Suspense>
+            <div style={{ minHeight: viewportStyle.height }}>
+              <Suspense fallback={<div style={{ height: '100%' }}>Loading…</div>}>
+                <item.Component onIdleChange={() => {}} />
+                {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
+              </Suspense>
+            </div>
           </div>
         );
       })}
@@ -271,7 +244,7 @@ const ScrollController = () => {
         currentProject={projectComponents[currentIndex]}
         nextProject={projectComponents[currentIndex + 1] ?? null}
       />
-    </div>
+    </div>   
   );
 };
 

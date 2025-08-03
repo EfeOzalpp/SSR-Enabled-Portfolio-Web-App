@@ -6,7 +6,7 @@
 .students-heading, .sort-container, .selected-value h5 {pointer-events: none; user-select: none; touch-action: none;}
 
 /* Sort by filtering for mobile devices */
-@media screen and (max-width: 768px) { 
+@media screen and (max-width: 767px) { 
 /* Sort by general styles */    
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {width: clamp(48%, 48vw, 48%); display: flex; align-items: center; z-index: 10; position: relative;flex-direction: column; align-items: center; padding-right: 12px; padding-top: 8px;}
@@ -48,7 +48,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 #shadow-dynamic-app  .sort-by-divider {padding-left: 3.4em;}
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {display: flex; align-items: center; z-index: 10; position: relative;flex-direction: column; align-items: center; padding-right: 16px; min-width: 26%;}
-#shadow-dynamic-app .sort-by-container {min-width: 36%;}
+#shadow-dynamic-app .sort-by-container {min-width: 32%;}
 .sort-container2 {min-width: 100%; align-self: flex-end;} 
 .sort-container {align-self: flex-start; position: relative; bottom: -6px; left: 4px;}
 
@@ -59,7 +59,9 @@ appearance: none; -webkit-appearance: none; -moz-appearance: none; }
 /* Arrow state */
 .custom-arrow {position: absolute; right: 20px; top: 50%; transform: translateY(-50%); pointer-events: none;}
 .custom-arrow div {width: 21px; height: 21px;}
-#shadow-dynamic-app .custom-arrow div {width: 18px; height: 18px;}
+#shadow-dynamic-app .custom-arrow div {width: 16px; height: 16px;}
+#shadow-dynamic-app .custom-arrow {top: 46%;}
+#shadow-dynamic-app .custom-arrow.open {top: 50%;}
 .custom-arrow.open {transform: translateY(-50%) rotate(180deg);}
 
 /* Selected option style changes */
@@ -67,8 +69,9 @@ div.option.selected {background-color: #252527;}
 .selected-value {padding: 16px 16px 16px 20px;}
 #shadow-dynamic-app .selected-value {padding: 12px 12px 12px 16px;}
 .option, div.option.selected {color: #ffffff; font-size: clamp(8px, 2.2vw, 20px); font-family: 'rubik'; font-weight: 300; letter-spacing: 0.4px; padding-left: 20px;}
-#shadow-dynamic-app div.option.selected {padding-top: 14px; padding-bottom: 14px;}
-#shadow-dynamic-app .option {padding-bottom: 12px; padding-top: 12px;}
+#shadow-dynamic-app div.option.selected {padding-top: 12px; padding-bottom: 12px; }
+#shadow-dynamic-app .option {padding-bottom: 10px; padding-top: 10px;}
+#shadow-dynamic-app .option.selected, #shadow-dynamic-app .option {font-size: clamp(6px, 0.9em, 14px); padding-left: 16px;}
 .option:hover {scale: 1.02; transition: 0.05s ease-in; transform: translateX(2px);}
 div.option.selected:hover {scale: 1; transform: translateX(0px);}
 .option {padding-bottom: 16px; padding-top: 16px;} div.option.selected {padding-top: 18px; padding-bottom: 18px;}
@@ -76,6 +79,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 
 /* Students Heading */
 .students-heading {position: relative; top: 36px;}
+#shadow-dynamic-app .students-heading { left: 0.75em;}
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-bottom: 4.8em; padding-left: 6%;}
@@ -86,7 +90,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 /* Sort by filtering for desktop */
 @media screen and (min-width: 1025px) { 
 /* Sort by general styles */  
-.sort-by-divider {padding-right: 28px; padding-top: 32px;}
+.sort-by-divider {padding-right: 28px; padding-top: 64px;}
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {display: flex; z-index: 10; position: relative; flex-direction: column; align-items: center; padding-right: 0px; width: 50%;}
 .sort-container2 {min-width: 30%; align-self: flex-end;} 
@@ -110,18 +114,18 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 .options-container {position: absolute; z-index: 1000; background: #222222; width: 100%; right: -1.6px;  top: calc(100% - 8px); padding-top: 8px; padding-bottom: 8px; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px;}
 
 /* Students Heading */
-.students-heading {position: relative; top: 36px; left: 0px;}
+.students-heading {position: relative; top: 36px; left: -6px;}
 
 /* Pause Button styles */
-.pause-button-wrapper {padding-left: 20%; padding-top: 12px;}
+.pause-button-wrapper {padding-left: 20%; padding-top: 24px;}
 .lottie-container {width: 3.2em; height: 3.2em; z-index: 100; position: relative;}
 
 #shadow-dynamic-app .sort-by-container {transform: scale(0.8);}
-#shadow-dynamic-app .sort-by-divider {padding-left: 8em; padding-right: 8em; padding-bottom: 2.4em; padding-top: 2.4em;}
+#shadow-dynamic-app .sort-by-divider {padding-left: 8em; padding-right: 8em; padding-bottom: 1.8em; padding-top: 3.6em;}
 #shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container  {min-width: 42%;} 
 #shadow-dynamic-app .custom-arrow {top: 50%;}
-#shadow-dynamic-app .pause-button-wrapper {padding-left: 16em; padding-top: 1.2em; transform: scale(0.95);}
-#shadow-dynamic-app .students-heading {left: 4px;}
+#shadow-dynamic-app .pause-button-wrapper {padding-left: 16em; padding-top: 1.8em; transform: scale(0.95);}
+#shadow-dynamic-app .students-heading {left: 0px;}
 #shadow-dynamic-app span.custom-arrow.open {transform: translateY(-50%) rotate(180deg) !important; top: 50% !important;}
 }
 @media screen and (min-width: 2025px) { 

@@ -93,7 +93,7 @@ const NavMenu = () => {
     }
   };
 
-  // Lottie title animation
+  // Lottie title animation with hover reverse effect
   useEffect(() => {
     const anim = lottie.loadAnimation({
       container: lottieContainer.current!,
@@ -103,21 +103,53 @@ const NavMenu = () => {
       animationData: titleData,
     });
 
+    const targetFrameStart = 80;
+    const targetFrameEnd = 175;
+    let interval: NodeJS.Timeout | null = null;
+
     const onEnterFrame = () => {
-      if (anim.currentFrame >= 175) {
+      if (anim.currentFrame >= targetFrameEnd) {
         anim.removeEventListener("enterFrame", onEnterFrame);
         anim.pause();
-        anim.goToAndStop(175, true);
+        anim.goToAndStop(targetFrameEnd, true);
       }
     };
+
+    const stepToFrame = (target: number, reverse: boolean) => {
+      if (interval) clearInterval(interval);
+      interval = setInterval(() => {
+        const current = anim.currentFrame;
+        if (
+          (!reverse && current >= target) ||
+          (reverse && current <= target)
+        ) {
+          clearInterval(interval!);
+          anim.goToAndStop(target, true);
+          return;
+        }
+        anim.goToAndStop(current + (reverse ? -1 : 1), true);
+      }, 16); // ~60fps
+    };
+
+    const containerEl = lottieContainer.current!;
+    containerEl.addEventListener("mouseenter", () =>
+      stepToFrame(targetFrameStart, true)
+    );
+    containerEl.addEventListener("mouseleave", () =>
+      stepToFrame(targetFrameEnd, false)
+    );
 
     anim.addEventListener("enterFrame", onEnterFrame);
 
     return () => {
       anim.removeEventListener("enterFrame", onEnterFrame);
       anim.destroy();
+      if (interval) clearInterval(interval);
+      containerEl.removeEventListener("mouseenter", () => {});
+      containerEl.removeEventListener("mouseleave", () => {});
     };
   }, []);
+
 
   // GitHub and LinkedIn animations (unchanged)
   useEffect(() => {

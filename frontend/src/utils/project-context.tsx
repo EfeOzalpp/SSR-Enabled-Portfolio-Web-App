@@ -39,9 +39,6 @@ interface ProjectVisibilityContextType {
 
   previousScrollY: number | null;
   setPreviousScrollY: React.Dispatch<React.SetStateAction<number | null>>;
-
-  isEmbeddedFocused: boolean;
-  setIsEmbeddedFocused: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface ProjectVisibilityProviderProps {
@@ -57,7 +54,6 @@ export const ProjectVisibilityProvider = ({ children }: ProjectVisibilityProvide
   const [isDragging, setIsDragging] = useState(false);
   const [focusedProjectKey, setFocusedProjectKey] = useState<string | null>(null);
   const [previousScrollY, setPreviousScrollY] = useState<number | null>(null);
-  const [isEmbeddedFocused, setIsEmbeddedFocused] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -88,8 +84,6 @@ export const ProjectVisibilityProvider = ({ children }: ProjectVisibilityProvide
         setFocusedProjectKey,
         previousScrollY,
         setPreviousScrollY,
-        isEmbeddedFocused,
-        setIsEmbeddedFocused,
       }}
     >
       {children}

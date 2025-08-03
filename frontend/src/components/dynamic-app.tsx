@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import client from '../utils/sanity';
 import DynamicAppInbound from '../dynamic-app/dynamic-app-shadow.jsx';
-import { useProjectVisibility } from '../utils/project-context.tsx';
 
 const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
   if (width < 768) return 'phone';
@@ -9,10 +8,9 @@ const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
   return 'laptop';
 };
 
-const MinimalBlock = () => {
+const DynamicApp = () => {
   const [svgMap, setSvgMap] = useState<Record<string, string>>({});
   const [device, setDevice] = useState<'phone' | 'tablet' | 'laptop'>(getDeviceType(window.innerWidth));
-  const { setIsEmbeddedFocused } = useProjectVisibility();
 
   useEffect(() => {
     client
@@ -46,11 +44,11 @@ return (
     <div className="device-wrapper">
       <img src={svgUrl} alt={device} className={`device-frame ${device}`} />
       <div className="screen-overlay">
-          <DynamicAppInbound onFocusChange={setIsEmbeddedFocused} />
+          <DynamicAppInbound />
       </div>
     </div>
   </section>
   );
 };
 
-export default MinimalBlock;
+export default DynamicApp;

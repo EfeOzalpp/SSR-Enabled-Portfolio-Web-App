@@ -25,32 +25,59 @@ const DynamicAppInbound = ({ onFocusChange }) => {
       initGlobalTooltip(shadowRoot); // Initialize once root is known
     }
   }, [shadowRoot]);
-  
+
   useEffect(() => {
     const el = shadowRef.current;
-
     if (!el) return;
 
-    const handleTouchStart = () => {
-      onFocusChange?.(true);
+    let startY = 0;
+    let focusTriggered = false;
+
+    const triggerSyntheticClick = () => {
+      const down = new PointerEvent('pointerdown', {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        pointerType: 'touch',
+      });
+      el.dispatchEvent(down);
+
+      onFocusChange?.(true); // Notify parent controller
+      console.log('[📌 Focus triggered in embedded app]');
     };
 
-    const handleTouchEnd = () => {
-      // You can uncomment the line below if you want to blur on end
-      // onFocusChange?.(false);
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 0) return;
+      startY = e.touches[0].clientY;
+      focusTriggered = false;
     };
 
-    el.addEventListener('touchstart', handleTouchStart, { passive: true });
-    el.addEventListener('touchend', handleTouchEnd, { passive: true });
+    const handleTouchMove = (e: TouchEvent) => {
+      if (focusTriggered || e.touches.length === 0) return;
+
+      const deltaY = e.touches[0].clientY - startY;
+
+      if (Math.abs(deltaY) > 1) {
+        // Small threshold to detect intention to drag
+        el.scrollTop += 1; // Nudge the scroll context to wake up scrollability
+        triggerSyntheticClick();
+        focusTriggered = true;
+      }
+    };
+
+    if ('ontouchstart' in window) {
+      el.addEventListener('touchstart', handleTouchStart, { passive: true });
+      el.addEventListener('touchmove', handleTouchMove, { passive: true });
+    }
 
     return () => {
       el.removeEventListener('touchstart', handleTouchStart);
-      el.removeEventListener('touchend', handleTouchEnd);
+      el.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [shadowRef.current, onFocusChange]);
-
+  }, [onFocusChange]);
+  
   return (
-    <div className="embedded-app">
+     <div className="embedded-app">
       <ShadowRoot>
         <>
           <link rel="stylesheet" href="/dynamic-app/styles/index.css" />
@@ -65,10 +92,7 @@ const DynamicAppInbound = ({ onFocusChange }) => {
         <div
           ref={shadowRef}
           className="dynamic-app"
-          id='shadow-dynamic-app'
-          onPointerEnter={() => onFocusChange?.(true)}
-          onPointerLeave={() => onFocusChange?.(false)}
-        >
+          id='shadow-dynamic-app'>
           <DynamicTheme getShadowRoot={() => shadowRoot} />
         </div>
       </ShadowRoot>

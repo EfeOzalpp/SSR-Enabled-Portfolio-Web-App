@@ -8,8 +8,7 @@ a { text-decoration: none;}
 h-title a {color: #ffffff;}
 label p {color: #dbdbdb;}
 
-
-#shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.6em; padding-right: 1.6em; user-select: none; overflow: hidden;} 
+#shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.2em; padding-right: 1.2em; user-select: none; overflow: hidden;} 
 #shadow-dynamic-app .menu-item {display: none;}
 /* Mobile general styles */
 @media screen and (max-width: 768px) {
@@ -88,15 +87,15 @@ p, .p {
 
 /* Tablet general styles */
 @media screen and (min-width: 768px) and (max-width: 1024px) {
-
+#shadow-dynamic-app { padding-left: 0em; padding-right: 0em;}
 /* General padding and spacers for tablet */ 
 .section-divider {height: 4.6em;} .section-divider2 {height: 0.4em;} .section-divider3 {height: 0.4em; margin-top: -0.6em;}
 #shadow-dynamic-app .section-divider {height: 1.2em;}
-#shadow-dynamic-app h1 {font-size: clamp(72px, 3.6em, 120px);}
+#shadow-dynamic-app h1 {font-size: clamp(56px, 3.4em, 100px);}
 #shadow-dynamic-app h5 {font-size: clamp(12px, 0.9em, 21px);}
-#shadow-dynamic-app h3 {font-size: clamp(20px, 2em, 56px);}
-#shadow-dynamic-app h4 {font-size: clamp(14px, 1.6em, 32px);}
-#shadow-dynamic-app h-name,  #shadow-dynamic-app h-name a {font-size: clamp(12px, 1.2em, 36px); width: 86%; bottom: 1.2em;}
+#shadow-dynamic-app h3 {font-size: clamp(18px, 1.8em, 52px);}
+#shadow-dynamic-app h4 {font-size: clamp(12px, 1.4em, 28px);}
+#shadow-dynamic-app h-name,  #shadow-dynamic-app h-name a {font-size: clamp(10px, 1em, 32px); width: 76%; bottom: 1.4em;}
 
 /* Fonts */
 h1 {
@@ -181,14 +180,12 @@ h1 {
   font-size: clamp(76px, 3.4vw, 120px); 
   color: #f0f0f0;
   font-family: 'Orbitron', 'Oxygen', 'ubuntu', 'Cantarell', sans-serif; 
-  font-weight: 400; letter-spacing: -2.8px;
+  font-weight: 400; letter-spacing: -1.4px;
   margin-top: 0vw; margin-bottom: 0.2vw;
 }
 
-#shadow-dynamic-app h1.title-with-icon .moving-text-wrapper, 
-#shadow-dynamic-app div.static-title, #shadow-dynamic-app span {
-} #shadow-dynamic-app h1 {line-height: 0.8; font-size: clamp(70px, 3.2vw, 102px); }
-#shadow-dynamic-app h4 {font-size: 120%;}
+#shadow-dynamic-app h1 {line-height: 0.8; font-size: clamp(60px, 2.2em, 74px); }
+#shadow-dynamic-app h4 {font-size: 130%;}
 
 h1 a:hover {font-size: calc(1.1 * clamp(50px, 8vw, 100px));}
 

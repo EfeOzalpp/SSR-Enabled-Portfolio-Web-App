@@ -3,7 +3,7 @@
 .image-container:hover, .image-container2:hover {scale: 1.03;}
 
 /* Homepage and UI-card styles for mobile  */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 767px) {
 .homePage-container {background-color: #1a1a1f;}
 .card-divider {padding-left: 0.8em; padding-right: 0.8em;}
 .UI-card-divider {padding-top: 3.4vw; z-index: 300;}   
@@ -51,11 +51,11 @@ h-name, h-name a {flex-grow: 1; display: flex; justify-content: space-between; a
 h-name, h-name a {padding-left: 6%; width: 84%; flex-grow: 1; display: flex; justify-content: space-between; align-items: center; position: relative; color: white; margin-top: auto; z-index: 10; bottom: 1.2em; padding-right: 0px;}
 .title-text {padding-left: 16px; position: absolute;}
 .svg-icon {width: 1em; height: 1em; padding-right: 20px; display: inline-block; margin-left: auto;} .svg-icon:hover {transform: translateX(2px); transition: transform 150ms ease-out;}
-#shadow-dynamic-app .title-text {padding-left: 16px;}
+#shadow-dynamic-app .title-text {padding-left: 20px;}
 #shadow-dynamic-app .svg-icon {padding-right: 2%; transform: translateY(-3px); width: 1.1em; } 
 #shadow-dynamic-app .homePage-container {background-color: transparent;}
-#shadow-dynamic-app .UI-card-divider {top: 17em; padding-left: 2em; padding-right: 2em;}
-#shadow-dynamic-app .image-container img,  #shadow-dynamic-app .image-container2 img, #shadow-dynamic-app .ui-link-3::after {height: 24em; width: 86%;} 
+#shadow-dynamic-app .UI-card-divider {top: 17em; padding-left: 2.6em; padding-right: 2.6em;}
+#shadow-dynamic-app .image-container img,  #shadow-dynamic-app .image-container2 img, #shadow-dynamic-app .ui-link-3::after {height: 24em; width: 76%; margin-left: 12%;} 
 #shadow-dynamic-app .card-container {padding-bottom: 1.4em !important; margin-top: -20em;}
 }
 
@@ -64,7 +64,7 @@ h-name, h-name a {padding-left: 6%; width: 84%; flex-grow: 1; display: flex; jus
 @media screen and (min-width: 1025px) {
 .homePage-container {background-color: #1a1a1a;}
 .card-divider {padding-left: 0.8em; padding-right: 0.8em;}
-.UI-card-divider {top: 28em; position: relative; padding-top: 4.4em; z-index: 300; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;}   
+.UI-card-divider {top: 27.4em; position: relative; padding-top: 4.4em; z-index: 300; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;}   
 .card-container {margin-top: -28em; display: block; height: 100%; padding-bottom: 4.6em;}
 
 /* For profile photo */
@@ -73,7 +73,7 @@ h-name, h-name a {padding-left: 6%; width: 84%; flex-grow: 1; display: flex; jus
 
 /* For illustration */
 .image-container2 img {width: 92%; height: 28em; object-fit: cover; border-radius: 4px;}
-.image-container2 {position: relative; display: flex; scale: 1.02; flex-direction: column; z-index: 1;}
+.image-container2 {position: relative; display: flex; flex-direction: column; z-index: 1;}
 
 /* Link hit box styles */
 .ui-link-3::after {content: '';position: absolute; border-radius: 4px; top: 0; left: 0; width: 92%; height: 28em; background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.753));}
@@ -84,13 +84,13 @@ h-name, h-name a {width: 90%; flex-grow: 1; display: flex; justify-content: spac
 #shadow-dynamic-app h-name, #shadow-dynamic-app h-name a {width: calc(98% - 16px);}
 .title-text {padding-left: 32px; position: absolute;}
 #shadow-dynamic-app .title-text{padding-left: 16px;}
-.svg-icon {width: 1em; height: 1em; padding-right: 7%; display: inline-block; margin-left: auto;} .svg-icon:hover {transform: translateX(2px); transition: transform 150ms ease-out;}
+.svg-icon {width: 1.05em; height: 1em; padding-right: 7%; display: inline-block; margin-left: auto;} .svg-icon:hover {transform: translateX(2px); transition: transform 150ms ease-out;}
 
 /* Shadow app stylé */
 #shadow-dynamic-app .homePage-container {background-color: transparent;}
-#shadow-dynamic-app .UI-card-divider {top: 24em; padding-left: 10em; padding-right: 10em;}
+#shadow-dynamic-app .UI-card-divider {top: 24em; padding-left: 8em; padding-right: 8em;}
 #shadow-dynamic-app .image-container img,  #shadow-dynamic-app .image-container2 img, #shadow-dynamic-app .ui-link-3::after {height: 28em;} 
-#shadow-dynamic-app .card-container {padding-bottom: 1.4em !important; margin-top: -28em;}
+#shadow-dynamic-app .card-container {padding-bottom: 2.4em !important; margin-top: -28em;}
 }
 
 @media screen and (min-width: 2025px) {

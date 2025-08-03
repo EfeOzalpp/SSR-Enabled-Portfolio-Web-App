@@ -118,8 +118,9 @@
 @media (max-width: 767px) {
   .view-project-wrapper {bottom: 2dvh;}
   .view-project-btn {padding: 4px 32px 0px 32px;}
-  .nav-menu { padding-bottom: 12px; }
-  .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6)); }
+  .nav-menu { padding-bottom: 12px;}
+  .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6));}
+  .view-project-arrow { width: 2.4em;}
 }
 
 @media (orientation: portrait) and (max-width: 1024px) and (min-width: 768px) {

@@ -249,12 +249,12 @@ const playSegment = (() => {
 
       setTimeout(() => {
         arrowAnim.playSegments([0, 75], true);
-      }, 3200);
+      }, 1200);
 
       if (container) {
         setTimeout(() => {
           container.style.opacity = '1';
-        }, 3200);
+        }, 1200);
       }
 
       const svg = arrowContainer.current?.querySelector('svg');
@@ -285,7 +285,7 @@ const playSegment = (() => {
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && viewCount < 1) {
+        if (entry.isIntersecting && viewCount < 3) {
           viewCount += 1;
 
           arrowAnim.goToAndStop(0, true);
@@ -295,7 +295,7 @@ const playSegment = (() => {
         }
       });
     }, {
-      threshold: 0.1,
+      threshold: 0.6,
     });
 
     observer.observe(container);

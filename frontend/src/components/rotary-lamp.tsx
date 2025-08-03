@@ -6,7 +6,7 @@ import { useVideoVisibility } from '../utils/video-observer.tsx';
 
 const RotaryLamp = () => {
   const [data, setData] = useState(null);
-  const [split, setSplit] = useState(() => (window.innerWidth < 1024 ? 55 : 50));
+  const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 55 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
   const videoRef = useRef<HTMLVideoElement>(null);

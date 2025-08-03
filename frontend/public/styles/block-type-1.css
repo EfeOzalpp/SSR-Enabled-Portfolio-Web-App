@@ -28,15 +28,25 @@
 /* Media query for devices <=767px */
 @media (max-width: 767px) {
   .block-type-1 { height: 98dvh; }
+  #rotary-media-1 { object-position: center 18%; }
+  #rotary-media-2 { object-position: center top; }
+  #icecream-media-1 { object-position: left center;}
+  #icecream-media-2 { object-position: center bottom;}
 }
 
 /* Media query for devices 768px to 1024px */
 @media (min-width: 768px) and (max-width: 1024px) {
   .block-type-1 { height: 92dvh; flex-direction: column;}
+  #rotary-media-1 { object-position: center 18%; }
+  #rotary-media-2 { object-position: center top; }
+  #icecream-media-1 { object-position: center 90%;}
+  #icecream-media-2 { object-position: center bottom;}
 }
 
 /* Media query for devices >=1025px */
 @media (min-width: 1025px) {
   .block-type-1 { height: 96dvh; flex-direction: row; width: 100%; }
   .media-content-1, .media-content-2 { width: 50%; height: 100%; }
+  #icecream-media-1 { object-position: left center;}
+  #icecream-media-2 { object-position: left center;}
 }

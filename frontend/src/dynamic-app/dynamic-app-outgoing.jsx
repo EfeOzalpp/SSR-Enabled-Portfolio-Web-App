@@ -140,7 +140,6 @@ useEffect(() => {
         const isVisible = entry.isIntersecting;
         setShowFireworks(prev => {
           if (prev !== isVisible) {
-            console.log('[FireworkObserver] State changed:', isVisible);
             return isVisible;
           }
           return prev;

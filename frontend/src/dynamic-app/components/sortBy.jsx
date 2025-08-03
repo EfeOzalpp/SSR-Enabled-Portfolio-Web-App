@@ -95,7 +95,7 @@ function SortBy({ onFetchItems, customArrowIcon, colorMapping, getRoot = () => d
           ref={dropdownRef}
           style={{
             border: `solid 1.6px ${borderItemColor}`,
-            boxShadow: `0 1px 8px rgba(0,0,0,0.1), 0 22px 8px rgba(0,0,0,0.08), 16px 12px ${boxShadowItemColor}`,
+            boxShadow: `0 1px 8px rgba(0,0,0,0.1), 0 22px 8px rgba(0,0,0,0.08), 12px 12px ${boxShadowItemColor}`,
           }}
         >
           <div className="custom-select" onClick={() => setIsOpen(!isOpen)}>

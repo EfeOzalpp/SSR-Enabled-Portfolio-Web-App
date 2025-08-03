@@ -9,15 +9,21 @@
 .embedded-app::-webkit-scrollbar { display: none; }
 
 /* only on phoné */
-.phone { height: calc(100% - 32px); }
+.phone { height: 96dvh; }
 /* only on tablét */
 .tablet { height: 84%; padding-top: 12%;}
 /* only on laptop */
-.laptop { height: calc(100% - 32px); }
+.laptop { height: calc(100% - 12px); }
 
 /* Media Queries */
 @media (max-width: 767px) {
   .block-type-a { height: 98dvh; }
+  .device-wrapper {width: 94dvh; aspect-ratio: 19.5/9;}
+  .device-frame {display: block; margin: 0 auto;}
+  .screen-overlay  {        top: 10%;
+        left: 2%;
+        width: 94%;
+        height: 81%;} 
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -38,4 +44,12 @@
   .block-type-a {height: 98dvh; }
   .device-wrapper {max-width: 120dvh; aspect-ratio: 16 / 10;}
   .screen-overlay  {top: 6%; left: 4%; width: 92%; height: 88%;} 
+}
+
+.embedded-app {
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  max-height: 100%;
 }
