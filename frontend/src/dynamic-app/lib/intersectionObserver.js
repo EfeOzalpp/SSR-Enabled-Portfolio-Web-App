@@ -42,26 +42,40 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document, rootE
 
     // Conditions for screen width <= 768px
     if (window.innerWidth <= 767) {
-      if (percentage > 0.55) {
-        imageContainerTransform = 'translate(2.4vw, 4.6vw)';
-        imageContainer2Transform = 'translate(-2.2vw, -108vw)';
-        imageContainerZIndex = '1';
-        imageContainer2ZIndex = '5';
-      } else if (percentage > 0.35 && percentage <= 0.55) {
-        imageContainerTransform = 'translate(1.4vw, 3.6vw)';
-        imageContainer2Transform = 'translate(-0.6vw, -106.8vw)';
-        imageContainerZIndex = '5';
-        imageContainer2ZIndex = '1';
-      } else if (percentage > 0.15 && percentage <= 0.35) {
-        imageContainerTransform = 'translate(-0.4vw, 2.6vw)';
-        imageContainer2Transform = 'translate(1vw, -105.6vw)';
-        imageContainerZIndex = '6';
-        imageContainer2ZIndex = '3';
+      if (isShadowRoot) {
+        if (percentage > 0.35) {
+          imageContainerTransform = 'translate(0.5em, 1em)';
+          imageContainer2Transform = 'translate(0.5em, -32.5em)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.15 && percentage <= 0.35) {
+          imageContainerTransform = 'translate(1.5em, 0.5em)';
+          imageContainer2Transform = 'translate(-0.25em, -34.5em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else {
+          imageContainerTransform = 'translate(0em, 0em)';
+          imageContainer2Transform = 'translate(0em, -33.5em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
       } else {
-        imageContainerTransform = 'translate(-2.2vw, 1.6vw)';
-        imageContainer2Transform = 'translate(2.6vw, -104.4vw)';
-        imageContainerZIndex = '5';
-        imageContainer2ZIndex = '1';
+        if (percentage > 0.35) {
+          imageContainerTransform = 'translate(1em, 1.5em)';
+          imageContainer2Transform = 'translate(-1em, -29.5em)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.15 && percentage <= 0.35) {
+          imageContainerTransform = 'translate(0.5em, 0.75em)';
+          imageContainer2Transform = 'translate(-0.5em, -28.9em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else {
+          imageContainerTransform = 'translate(0em, 0em)';
+          imageContainer2Transform = 'translate(0em, -28.4em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
       }
     }
     // Conditions for screen width between 768px and 1024px
@@ -135,6 +149,43 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document, rootE
         } else {
           imageContainerTransform = 'translate(0em, 0em)';
           imageContainer2Transform = 'translate(1.5em, -26em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
+      }
+    }
+    else if (window.innerWidth > 2025) {
+      if (isShadowRoot) {
+        if (percentage > 0.5) {
+          imageContainerTransform = 'translate(0em, 0em)';
+          imageContainer2Transform = 'translate(2em, -30em)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.25 && percentage <= 0.5) {
+          imageContainerTransform = 'translate(1em, 0em)';
+          imageContainer2Transform = 'translate(1em, -30em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else {
+          imageContainerTransform = 'translate(0em, 0em)';
+          imageContainer2Transform = 'translate(2em, -30em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        }
+      } else {
+        if (percentage > 0.4) {
+          imageContainerTransform = 'translate(0em, 0em)';
+          imageContainer2Transform = 'translate(3em, -28em)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage > 0.33 && percentage <= 0.4) {
+          imageContainerTransform = 'translate(3em, 1em)';
+          imageContainer2Transform = 'translate(2em, -28em)';
+          imageContainerZIndex = '5';
+          imageContainer2ZIndex = '1';
+        } else {
+          imageContainerTransform = 'translate(0em, 0em)';
+          imageContainer2Transform = 'translate(3em, -28em)';
           imageContainerZIndex = '5';
           imageContainer2ZIndex = '1';
         }

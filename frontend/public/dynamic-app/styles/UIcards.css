@@ -4,27 +4,31 @@
 
 /* Homepage and UI-card styles for mobile  */
 @media screen and (max-width: 767px) {
-.homePage-container {background-color: #1a1a1f;}
+.homePage-container { background-color: #1e1e1f;}
 .card-divider {padding-left: 0.8em; padding-right: 0.8em;}
-.UI-card-divider {padding-top: 3.4vw; z-index: 300;}   
-.card-container {display: block; height: 128vw;}
+.card-container {display: block; height: 36em;}
+.UI-card-divider {padding-top: 1.2em; z-index: 300;}   
+#shadow-dynamic-app .UI-card-divider { padding-top: 2.4em;}   
+#shadow-dynamic-app .card-container {height: 44em;}  
 
 /* For profile photos */
-.image-container img {width: 100%; height: 110vw; object-fit: cover; border-radius: 2px; box-shadow: 2px 2px 5px rgba(19, 19, 19, 0.1), 4px 4px 10px rgba(28, 28, 28, 0.2);}
-.image-container {position: relative; display: flex; flex-direction: column; width: 80%; padding-left: 10%;}
+.image-container img {width: 100%; height: 30em; object-fit: cover; border-radius: 2px; box-shadow: 2px 2px 5px rgba(19, 19, 19, 0.1), 4px 4px 10px rgba(28, 28, 28, 0.2);}
+.image-container {position: relative; display: flex; flex-direction: column; width: 80%; padding-left: 1.6em; }
 
 /* For illustration */
-.image-container2 img {width: 100%; height: 110vw; object-fit: cover; border-radius: 2px;}
+.image-container2 img {width: 100%; height: 30em; object-fit: cover; border-radius: 2px;}
 .image-container2 {position: relative; display: flex; scale: 1.02; flex-direction: column; z-index: 1; width: 80%; padding-left: 10%;}
 
 /* Link hit box styles */
-.ui-link-3::after {content: ''; position: absolute; top: 0; width: 89%; margin-left: 11%; border-radius: 2px; left: 0; height: 110vw; background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.753));}
+.ui-link-3::after {content: ''; position: absolute; top: 0; width: 89%; margin-left: 11%; border-radius: 2px; left: 0; height: 30em; background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.753));}
 .ui-link, .ui-link-3 {width: 100%;}
+#shadow-dynamic-app .image-container img, #shadow-dynamic-app .image-container2 img, #shadow-dynamic-app .ui-link-3::after { height: 36em;} 
 
 /* Card title and icon */
-h-name, h-name a {flex-grow: 1; display: flex; justify-content: space-between; align-items: center; position: relative; color: white; margin-top: auto; z-index: 10; bottom: 6.6vw; padding-right: 10px;}
-.title-text {padding-left: 16px; position: absolute;} 
-.svg-icon {width: 1em; height: 1em; padding-right: 16px; display: inline-block; margin-left: auto;} .svg-icon:hover {transform: translateX(2px); transition: transform 150ms ease-out;}
+h-name, h-name a {flex-grow: 1; display: flex; justify-content: space-between; align-items: center; position: relative; color: white; margin-top: auto; z-index: 10; bottom: 1.2em; }
+.title-text { padding-left: 16px; position: absolute;} 
+.svg-icon { width: 0.9em; height: 1em; padding-right: 16px; display: inline-block; margin-left: auto;} .svg-icon:hover {transform: translateX(2px); transition: transform 150ms ease-out;}
+#shadow-dynamic-app .svg-icon { height: 1.3em;}  
 }
 
 

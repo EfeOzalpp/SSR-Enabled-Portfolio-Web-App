@@ -44,7 +44,7 @@ const ScrollController = () => {
     return () => clearTimeout(timeout);
   }, [currentIndex]);
 
-  // Résizé logic
+  /* Résizé logic
   useEffect(() => {
     let resizeTimeout: ReturnType<typeof setTimeout>;
 
@@ -64,7 +64,7 @@ const ScrollController = () => {
 
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [currentIndex, projectComponents]);
+  }, [currentIndex, projectComponents]); */
 
   useEffect(() => {
     if (focusedProjectKey) {
@@ -173,7 +173,6 @@ const ScrollController = () => {
           scrollContainer.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
         } else if (deltaY < -5 && atBottom) {
           console.log('📱 Touch: drag up at bottom → synthetic scroll DOWN');
-          e.preventDefault();
           scrollContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
         }
       };

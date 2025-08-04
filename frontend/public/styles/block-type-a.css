@@ -18,12 +18,9 @@
 /* Media Queries */
 @media (max-width: 767px) {
   .block-type-a { height: 98dvh; }
-  .device-wrapper {width: 94dvh; aspect-ratio: 19.5/9;}
+  .device-wrapper {aspect-ratio: 19.5/9; max-width: 420px; padding-left: 8px; padding-right: 8px;}
   .device-frame {display: block; margin: 0 auto;}
-  .screen-overlay  {        top: 10%;
-        left: 2%;
-        width: 94%;
-        height: 81%;} 
+  .screen-overlay  {top: 6%; left: 5%; width: 90%; height: 85%;} 
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {

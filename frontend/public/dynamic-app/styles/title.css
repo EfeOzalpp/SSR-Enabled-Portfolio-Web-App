@@ -5,17 +5,20 @@
 
 /* Hero title for mobile devices */
 @media screen and (max-width: 768px) {
-.title-container {background-color: #1e1e1f; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding-top: 0.8em;}
-.static-title {margin-bottom: 20px; padding-left: 0.8em; padding-right: 0.8em;  z-index: 3;}
+.title-container {background-color: #1e1e1f; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding-top: 1.6em;}
+.static-title {margin-bottom: 20px; padding-left: 1.6em; padding-right: 0.8em;  z-index: 3;}
 
 /* Moving title styles */
 .title-with-icon {display: flex; align-items: center; white-space: nowrap;}
-.moving-title {position: relative; margin-top: -2.15em; width: 100%; overflow: hidden; z-index: 2;}
+.moving-title {position: relative; margin-top: -2.34em; width: 100%; overflow: hidden; z-index: 2;}
 .moving-title::before {content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; 
 background: linear-gradient(to right, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0) 2%), linear-gradient(to left, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0) 2%);}
 .moving-title h1 {font-weight: 200 !important; letter-spacing: -1.8px;}
 .moving-text-wrapper {display: inline-flex; align-items: center; animation: slide var(--animation-speed, 40s) linear infinite;}
-.moving-text {display: inline-flex; align-items: center; padding-right: 3.6em;}
+.moving-text {display: inline-flex; align-items: center; padding-right: 2.4em;}
+#shadow-dynamic-app .moving-text { padding-right: 2em;}
+#shadow-dynamic-app .moving-title { margin-top: -3.2em;}
+#shadow-dynamic-app .logo-container .svg-icon { padding-right: 12px;}
 
 /* SVG icon styles for rotation and size */
 #Layer_12 {padding-left: 0.05em; padding-right: 0.03em; margin-top: 0.5em; width: 1.1em;  height: 1.1em; animation: rotate var(--animation-speed, 12s) linear infinite;}

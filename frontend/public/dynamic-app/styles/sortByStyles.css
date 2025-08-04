@@ -10,8 +10,10 @@
 /* Sort by general styles */    
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {width: clamp(48%, 48vw, 48%); display: flex; align-items: center; z-index: 10; position: relative;flex-direction: column; align-items: center; padding-right: 12px; padding-top: 8px;}
-.sort-container2 {min-width: 100%; align-self: flex-end;} 
+.sort-container2 {min-width: 104%; align-self: flex-end;} 
 .sort-container {align-self: flex-start; position: relative; bottom: -6px; left: 4px;}
+
+.sort-by-divider, #shadow-dynamic-app .sort-by-divider {flex-direction: row-reverse; align-items: flex-end;}
 
 /* Drop-down */
 .custom-dropdown {border-radius: 2px; position: relative; cursor: pointer; background: #222222; 
@@ -25,11 +27,11 @@ appearance: none; -webkit-appearance: none; -moz-appearance: none;}
 /* Selected option style changes */
 div.option.selected {background-color: #252527;}
 .selected-value {padding: 14px 14px 14px 18px;}
-.option, div.option.selected {color: #ffffff; margin-top: 2px; margin-bottom: 2px; font-size: clamp(14px, 3.2vw, 32px); font-family: 'rubik'; font-weight: 300; letter-spacing: 0.4px; padding-left: 20px;}
+.option, div.option.selected {color: #ffffff; margin-top: 2px; margin-bottom: 2px; font-size: clamp(16px, 0.8em, 32px); font-family: 'rubik'; font-weight: 300; letter-spacing: 0.4px; padding-left: 16px; }
 div.option.selected {padding-bottom: 12px; padding-top: 12px;} .option {padding-bottom: 8px; padding-top: 8px;}
 .option:hover {scale: 1.02; transition: 0.05s ease-in; transform: translateX(2px);}
 div.option.selected:hover {scale: 1; transform: translateX(0px);}
-.option {padding-bottom: 8px; padding-top: 8px;} div.option.selected {padding-top: 12px; padding-bottom: 12px;}
+.option {padding-bottom: 12px; padding-top: 12px;} div.option.selected {padding-top: 16px; padding-bottom: 16px;}
 .options-container {position: absolute; z-index: 1000; background: #202020; width: 100%; right: -1.8px;  top: calc(100% - 8px); padding-top: 8px; padding-bottom: 8px; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px;}
 
 /* Students Heading */
@@ -37,9 +39,10 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-bottom: 4.2em; padding-left: 1.6em;}
+#shadow-dynamic-app .pause-button-wrapper {padding-bottom: 6.8em;}
 .lottie-container {width: 2.4em; height: 2.4em; z-index: 100; position: relative; top: 1.2em;}
+#shadow-dynamic-app .lottie-container {width: 2.8em; height: 2.8em; top: 1.6em;}
 }
-
 
 /* Sort by filtering for tablet devices */
 @media screen and (min-width: 768px) and (max-width: 1024px) { 
@@ -86,7 +89,6 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 .lottie-container {width: 2.8em; height: 2.8em; z-index: 100; position: relative;}
 }
 
-
 /* Sort by filtering for desktop */
 @media screen and (min-width: 1025px) { 
 /* Sort by general styles */  
@@ -128,6 +130,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 #shadow-dynamic-app .students-heading {left: 0px;}
 #shadow-dynamic-app span.custom-arrow.open {transform: translateY(-50%) rotate(180deg) !important; top: 50% !important;}
 }
+
 @media screen and (min-width: 2025px) { 
 #shadow-dynamic-app .sort-by-container {transform: scale(0.95) !important;}
 #shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container {min-width: 33% !important;}
