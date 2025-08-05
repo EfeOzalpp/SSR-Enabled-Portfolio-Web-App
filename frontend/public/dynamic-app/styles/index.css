@@ -7,6 +7,7 @@ a { text-decoration: none;}
 .section-divider, .section-divider2, .section-divider3 {background-color: #1e1e1f;}
 h-title a {color: #ffffff;}
 label p {color: #dbdbdb;}
+.lottie-container { filter: brightness(2.5);}
 
 #shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.2em; padding-right: 1.2em; user-select: none; overflow: hidden;} 
 #shadow-dynamic-app .menu-item {display: none;}
@@ -179,11 +180,11 @@ p, .p {
 
 /* General padding and spacers for Desktop */ 
 body #homePage {padding-left: 12em; padding-right: 12em;}
-.section-divider {height: 4.8vw;} .section-divider2 {height: 1.2vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
-#shadow-dynamic-app .section-divider {height: 1.2vw;} .section-divider2 {height:0.8vw;} .section-divider3 {height: 0.2vw; margin-top: -0.6em;}
+.section-divider {height: 4.8em;} .section-divider2 {height: 1.2em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
+#shadow-dynamic-app .section-divider {height: 1.2em;} .section-divider2 {height: 1.6em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
 /* Fonts */
 h1 {
-  font-size: clamp(76px, 3.4vw, 120px); 
+  font-size: clamp(76px, 3.4em, 120px); 
   color: #f0f0f0;
   font-family: 'Orbitron', 'Oxygen', 'ubuntu', 'Cantarell', sans-serif; 
   font-weight: 400; letter-spacing: -1.4px;
@@ -259,14 +260,15 @@ p, .p {
 }
 
 @media screen and (min-width: 2025px) {
-  body #homePage {padding-left: 18.8em; padding-right: 18.8em;}
-  h-title {font-size: clamp(48px, 48px, 48px);}
-  #shadow-dynamic-app span.title-text {font-size: 80% !important; padding-left: 1.4em;}
+  .dynamic-app {overflow: hidden;}
+  body #homePage {padding-left: 18.8em; padding-right: 18.8em; overflow: hidden;}
+  h-title {font-size: clamp(26px, 36px, 42px);}
+  #shadow-dynamic-app span.title-text {font-size: 100% !important; padding-left: 3em;}
   #shadow-dynamic-app h5, h5 {color: #f6f6f6;
   font-size: clamp(14px, 1.8vw, 18px);
   font-family: 'rubik';
   font-weight: 400;
   letter-spacing: 0.4px;
-  margin: 0px;
-}
+  margin: 0px;}
+  h1 { font-size: clamp(92px, 6.2em, 144px); }
 }

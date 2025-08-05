@@ -4,7 +4,7 @@ import Navigation from './dynamic-app/components/navigation';
 import TitleDivider from './dynamic-app/components/title';
 import UIcards from './dynamic-app/components/homepage-UIcards';
 import SortBy from './dynamic-app/components/sortBy';
-import LoadingScreen from './dynamic-app/components/loadingPage';
+import LoadingScreen from './utils/loading.tsx';
 import FireworksDisplay from './dynamic-app/components/fireworksDisplay';
 import PauseButton from './dynamic-app/components/pauseButton';
 import Footer from './dynamic-app/components/footer';
@@ -53,6 +53,7 @@ function DynamicTheme() {
       '/dynamic-app/styles/UIcards.css',
       '/dynamic-app/fonts/rubik.css',
       '/dynamic-app/fonts/orbitron.css',
+      '/styles/loading-overlay.css',
     ];
 
     let loaded = 0;
@@ -196,7 +197,7 @@ function DynamicTheme() {
       {!cssReady ? (
         <div className="loading-screen" />
       ) : isLoading ? (
-        <LoadingScreen />
+        <LoadingScreen isFullScreen={true} />
       ) : (
         <div className="homePage-container">
           <IntroOverlay />

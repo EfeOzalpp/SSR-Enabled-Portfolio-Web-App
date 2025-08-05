@@ -1,15 +1,15 @@
-// Data Visualization Project Hero Section
-import { useEffect, useState, useRef } from 'react';
+// src/components/DataVisualizationBlock.tsx
+import { useEffect, useState } from 'react';
 import client from '../utils/sanity';
-import { useVideoVisibility } from '../utils/video-observer.tsx';
+import MediaLoader from '../utils/media-loader.tsx';
 
 const DataVisualizationBlock = () => {
-  const [data, setData] = useState(null);
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useVideoVisibility(videoRef, containerRef);
+  const [data, setData] = useState<{
+    mediaOne?: {
+      alt?: string;
+      asset: { url: string; _type: string };
+    };
+  } | null>(null);
 
   useEffect(() => {
     client
@@ -21,17 +21,14 @@ const DataVisualizationBlock = () => {
       .then(setData);
   }, []);
 
-  if (!data) return null;
+  if (!data || !data.mediaOne?.asset?.url) return null;
 
   const isVideo =
-    data.mediaOne?.asset._type === 'sanity.fileAsset' &&
-    data.mediaOne?.asset.url.match(/\.(mp4|webm|ogg)$/);
-
-  const altText = data.mediaOne?.alt || 'Data Visualization';
+    data.mediaOne.asset._type === 'sanity.fileAsset' &&
+    data.mediaOne.asset.url.match(/\.(mp4|webm|ogg)$/i);
 
   return (
     <section
-      ref={containerRef}
       className="block-type-1"
       id="block-d"
       style={{ position: 'relative' }}
@@ -44,31 +41,18 @@ const DataVisualizationBlock = () => {
           position: 'relative',
         }}
       >
-        {isVideo ? (
-          <video
-            className="tooltip-data-viz"
-            ref={videoRef}
-            src={data.mediaOne.asset.url}
-            loop
-            playsInline
-            muted
-            preload="metadata"
-            aria-label={altText}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              pointerEvents: 'all',
-            }}
-          />
-        ) : (
-          <img
-            src={data.mediaOne?.asset.url}
-            alt={altText}
-            className="tooltip-data-viz"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        )}
+        <MediaLoader
+          type={isVideo ? 'video' : 'image'}
+          src={data.mediaOne.asset.url}
+          alt={data.mediaOne.alt || 'Data Visualization'}
+          id="block-d"
+          className="tooltip-data-viz"
+          objectPosition="center center"
+          style={{
+            width: '100%',
+            height: '100%',
+          }}
+        />
       </div>
     </section>
   );

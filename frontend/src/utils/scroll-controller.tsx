@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, Suspense } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
 import ViewProject from '../components/view-project.tsx';
 import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-case-study.tsx';
+import LoadingScreen from './loading.tsx';
 
 const ScrollController = () => {
   const {
@@ -230,10 +231,10 @@ const ScrollController = () => {
             }}
           >
             <div style={{ minHeight: viewportStyle.height }}>
-              <Suspense fallback={<div style={{ height: '100%' }}>Loading…</div>}>
-                <item.Component onIdleChange={() => {}} />
-                {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
-              </Suspense>
+            <Suspense fallback={<LoadingScreen isFullScreen={false} />}>
+              <item.Component onIdleChange={() => {}} />
+              {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
+            </Suspense>
             </div>
           </div>
         );

@@ -70,7 +70,7 @@ background: linear-gradient(to right, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0
 }
 
 @media screen and (min-width: 2025px) { 
-.moving-title {margin-top: -0.2vw;}
+.moving-title {margin-top: -1.2em;}
 #shadow-dynamic-app  .moving-title {margin-top: 0em;}
 .moving-text {padding-right: 186px;}
 }

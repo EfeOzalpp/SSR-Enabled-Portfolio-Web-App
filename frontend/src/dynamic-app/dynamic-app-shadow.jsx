@@ -88,6 +88,7 @@ const DynamicAppInbound = ({ onFocusChange }) => {
           <link rel="stylesheet" href="/dynamic-app/styles/UIcards.css" />
           <link rel="stylesheet" href="/dynamic-app/fonts/rubik.css" />
           <link rel="stylesheet" href="/dynamic-app/fonts/orbitron.css" />
+          <link rel="stylesheet" href="/styles/loading-overlay.css" />
         </>
         <div
           ref={shadowRef}

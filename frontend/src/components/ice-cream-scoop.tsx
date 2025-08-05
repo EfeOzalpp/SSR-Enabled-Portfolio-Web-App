@@ -1,17 +1,13 @@
-// Ice Cream Scoop Project Hero Section
-import { useEffect, useRef, useState } from 'react';
+// src/components/IceCreamScoop.tsx
+import { useEffect, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
-import { useVideoVisibility } from '../utils/video-observer.tsx';
+import MediaLoader from '../utils/media-loader.tsx'; 
 
 const IceCreamScoop = () => {
   const [data, setData] = useState(null);
   const [split, setSplit] = useState(() => (window.innerWidth < 1024 ? 45 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  useVideoVisibility(videoRef, containerRef);
 
   useEffect(() => {
     const handleResize = () => setIsPortrait(window.innerHeight > window.innerWidth);
@@ -36,7 +32,6 @@ const IceCreamScoop = () => {
 
   return (
     <section
-      ref={containerRef}
       className="block-type-1"
       id="block-i"
       style={{ position: 'relative' }}
@@ -60,12 +55,14 @@ const IceCreamScoop = () => {
               }
         }
       >
-        <img
+        <MediaLoader
+          type="image"
           src={data.mediaOne?.asset.url}
-          alt={data.mediaOne?.alt || 'Visual content'}
-          className="media-item-1 tooltip-ice-scoop"
+          alt={data.mediaOne?.alt}
           id="icecream-media-1"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          className="media-item-1 tooltip-ice-scoop"
+          objectPosition="left center"
+          style={{ width: '100%', height: '100%' }}
         />
       </div>
 
@@ -90,33 +87,15 @@ const IceCreamScoop = () => {
               }
         }
       >
-        {isVideo ? (
-          <video
-            ref={videoRef}
-            src={data.mediaTwo.asset.url}
-            className="media-item-2 tooltip-ice-scoop"
-            id="icecream-media-2"
-            loop
-            playsInline
-            muted
-            preload="metadata"
-            aria-label={data.mediaTwo?.alt || 'Video content'}
-            style={{
-              pointerEvents: 'all',
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <img
-            src={data.mediaTwo?.asset.url}
-            alt={data.mediaTwo?.alt || 'Visual content'}
-            className="media-item-2"
-            id="icecream-media-2"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        )}
+        <MediaLoader
+          type={isVideo ? 'video' : 'image'}
+          src={data.mediaTwo?.asset.url}
+          alt={data.mediaTwo?.alt}
+          id="icecream-media-2"
+          className="media-item-2 tooltip-ice-scoop"
+          objectPosition="center bottom"
+          style={{ width: '100%', height: '100%' }}
+        />
       </div>
     </section>
   );

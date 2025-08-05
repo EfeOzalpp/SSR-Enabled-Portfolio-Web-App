@@ -244,10 +244,10 @@ animation: scrollHintMove 1s infinite alternate ease-in-out; transition: opacity
 }
 
 @media (min-width: 2025px) {
-.menu-icon {transform: scale(1.5);}
+.menu-icon {transform: scale(1.2);}
 .top-bar-items {padding-top: 22px; padding-bottom: 22px;}
 div.menu-item-2 {width: calc(50% + 180px); margin-left: calc(50% - 180px);}
-.menu-nav {padding-top: 32.2em; padding-left: 70px;}
-.scroll-hint {transform: scale(1.5) !important;}
-.arrow1, .arrow3 {transform: scale(1.4);}
+.menu-nav {padding-top: 12em; padding-left: 70px;}
+.scroll-hint {transform: scale(1.3) !important;}
+.arrow1, .arrow3 {transform: scale(1.3);}
  }    

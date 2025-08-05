@@ -4,7 +4,7 @@ import Navigation from './components/navigation';
 import TitleDivider from './components/title';
 import UIcards from './components/homepage-UIcards';
 import SortBy from './components/sortBy';
-import LoadingScreen from './components/loadingPage';
+import LoadingScreen from '../utils/loading.tsx';
 import FireworksDisplay from './components/fireworksDisplay';
 import PauseButton from './components/pauseButton';
 import Footer from './components/footer';
@@ -160,7 +160,7 @@ useEffect(() => {
   return (
     <>
       {isLoading ? (
-        <LoadingScreen />
+        <LoadingScreen isFullScreen={false} />
       ) : (
         <div className="homePage-container" ref={scrollContainerRef}>
           <IntroOverlay />

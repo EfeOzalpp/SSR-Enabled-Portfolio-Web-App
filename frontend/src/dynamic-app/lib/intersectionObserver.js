@@ -117,15 +117,15 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document, rootE
       }
     }
     // Conditions for screen width above 1024px
-    else if (window.innerWidth > 1024) {
+    else if (window.innerWidth > 1024 && window.innerWidth <= 2025) {
       if (isShadowRoot) {
         if (percentage > 0.5) {
           imageContainerTransform = 'translate(0em, 0em)';
-          imageContainer2Transform = 'translate(1em, -28em)';
+          imageContainer2Transform = 'translate(1em, -27.8em)';
           imageContainerZIndex = '1';
           imageContainer2ZIndex = '5';
         } else if (percentage > 0.25 && percentage <= 0.5) {
-          imageContainerTransform = 'translate(0.5em, 0em)';
+          imageContainerTransform = 'translate(1.2em, -0.8em)';
           imageContainer2Transform = 'translate(0em, -28em)';
           imageContainerZIndex = '5';
           imageContainer2ZIndex = '1';
@@ -154,38 +154,29 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document, rootE
         }
       }
     }
+    // Conditions for screen width above 2025px (don't ask why I did this lol)
     else if (window.innerWidth > 2025) {
       if (isShadowRoot) {
         if (percentage > 0.5) {
           imageContainerTransform = 'translate(0em, 0em)';
-          imageContainer2Transform = 'translate(2em, -30em)';
+          imageContainer2Transform = 'translate(1em, -43em)';
           imageContainerZIndex = '1';
           imageContainer2ZIndex = '5';
-        } else if (percentage > 0.25 && percentage <= 0.5) {
-          imageContainerTransform = 'translate(1em, 0em)';
-          imageContainer2Transform = 'translate(1em, -30em)';
-          imageContainerZIndex = '5';
-          imageContainer2ZIndex = '1';
         } else {
           imageContainerTransform = 'translate(0em, 0em)';
-          imageContainer2Transform = 'translate(2em, -30em)';
+          imageContainer2Transform = 'translate(1em, -43em)';
           imageContainerZIndex = '5';
           imageContainer2ZIndex = '1';
         }
       } else {
         if (percentage > 0.4) {
           imageContainerTransform = 'translate(0em, 0em)';
-          imageContainer2Transform = 'translate(3em, -28em)';
+          imageContainer2Transform = 'translate(2em, -42em)';
           imageContainerZIndex = '1';
           imageContainer2ZIndex = '5';
-        } else if (percentage > 0.33 && percentage <= 0.4) {
-          imageContainerTransform = 'translate(3em, 1em)';
-          imageContainer2Transform = 'translate(2em, -28em)';
-          imageContainerZIndex = '5';
-          imageContainer2ZIndex = '1';
         } else {
           imageContainerTransform = 'translate(0em, 0em)';
-          imageContainer2Transform = 'translate(3em, -28em)';
+          imageContainer2Transform = 'translate(2em, -42em)';
           imageContainerZIndex = '5';
           imageContainer2ZIndex = '1';
         }

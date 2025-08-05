@@ -78,7 +78,7 @@ function SortBy({ onFetchItems, customArrowIcon, colorMapping, getRoot = () => d
   const borderItemColor = useMemo(() => {
     const alt = items[itemIndex]?.alt1;
     const color = Array.isArray(colorMapping?.[alt]) ? colorMapping[alt][2] : '#ffffff';
-    return convertHexToRGBA(color, 0.4);
+    return convertHexToRGBA(color, 0.8);
   }, [items, colorMapping, itemIndex]);
 
   const boxShadowItemColor = useMemo(() => {

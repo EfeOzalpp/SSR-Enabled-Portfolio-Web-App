@@ -1,12 +1,14 @@
-// Stop videos from playing outside of viewport for performance
 import { useEffect } from 'react';
 
 export const useVideoVisibility = (
-  videoRef: React.RefObject<HTMLVideoElement>,
-  containerRef: React.RefObject<HTMLElement>,
+  videoRef: React.RefObject<HTMLVideoElement> | null,
+  containerRef: React.RefObject<HTMLElement> | null,
   threshold = 0.4
 ) => {
   useEffect(() => {
+    // Safeguard early if no refs
+    if (!videoRef?.current || !containerRef?.current) return;
+
     let observer: IntersectionObserver;
     let rafId: number;
     let retryCount = 0;
@@ -23,11 +25,11 @@ export const useVideoVisibility = (
         }
         return;
       }
+
       if (!video.src) return;
 
-      // Preload the video early
       video.load();
-      video.muted = true; // Important for mobile autoplay
+      video.muted = true;
 
       observer = new IntersectionObserver(
         ([entry]) => {
@@ -35,7 +37,7 @@ export const useVideoVisibility = (
 
           if (isVisible) {
             video.play().catch((err) => {
-              console.warn("Autoplay blocked, retrying in 500ms", err);
+              console.warn('Autoplay blocked, retrying in 500ms', err);
               setTimeout(() => video.play().catch(() => {}), 500);
             });
           } else {
@@ -47,12 +49,8 @@ export const useVideoVisibility = (
 
       observer.observe(container);
 
-      // Optional: Manual visibility check on load
       const rect = container.getBoundingClientRect();
-      const ratio = Math.min(Math.max(
-        (window.innerHeight - rect.top) / window.innerHeight,
-        0
-      ), 1);
+      const ratio = Math.min(Math.max((window.innerHeight - rect.top) / window.innerHeight, 0), 1);
 
       if (ratio >= threshold) {
         video.play().catch(() => {});

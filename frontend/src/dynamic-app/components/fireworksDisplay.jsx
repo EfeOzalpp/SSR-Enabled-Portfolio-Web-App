@@ -296,8 +296,8 @@ useEffect(() => {
             this.targetY = p.random(p.height * 0.05, p.height * 0.3);  
             } else {
             // For screens larger than 1024px, make the explosion lower on the screen
-            this.targetY = p.random(p.height * 0.15, p.height * 0.65);  
-            this.targetX = p.random(p.width * 0.3, p.width * 0.7);  
+            this.targetX = p.random(p.width * 0.4, p.width * 0.6);  
+            this.targetY = p.random(p.height * 0.1, p.height * 0.6);  
           }
       
           this.col = col;
