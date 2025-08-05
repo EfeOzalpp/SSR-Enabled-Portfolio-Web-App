@@ -1,13 +1,18 @@
 // src/components/DataVisualizationBlock.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import client from '../utils/sanity';
-import MediaLoader from '../utils/media-loader.tsx';
+import MediaLoader from '../utils/media-providers/media-loader.tsx';
 
 const DataVisualizationBlock = () => {
   const [data, setData] = useState<{
     mediaOne?: {
       alt?: string;
-      asset: { url: string; _type: string };
+      image?: any;
+      video?: {
+        asset?: {
+          url?: string;
+        };
+      };
     };
   } | null>(null);
 
@@ -15,17 +20,22 @@ const DataVisualizationBlock = () => {
     client
       .fetch(
         `*[_type == "mediaBlock" && title match "Data Visualization"][0]{
-          mediaOne { alt, asset->{url, _type} }
+          mediaOne {
+            alt,
+            image,
+            video { asset->{url} }
+          }
         }`
       )
       .then(setData);
   }, []);
 
-  if (!data || !data.mediaOne?.asset?.url) return null;
+  if (!data || !data.mediaOne) return null;
 
-  const isVideo =
-    data.mediaOne.asset._type === 'sanity.fileAsset' &&
-    data.mediaOne.asset.url.match(/\.(mp4|webm|ogg)$/i);
+  const { alt = 'Data Visualization', image, video } = data.mediaOne;
+
+  const videoUrl = video?.asset?.url;
+  const isVideo = Boolean(videoUrl?.match(/\.(mp4|webm|ogg)$/i));
 
   return (
     <section
@@ -43,8 +53,8 @@ const DataVisualizationBlock = () => {
       >
         <MediaLoader
           type={isVideo ? 'video' : 'image'}
-          src={data.mediaOne.asset.url}
-          alt={data.mediaOne.alt || 'Data Visualization'}
+          src={isVideo ? videoUrl! : image}
+          alt={alt}
           id="block-d"
           className="tooltip-data-viz"
           objectPosition="center center"

@@ -1,4 +1,5 @@
-import { defineType, defineField } from 'sanity'
+// /schemas/mediaBlock.ts
+import { defineType, defineField } from 'sanity';
 
 export default defineType({
   name: 'mediaBlock',
@@ -16,12 +17,25 @@ export default defineType({
       title: 'Subtitle (H2)',
       type: 'string'
     }),
+
+    // MEDIA ONE - supports both image and video
     defineField({
       name: 'mediaOne',
-      title: 'Media One (Image or Video)',
-      type: 'file',
-      options: { accept: 'image/*,video/*' },
+      title: 'Media One',
+      type: 'object',
       fields: [
+        defineField({
+          name: 'image',
+          title: 'Image',
+          type: 'image',
+          options: { hotspot: true },
+        }),
+        defineField({
+          name: 'video',
+          title: 'Video',
+          type: 'file',
+          options: { accept: 'video/*' },
+        }),
         defineField({
           name: 'alt',
           title: 'Alt Text (SEO)',
@@ -30,12 +44,25 @@ export default defineType({
         })
       ]
     }),
+
+    // MEDIA TWO - same structure
     defineField({
       name: 'mediaTwo',
-      title: 'Media Two (Image or Video)',
-      type: 'file',
-      options: { accept: 'image/*,video/*' },
+      title: 'Media Two',
+      type: 'object',
       fields: [
+        defineField({
+          name: 'image',
+          title: 'Image',
+          type: 'image',
+          options: { hotspot: true },
+        }),
+        defineField({
+          name: 'video',
+          title: 'Video',
+          type: 'file',
+          options: { accept: 'video/*' },
+        }),
         defineField({
           name: 'alt',
           title: 'Alt Text (SEO)',
@@ -44,11 +71,13 @@ export default defineType({
         })
       ]
     }),
+
+    // Optional tags
     defineField({
-    name: 'tags',
-    title: 'Tags',
-    type: 'array',
-    of: [{ type: 'string' }]
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      of: [{ type: 'string' }]
     })
   ]
-})
+});

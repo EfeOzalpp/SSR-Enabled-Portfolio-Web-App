@@ -29,10 +29,8 @@ return (
       className={`loading-overlay ${!isFullScreen ? 'relative-mode' : ''}`}
     >
       <div className="fade-in-content visible">
-        <div className="loading-lottie">
           <div ref={container} className="loading-lottie" />
         </div>
-      </div>
     </div>
   );
 };

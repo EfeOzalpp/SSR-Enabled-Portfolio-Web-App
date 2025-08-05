@@ -37,6 +37,7 @@ const OpacityObserver = () => {
       '#block-g',
       '#block-d',
       '#block-a',
+      '#block-i'
     ];
 
     let observedCount = 0;

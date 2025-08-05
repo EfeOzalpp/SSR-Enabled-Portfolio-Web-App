@@ -2,31 +2,37 @@
 import { useEffect, useRef, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
-import { useVideoVisibility } from '../utils/video-observer.tsx';
+import MediaLoader from '../utils/media-providers/media-loader.tsx';
 
 const RotaryLamp = () => {
   const [data, setData] = useState(null);
   const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 55 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  useVideoVisibility(videoRef, containerRef);
-
+  // Fetch media block from Sanity
   useEffect(() => {
     const fetchData = async () => {
-      const res = await client.fetch(
-        `*[_type == "mediaBlock" && title match "Rotary Lamp"][0]{
-          mediaOne { alt, tags, asset->{url, _type} },
-          mediaTwo { alt, tags, asset->{url, _type} }
-        }`
-      );
+      const res = await client.fetch(`
+        *[_type == "mediaBlock" && title match "Rotary Lamp"][0]{
+          mediaOne {
+            alt,
+            image,
+            video { asset->{url} }
+          },
+          mediaTwo {
+            alt,
+            image,
+            video { asset->{url} }
+          }
+        }
+      `);
       setData(res);
     };
 
     fetchData();
   }, []);
 
+  // Handle orientation switch
   useEffect(() => {
     const handleResize = () => setIsPortrait(window.innerHeight > window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -38,20 +44,12 @@ const RotaryLamp = () => {
   const media1 = isPortrait ? data.mediaOne : data.mediaTwo;
   const media2 = isPortrait ? data.mediaTwo : data.mediaOne;
 
-  const isMedia2Video =
-    media2?.asset._type === 'sanity.fileAsset' &&
-    media2?.asset.url.match(/\.(mp4|webm|ogg)$/);
-
   const alt1 = media1?.alt || 'Rotary Lamp media';
   const alt2 = media2?.alt || 'Rotary Lamp media';
 
   return (
-    <section
-      ref={containerRef}
-      className="block-type-1"
-      id="block-r"
-      style={{ position: 'relative' }}
-    >
+    <section className="block-type-1" id="block-r" style={{ position: 'relative' }}>
+      {/* LEFT / TOP media */}
       <div
         className="media-content-1"
         style={
@@ -71,17 +69,19 @@ const RotaryLamp = () => {
               }
         }
       >
-        <img
-          src={media1?.asset.url}
+        <MediaLoader
+          type="image"
+          src={media1?.image}
           alt={alt1}
-          className="media-item-1 tooltip-rotary-lamp"
           id="rotary-media-1"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          className="media-item-1 tooltip-rotary-lamp"
         />
       </div>
 
+      {/* SPLITTER */}
       <SplitDragHandler split={split} setSplit={setSplit} />
 
+      {/* RIGHT / BOTTOM media */}
       <div
         className="media-content-2"
         style={
@@ -101,33 +101,13 @@ const RotaryLamp = () => {
               }
         }
       >
-        {isMedia2Video ? (
-          <video
-            ref={videoRef}
-            src={media2.asset.url}
-            className="media-item-2 tooltip-rotary-lamp"
-            id="rotary-media-2"
-            loop
-            playsInline
-            muted
-            preload="metadata"
-            aria-label={alt2}
-            style={{
-              pointerEvents: 'all',
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <img
-            src={media2?.asset.url}
-            alt={alt2}
-            className="media-item-2 tooltip-rotary-lamp"
-            id="rotary-media-2"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        )}
+        <MediaLoader
+          type={media2?.video?.asset?.url ? 'video' : 'image'}
+          src={media2?.video?.asset?.url || media2?.image}
+          alt={alt2}
+          id="rotary-media-2"
+          className="media-item-2 tooltip-rotary-lamp"
+        />
       </div>
     </section>
   );

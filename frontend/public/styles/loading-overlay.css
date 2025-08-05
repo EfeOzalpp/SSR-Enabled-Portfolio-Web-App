@@ -68,7 +68,7 @@ body.loading {
   left: 0;
   max-height: 100%;
   max-width: 100%;
-  background-color: #414141;
+  background-color: #1e1e1f;
   z-index: 10;
   border-radius: inherit;
 }
