@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import createShadowRoot from 'react-shadow';
 import DynamicTheme from './dynamic-app-outgoing.jsx';
-import { initGlobalTooltip } from '../utils/tooltip.ts';
 
 const DynamicAppInbound = ({ onFocusChange }) => {
   const shadowRef = useRef(null);
@@ -19,13 +18,7 @@ const DynamicAppInbound = ({ onFocusChange }) => {
       }
     }, 0);
   }, []);
-
-  useEffect(() => {
-    if (shadowRoot) {
-      initGlobalTooltip(shadowRoot); // Initialize once root is known
-    }
-  }, [shadowRoot]);
-
+  
   useEffect(() => {
     const el = shadowRef.current;
     if (!el) return;

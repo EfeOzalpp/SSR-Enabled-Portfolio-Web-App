@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
-import Frontpage from './FrontPage';
-import DynamicTheme from './DynamicTheme';
+import Frontpage from './FrontPage.jsx';
+import DynamicTheme from './DynamicTheme.jsx';
 
 const path = window.location.pathname;
 

@@ -3,18 +3,8 @@ import React, {
   useState,
   useContext,
   useRef,
-  useMemo,
   ReactNode,
 } from 'react';
-
-import { getShuffledComponents, preloadMap } from './shuffled-components.tsx';
-
-interface ProjectComponent {
-  key: string;
-  title: string;
-  component: React.ReactElement;
-  isLink?: boolean;
-}
 
 interface ProjectVisibilityContextType {
   activeProject?: string;
@@ -25,9 +15,6 @@ interface ProjectVisibilityContextType {
 
   currentIndex: number;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
-
-  projectCount: number;
-  projectComponents: ProjectComponent[];
 
   scrollContainerRef: React.RefObject<HTMLDivElement>;
 
@@ -57,15 +44,6 @@ export const ProjectVisibilityProvider = ({ children }: ProjectVisibilityProvide
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const projectComponents = useMemo(() => {
-    const shuffled = getShuffledComponents();
-    if (shuffled[0]) {
-      const preload = preloadMap[shuffled[0].key];
-      if (preload) preload();
-    }
-    return shuffled;
-  }, []);
-
   return (
     <ProjectVisibilityContext.Provider
       value={{
@@ -75,8 +53,6 @@ export const ProjectVisibilityProvider = ({ children }: ProjectVisibilityProvide
         setBlockGClick,
         currentIndex,
         setCurrentIndex,
-        projectCount: projectComponents.length,
-        projectComponents,
         scrollContainerRef,
         isDragging,
         setIsDragging,

@@ -40,7 +40,6 @@ const DataVisualizationBlock = () => {
   return (
     <section
       className="block-type-1"
-      id="block-d"
       style={{ position: 'relative' }}
     >
       <div

@@ -5,6 +5,7 @@
   "dependencies": {
     "@babel/preset-env": "^7.28.0",
     "@babel/preset-react": "^7.27.1",
+    "@preact/signals-react": "^3.2.1",
     "@sanity/client": "^7.6.0",
     "@studio-freight/lenis": "^1.0.42",
     "@testing-library/dom": "^10.4.0",

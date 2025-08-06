@@ -43,7 +43,7 @@ export const fetchTooltipDataForKey = async (key: string): Promise<TooltipInfo> 
   let tags: string[] = [];
 
   try {
-    const client = (await import('./sanity')).default;
+    const client = (await import('../sanity')).default;
 
     if (key === 'rotary-lamp') {
       const res = await client.fetch(`*[_type == "mediaBlock" && title match "Rotary Lamp"][0]{ tags }`);

@@ -1211,7 +1211,7 @@ const RockEscapade = () => {
 
   // Return HTML structure
   return (
-    <section className="block-type-g" id="block-g" style={{ position: 'relative' }}>
+    <section className="block-type-g" style={{ position: 'relative' }}>
       <div className="evade-the-rock" style={{ width: '100%', height: '100%' }} ref={canvasRef}></div>
     <BlockGOnboarding key={resetKey} onStart={handleOnboardingStart} resetTrigger={resetKey}/>
       {!overlayVisible && <ExitButton onExit={handleExit} />}

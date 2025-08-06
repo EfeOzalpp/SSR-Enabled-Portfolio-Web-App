@@ -48,7 +48,7 @@ const RotaryLamp = () => {
   const alt2 = media2?.alt || 'Rotary Lamp media';
 
   return (
-    <section className="block-type-1" id="block-r" style={{ position: 'relative' }}>
+    <section className="block-type-1">
       {/* LEFT / TOP media */}
       <div
         className="media-content-1"

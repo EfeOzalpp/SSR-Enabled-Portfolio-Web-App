@@ -60,7 +60,7 @@ const DynamicApp = () => {
   const svgUrl = svgMap[device];
 
   return (
-    <section className="block-type-a" id="block-a">
+    <section className="block-type-a">
       <div className="device-wrapper">
         <img src={svgUrl} alt={device} className={`device-frame ${device}`} />
 

@@ -3,12 +3,13 @@ import { useEffect, useState } from 'react';
 import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
 import MediaLoader from '../utils/media-providers/media-loader.tsx';
+import { useTooltipInit } from '../utils/tooltip/tooltipInit.ts';
 
 const IceCreamScoop = () => {
   const [data, setData] = useState(null);
   const [split, setSplit] = useState(() => (window.innerWidth < 1024 ? 45 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
-
+  useTooltipInit();
   useEffect(() => {
     const handleResize = () => setIsPortrait(window.innerHeight > window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -45,7 +46,6 @@ const IceCreamScoop = () => {
   return (
     <section
       className="block-type-1"
-      id="block-i"
       style={{ position: 'relative' }}
     >
       {/* LEFT / TOP */}

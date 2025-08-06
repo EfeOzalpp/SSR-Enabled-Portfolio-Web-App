@@ -1,24 +1,29 @@
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
-import ViewProject from '../components/view-project.tsx';
+
 import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-case-study.tsx';
+
 import LoadingScreen from './loading.tsx';
+
+import { attachOpacityObserver } from '../utils/content-utility/opacity-observer.tsx';
+
+import { projects } from '../utils/content-utility/component-loader.tsx'; 
 
 const ScrollController = () => {
   const {
-    currentIndex,
-    projectComponents,
     scrollContainerRef,
     focusedProjectKey,
+    currentIndex,
   } = useProjectVisibility();
-
-  const isGameFocused = focusedProjectKey === 'game';
 
   const [justExitedFocusKey, setJustExitedFocusKey] = useState<string | null>(null);
   const [invisibleKeys, setInvisibleKeys] = useState<Set<string>>(new Set());
   const projectRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const [viewportStyle, setViewportStyle] = useState({ height: '98dvh', paddingBottom: '2dvh' });
+  const [viewportStyle, setViewportStyle] = useState({
+    height: '98dvh',
+    paddingBottom: '2dvh',
+  });
 
   const updateViewportStyle = () => {
     const width = window.innerWidth;
@@ -45,37 +50,17 @@ const ScrollController = () => {
     return () => clearTimeout(timeout);
   }, [currentIndex]);
 
-  /* Résizé logic
-  useEffect(() => {
-    let resizeTimeout: ReturnType<typeof setTimeout>;
-
-    const onResize = () => {
-      updateViewportStyle();
-
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        const targetEl = projectRefs.current[projectComponents[currentIndex]?.key];
-        if (targetEl) {
-          requestAnimationFrame(() => {
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          });
-        }
-      }, 400); // Let layout settle first
-    };
-
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [currentIndex, projectComponents]); */
-
   useEffect(() => {
     if (focusedProjectKey) {
-      const keysToHide = projectComponents.filter(p => p.key !== focusedProjectKey).map(p => p.key);
+      const keysToHide = projects
+        .filter((p) => p.key !== focusedProjectKey)
+        .map((p) => p.key);
       setInvisibleKeys(new Set(keysToHide));
     } else {
       const timeout = setTimeout(() => setInvisibleKeys(new Set()), 400);
       return () => clearTimeout(timeout);
     }
-  }, [focusedProjectKey, projectComponents]);
+  }, [focusedProjectKey]);
 
   useEffect(() => {
     if (focusedProjectKey) {
@@ -95,93 +80,65 @@ const ScrollController = () => {
     }
   }, [focusedProjectKey, justExitedFocusKey]);
 
-  // émbéddéd app top - bottom détéction to triggér synthéthic scroll for snappyscrollthingy
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) {
-      console.log('❌ scrollContainerRef not available.');
-      return;
-    }
+    // embedded-app scroll passthrough
+    useEffect(() => {
+      const scrollContainer = scrollContainerRef.current;
+      if (!scrollContainer) return;
 
-    let embeddedEl: HTMLElement | null = null;
-    let retries = 0;
-    const maxRetries = 10;
+      let embeddedEl: HTMLElement | null = null;
+      let retries = 0;
+      const maxRetries = 10;
 
     const attachHandlers = () => {
       embeddedEl = document.querySelector('.embedded-app');
       if (!embeddedEl) {
         retries++;
         if (retries <= maxRetries) {
-          console.log(`🔄 Retrying to find .embedded-app (${retries}/${maxRetries})...`);
           setTimeout(attachHandlers, 300);
-        } else {
-          console.warn('⚠️ Failed to find .embedded-app.');
         }
         return;
       }
 
-      console.log('✅ .embedded-app found. Attaching scroll and touch handlers.');
-
-      // WHEEL SUPPORT
       const handleWheel = (e: WheelEvent) => {
-        const deltaY = e.deltaY;
-        const scrollTop = embeddedEl!.scrollTop;
-        const scrollHeight = embeddedEl!.scrollHeight;
-        const clientHeight = embeddedEl!.clientHeight;
-
+        const { deltaY } = e;
+        const { scrollTop, scrollHeight, clientHeight } = embeddedEl!;
         const atTop = scrollTop <= 0;
         const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
 
-        if (deltaY < 0 && atTop) {
-          console.log('🔼 Wheel: at top → synthetic scroll UP');
+        if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
           e.preventDefault();
-          scrollContainer.scrollBy({ top: -300, behavior: 'smooth' });
-        } else if (deltaY > 0 && atBottom) {
-          console.log('🔽 Wheel: at bottom → synthetic scroll DOWN');
-          e.preventDefault();
-          scrollContainer.scrollBy({ top: 300, behavior: 'smooth' });
+          scrollContainer.scrollBy({ top: deltaY > 0 ? 300 : -300, behavior: 'smooth' });
         }
       };
 
-      embeddedEl.addEventListener('wheel', handleWheel, { passive: false });
-
-      // TOUCH SUPPORT
       let startY = 0;
 
       const handleTouchStart = (e: TouchEvent) => {
-        if (e.touches.length === 1) {
-          startY = e.touches[0].clientY;
-        }
+        if (e.touches.length === 1) startY = e.touches[0].clientY;
       };
 
       const handleTouchMove = (e: TouchEvent) => {
         if (e.touches.length !== 1) return;
-
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - startY;
 
-        const scrollTop = embeddedEl!.scrollTop;
-        const scrollHeight = embeddedEl!.scrollHeight;
-        const clientHeight = embeddedEl!.clientHeight;
-
+        const { scrollTop, scrollHeight, clientHeight } = embeddedEl!;
         const atTop = scrollTop <= 0;
         const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
         const scrollAmount = Math.max(100, window.innerHeight * 0.9);
 
         if (deltaY > 5 && atTop) {
-          console.log('📱 Touch: drag down at top → synthetic scroll UP');
           e.preventDefault();
           scrollContainer.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
         } else if (deltaY < -5 && atBottom) {
-          console.log('📱 Touch: drag up at bottom → synthetic scroll DOWN');
           scrollContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
         }
       };
 
+      embeddedEl.addEventListener('wheel', handleWheel, { passive: false });
       embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
       embeddedEl.addEventListener('touchmove', handleTouchMove, { passive: false });
 
-      // CLEANUP
       return () => {
         embeddedEl?.removeEventListener('wheel', handleWheel);
         embeddedEl?.removeEventListener('touchstart', handleTouchStart);
@@ -190,11 +147,16 @@ const ScrollController = () => {
     };
 
     const cleanup = attachHandlers();
-
     return () => {
       if (cleanup) cleanup();
     };
   }, []);
+
+  useEffect(() => {
+    const blockIds = projects.map((p) => `#block-${p.key}`);
+    const cleanup = attachOpacityObserver(blockIds, focusedProjectKey);
+    return cleanup;
+  }, [focusedProjectKey]);
 
   return (
     <div
@@ -212,13 +174,15 @@ const ScrollController = () => {
     >
       <style>{`.SnappyScrollThingy::-webkit-scrollbar { display: none; }`}</style>
 
-      {projectComponents.map((item) => {
+      {projects.map((item) => {
         const isFocused = focusedProjectKey === item.key;
         const isHidden = invisibleKeys.has(item.key);
+        const Component = item.Component;
 
         return (
           <div
             key={item.key}
+            id={`block-${item.key}`}
             ref={(el) => (projectRefs.current[item.key] = el)}
             style={{
               height: isHidden ? '0px' : isFocused ? 'auto' : viewportStyle.height,
@@ -231,20 +195,15 @@ const ScrollController = () => {
             }}
           >
             <div style={{ minHeight: viewportStyle.height }}>
-            <Suspense fallback={<LoadingScreen isFullScreen={false} />}>
-              <item.Component onIdleChange={() => {}} />
-              {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
-            </Suspense>
+              <Suspense fallback={<LoadingScreen isFullScreen={false} />}>
+                <Component />
+                {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
+              </Suspense>
             </div>
           </div>
         );
       })}
-
-      <ViewProject
-        currentProject={projectComponents[currentIndex]}
-        nextProject={projectComponents[currentIndex + 1] ?? null}
-      />
-    </div>   
+    </div>
   );
 };
 

@@ -1,18 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#1e1e1f" />
-    <meta
-      name="description"
-      content="Efe Ozalp | WebApp Development, 3D Modeling, and Visual Design"
-    />
-    <title>Efe Ozalp</title>
-  </head>
-  <body>
-    <noscript>This is captain speaking, enable your javascript, y'all!.</noscript>
-    <div id="efe-portfolio"></div>
-    <div id="dynamic-theme"></div>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <title>Efe Ozalp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Your static loading styles -->
+  <style>
+    #static-loader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #1e1e1f;
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 1.2rem;
+      position: absolute;
+      inset: 0;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div id="static-loader">Loading...</div>
+  <div id="efe-portfolio"></div>
+  <div id="dynamic-theme"></div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const interval = setInterval(() => {
+        const root1 = document.getElementById('efe-portfolio');
+        const root2 = document.getElementById('dynamic-theme');
+
+        const isMounted = (root1?.children.length || root2?.children.length);
+        if (isMounted) {
+          document.getElementById('static-loader')?.remove();
+          clearInterval(interval);
+        }
+      }, 50);
+    });
+  </script>
+  <script defer src="/static/js/bundle.js"></script>
+</body>
 </html>

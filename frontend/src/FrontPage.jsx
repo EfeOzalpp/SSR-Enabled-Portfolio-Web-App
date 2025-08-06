@@ -1,13 +1,13 @@
 // src/FrontPage.js
 import { useEffect, useState } from 'react';
 import NavMenu from './components/nav-menu.tsx';
+import ViewProject from './utils/title/view-project.tsx';
+import { TitleProvider } from './utils/title/title-context.tsx';
 import Loading from './utils/loading.tsx'; 
 import ScrollController from './utils/scroll-controller.tsx'; 
-import OpacityObserver from './utils/opacity-observer.tsx';
-import TitleObserver from './utils/title-observer.tsx';
 import ThemeColorUpdater from './utils/theme-color-updater.tsx';  
 import { ProjectVisibilityProvider } from './utils/project-context.tsx';
-import { initGlobalTooltip } from './utils/tooltip.ts';
+
 import { Helmet } from 'react-helmet';
 
 function Frontpage() {
@@ -78,13 +78,8 @@ useEffect(() => {
     };
   }, []);
 
-  // tooltip
-  useEffect(() => {
-    initGlobalTooltip();
-  }, []);
-
   return (
-    <ProjectVisibilityProvider>
+    <>
       <Helmet>
         <title>Efe Ozalp</title>
         <meta name="description" content="Efe Ozalp | WebApp Development, Visual Design, 3D Modeling" />
@@ -93,6 +88,7 @@ useEffect(() => {
         <meta name="theme-color" content="#1e1e1f" />
       </Helmet>
 
+    <ProjectVisibilityProvider>
     <div
       className={`transition-wrapper ${
         isLoading ? 'loading-active' : hasFadedIn ? 'app-visible' : 'app-hidden'
@@ -105,13 +101,15 @@ useEffect(() => {
           <div className="HereGoesNothing" id="landing">
             <ThemeColorUpdater />
             <NavMenu />
+          <TitleProvider>
+            <ViewProject />
+          </TitleProvider>
             <ScrollController />
-            <OpacityObserver />
-            <TitleObserver />
           </div>
         )}
       </div>
     </ProjectVisibilityProvider>
+    </>
   );
 }
 
