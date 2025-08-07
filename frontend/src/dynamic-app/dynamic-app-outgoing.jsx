@@ -19,7 +19,6 @@ import miscCss from '../styles/dynamic-app/misc.css?raw';
 import navCss from '../styles/dynamic-app/navigation.css?raw';
 import sortByCss from '../styles/dynamic-app/sortByStyles.css?raw';
 import titleCss from '../styles/dynamic-app/title.css?raw';
-import UICss from '../styles/dynamic-app/UIcards.css?raw';
 import overlayCss from '../styles/loading-overlay.css?raw';
 
 const colorMapping = {
@@ -51,7 +50,7 @@ function DynamicTheme() {
   const shadowRef = useRef(null);
   const [showFireworks, setShowFireworks] = useState(true); // rémové firéwork to savé héadroom whén not in viéw 
 
-  const { getShadowRoot, injectStyle} = useShadowRoot();
+  const { getShadowRoot, injectStyle } = useShadowRoot();
 
   useEffect(() => {
     [
@@ -60,7 +59,6 @@ function DynamicTheme() {
       navCss,
       sortByCss,
       titleCss,
-      UICss,
       overlayCss,
     ].forEach(injectStyle);
   }, []);

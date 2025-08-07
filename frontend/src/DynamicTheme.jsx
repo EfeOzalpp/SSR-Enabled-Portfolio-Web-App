@@ -19,10 +19,7 @@ import './styles/dynamic-app/fonts/orbitron.css';
 
 import miscCss from './styles/dynamic-app/misc.css?raw';
 import indexCss from './styles/dynamic-app/index.css?raw';
-import navCss from './styles/dynamic-app/navigation.css?raw';
 import sortByCss from './styles/dynamic-app/sortByStyles.css?raw';
-import titleCss from './styles/dynamic-app/title.css?raw';
-import uiCardsCss from './styles/dynamic-app/UIcards.css?raw';
 import overlayCss from './styles/loading-overlay.css?raw';
 
 import { useStyleInjection } from './dynamic-app/dynamic-app-style-injector.ts';
@@ -56,10 +53,7 @@ function DynamicTheme() {
 
   useStyleInjection(miscCss, 'dynamic-app-style-misc');
   useStyleInjection(indexCss, 'dynamic-app-style-index');
-  useStyleInjection(navCss, 'dynamic-app-style-nav');
   useStyleInjection(sortByCss, 'dynamic-app-style-sortby');
-  useStyleInjection(titleCss, 'dynamic-app-style-title');
-  useStyleInjection(uiCardsCss, 'dynamic-app-style-uicards');
   useStyleInjection(overlayCss, 'dynamic-app-style-overlay');
 
   useEffect(() => {

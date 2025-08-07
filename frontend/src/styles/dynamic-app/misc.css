@@ -24,7 +24,7 @@
 
 @media screen and (max-width: 767px) {
 .firework-divider { margin-top: -6.8em;}  
-.firework-divider-shadow { height: 15em; margin-top: -6.8em;}
+.firework-divider-shadow { height: 15em; margin-top: -0.8em;  transform: scale(0.9);}
 }
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 .firework-divider {margin-top: -6.8em;}  

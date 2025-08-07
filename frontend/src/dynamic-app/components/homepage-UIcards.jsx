@@ -1,10 +1,15 @@
 import React from 'react';
 import MediaLoader from '../../utils/media-providers/media-loader.tsx';
 
+import { useStyleInjection } from '../dynamic-app-style-injector.ts'; // Adjust path as needed
+import uiCardsCss from '../../styles/dynamic-app/UIcards.css?raw'; // RAW CSS
+
 const UIcards = React.forwardRef(function UIcards(
   { title, image1, image2, alt1, alt2, url1, className, customArrowIcon2 },
   ref
 ) {
+  useStyleInjection(uiCardsCss, 'dynamic-ui-card-style');
+  
   return (
     <div ref={ref} className={`card-container ${className}`}>
       <div className={`image-container ${className}`}>

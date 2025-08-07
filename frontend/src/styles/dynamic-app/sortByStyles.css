@@ -5,13 +5,17 @@
 .custom-dropdown:hover div.selected-value, .custom-dropdown:hover span.custom-arrow {scale: 1.02; transition: ease-in 0.1s;}
 .students-heading, .sort-container, .selected-value h5 {pointer-events: none; user-select: none; touch-action: none;}
 div.option.selected {background-color: #323235;}
+
 /* Sort by filtering for mobile devices */
 @media screen and (max-width: 767px) { 
 /* Sort by general styles */    
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {width: clamp(48%, 48vw, 48%); display: flex; align-items: center; z-index: 10; position: relative;flex-direction: column; align-items: center; padding-right: 12px; padding-top: 8px;}
-.sort-container2 {min-width: 104%; align-self: flex-end;} 
+.sort-container2 {min-width: 104%; align-self: flex-start;} 
+
 .sort-container {align-self: flex-start; position: relative; bottom: -6px; left: 4px;}
+
+#shadow-dynamic-app  .sort-container2 {min-width: 110%; align-self: flex-start;}
 
 .sort-by-divider, #shadow-dynamic-app .sort-by-divider {flex-direction: row-reverse; align-items: flex-end;}
 
@@ -36,13 +40,13 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 #shadow-dynamic-app div.option.selected {padding-bottom: 10px; padding-top: 10px;} 
 #shadow-dynamic-app .option, #shadow-dynamic-app  div.option.selected {font-size: clamp(14px, 0.75em, 28px);}
 /* Students Heading */
-.students-heading {position: relative; top: 32px; left: 2px;}
+.students-heading {position: relative; top: 32px; }
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-bottom: 4.2em; padding-left: 1.6em;}
 #shadow-dynamic-app .pause-button-wrapper {padding-bottom: 6.8em;}
 .lottie-container {width: 2.4em; height: 2.4em; z-index: 100; position: relative; top: 1.2em;}
-#shadow-dynamic-app .lottie-container {width: 2.8em; height: 2.8em; top: 1.6em;}
+#shadow-dynamic-app .lottie-container {width: 3em; height: 3em; top: 1.8em;}
 }
 
 /* Sort by filtering for tablet devices */
@@ -92,7 +96,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 /* Sort by filtering for desktop */
 @media screen and (min-width: 1025px) { 
 /* Sort by general styles */  
-.sort-by-divider {padding-right: 28px; padding-top: 64px;}
+.sort-by-divider {padding-right: 3.2em; padding-top: 64px;}
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {display: flex; z-index: 10; position: relative; flex-direction: column; align-items: center; padding-right: 0px; width: 50%;}
 .sort-container2 {width: clamp(34%, 3em, 240px); align-self: flex-end;} 

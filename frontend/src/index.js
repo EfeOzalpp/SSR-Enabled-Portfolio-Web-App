@@ -3,6 +3,10 @@ import { BrowserRouter } from 'react-router-dom';
 
 import Frontpage from './FrontPage.jsx';
 
+// Font CSS imported from src — always loaded (safe)
+import './styles/dynamic-app/fonts/rubik.css';
+import './styles/dynamic-app/fonts/orbitron.css';
+
 const path = window.location.pathname;
 
 if (path === '/' || path === '/home') {

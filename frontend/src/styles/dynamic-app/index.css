@@ -19,10 +19,11 @@ label p {color: #dbdbdb;}
 .section-divider { height: 3.6em;} .section-divider2 { height: 2.2em;} .section-divider3 { height: 0.2em; margin-top: -0.6em;}
 #shadow-dynamic-app {padding-left: 0.8em; padding-right: 0.8em;}
 #shadow-dynamic-app h5 { font-size: clamp(13px, 0.6em, 24px);}
-#shadow-dynamic-app h4 { font-size: clamp(18px, 1.1em, 28px);}
-#shadow-dynamic-app h3 { font-size: clamp(20px, 1.4em, 32px);}
+#shadow-dynamic-app h4 { font-size: clamp(17px, 1.1em, 28px);}
+#shadow-dynamic-app h3 { font-size: clamp(19px, 1.4em, 32px);}
 #shadow-dynamic-app h-name { font-size: clamp(19px, 0.8em, 46px);}
-
+#shadow-dynamic-app #homePage {padding-left: 0.4em; padding-right: 0.2em;}
+#shadow-dynamic-app .section-divider { height: 0.8em;} 
 /* Fonts */
 h1 {
   font-size: clamp(48px, 3.6em, 146px); 
@@ -179,7 +180,6 @@ p, .p {
 @media screen and (min-width: 1025px) {
 
 /* General padding and spacers for Desktop */ 
-body #homePage {padding-left: 12em; padding-right: 12em;}
 .section-divider {height: 4.8em;} .section-divider2 {height: 1.2em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
 #shadow-dynamic-app .section-divider {height: 1.2em;} .section-divider2 {height: 1.6em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
 /* Fonts */
@@ -257,6 +257,26 @@ p, .p {
   font-size: clamp(6px, 1vw, 24px);
   font-family: 'rubik'; font-weight: 400; letter-spacing: 0.4px;
  }  
+}
+
+@media screen and (min-width: 1024px) {
+body #homePage {padding-left: 10em; padding-right: 10em;}
+}
+
+@media screen and (min-width: 1100px) {
+body #homePage {padding-left: 11em; padding-right: 11em;}
+}
+
+@media screen and (min-width: 1200px) {
+body #homePage {padding-left: 12em; padding-right: 12em;}
+}
+
+@media screen and (min-width: 1300px) {
+body #homePage {padding-left: 14em; padding-right: 14em;}
+}
+
+@media screen and (min-width: 1500px) {
+body #homePage {padding-left: 16em; padding-right: 16em;}
 }
 
 @media screen and (min-width: 2025px) {

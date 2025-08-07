@@ -11,6 +11,7 @@ module.exports = {
           selector.startsWith(':root') ||
           selector.includes('#dynamic-theme') ||
           selector.includes('::slotted') || // just in case you're styling slotted content
+          selector.includes('#shadow-dynamic-app') ||
           filePath.includes('fonts')
         ) {
           return selector;

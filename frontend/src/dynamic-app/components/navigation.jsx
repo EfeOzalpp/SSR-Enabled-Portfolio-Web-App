@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import fetchGallery from '../lib/fetchGallery';
 
+import { useStyleInjection } from '../dynamic-app-style-injector.ts'; // Adjust path as needed
+import navCss from '../../styles/dynamic-app/navigation.css?raw';
+
 const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2, isInShadow = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -9,6 +12,8 @@ const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2, isInShadow
   const [galleryImages, setGalleryImages] = useState([]);
   const [showScrollHint, setShowScrollHint] = useState(false);
   const [hasShownScrollHint, setHasShownScrollHint] = useState(false);
+
+  useStyleInjection(navCss, 'dynamic-app-style-nav');
 
   const toggleMenu = () => {
     if (isInShadow) return; // 🛑 no nav in shadow mock

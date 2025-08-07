@@ -1,9 +1,15 @@
 // Updated TitleDivider component
+import { useStyleInjection } from '../../dynamic-app/dynamic-app-style-injector.ts';
+import titleCss from '../../styles/dynamic-app/title.css?raw';
+
 const TitleDivider = ({ svgIcon, movingTextColors, pauseAnimation }) => {
   const [color1, color2, color3] = movingTextColors || ['#70c6b0', '#5670b5', '#50b0c5'];
-
+  
+  useStyleInjection(titleCss, 'dynamic-app-style-title');
+  
   // Adjust hex brightness
   const adjustBrightness = (hex, multiplier) => {
+
     let r = parseInt(hex.slice(1, 3), 16);
     let g = parseInt(hex.slice(3, 5), 16);
     let b = parseInt(hex.slice(5, 7), 16);
@@ -12,6 +18,7 @@ const TitleDivider = ({ svgIcon, movingTextColors, pauseAnimation }) => {
     b = Math.min(255, Math.max(0, Math.floor(b * multiplier)));
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
+
 
   const colors = [
     adjustBrightness(color1, 1.05),

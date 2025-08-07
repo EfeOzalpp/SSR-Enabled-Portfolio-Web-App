@@ -13,14 +13,24 @@
 /* only on tablét */
 .tablet { height: 84%; padding-top: 12%;}
 /* only on laptop */
-.laptop { height: calc(100% - 12px); }
+.laptop { height: calc(100% - 12px); } 
+
 
 /* Media Queries */
+@media (max-width: 379px) {
+  .screen-overlay {max-height: 190vw; top: 16vw !important;} }
+
+@media (max-width: 424px) {
+  .screen-overlay {left: 9% !important; width: 82% !important;} }
+
+@media (min-width: 425px) and (max-width: 767px) {
+  .screen-overlay {max-width: 353px; left: 9% !important;} }
+
 @media (max-width: 767px) {
   .block-type-a { height: 98dvh; }
   .device-wrapper {aspect-ratio: 19.5/9; max-width: 420px; padding-left: 8px; padding-right: 8px;}
   .device-frame {display: block; margin: 0 auto;}
-  .screen-overlay  {top: 6%; left: 5%; width: 90%; height: 85%;} 
+  .screen-overlay  {top: 3.5%; left: 5%; width: 90%; height: 91%;} 
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
