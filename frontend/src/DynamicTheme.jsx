@@ -4,15 +4,28 @@ import Navigation from './dynamic-app/components/navigation';
 import TitleDivider from './dynamic-app/components/title';
 import UIcards from './dynamic-app/components/homepage-UIcards';
 import SortBy from './dynamic-app/components/sortBy';
-import LoadingScreen from './utils/loading.tsx';
+import LoadingScreen from './utils/content-utility/loading.tsx';
 import FireworksDisplay from './dynamic-app/components/fireworksDisplay';
 import PauseButton from './dynamic-app/components/pauseButton';
 import Footer from './dynamic-app/components/footer';
 import fetchSVGIcons from './dynamic-app/lib/fetchSVGIcons';
-import setupIntersectionObserver from './dynamic-app/lib/intersectionObserver';
+import setupIntersectionObserver from './dynamic-app/lib/documentObserver.ts';
 import setupAltObserver from './dynamic-app/lib/setupAltObserver';
 import IntroOverlay from './dynamic-app/components/IntroOverlay';
 import { Helmet } from 'react-helmet';
+
+import './styles/dynamic-app/fonts/rubik.css';
+import './styles/dynamic-app/fonts/orbitron.css';
+
+import miscCss from './styles/dynamic-app/misc.css?raw';
+import indexCss from './styles/dynamic-app/index.css?raw';
+import navCss from './styles/dynamic-app/navigation.css?raw';
+import sortByCss from './styles/dynamic-app/sortByStyles.css?raw';
+import titleCss from './styles/dynamic-app/title.css?raw';
+import uiCardsCss from './styles/dynamic-app/UIcards.css?raw';
+import overlayCss from './styles/loading-overlay.css?raw';
+
+import { useStyleInjection } from './dynamic-app/dynamic-app-style-injector.ts';
 
 const colorMapping = {
   'Yiner Xu ': ['#e9b2c2', '#ffc3d4', '#5f4f53', '#ffc9d8'],
@@ -37,49 +50,17 @@ function DynamicTheme() {
   const [lastKnownColor, setLastKnownColor] = useState('#FFFFFF');
   const [isLoading, setIsLoading] = useState(true);
   const [pauseAnimation, setPauseAnimation] = useState(false);
-  const [cssReady, setCssReady] = useState(false);
-  const [showNavigation, setShowNavigation] = useState(false);
   const toggleFireworksRef = useRef(null);
   const dynamicAppRef = useRef(null);
   const [showFireworks, setShowFireworks] = useState(true);
 
-  useEffect(() => {
-    const cssFiles = [
-      '/dynamic-app/styles/misc.css',
-      '/dynamic-app/styles/index.css',
-      '/dynamic-app/styles/navigation.css',
-      '/dynamic-app/styles/sortByStyles.css',
-      '/dynamic-app/styles/title.css',
-      '/dynamic-app/styles/UIcards.css',
-      '/dynamic-app/fonts/rubik.css',
-      '/dynamic-app/fonts/orbitron.css',
-      '/styles/loading-overlay.css',
-    ];
-
-    let loaded = 0;
-    const links = cssFiles.map((href) => {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = href;
-      link.onload = () => {
-        loaded += 1;
-        if (loaded === cssFiles.length) {
-          setCssReady(true);
-          setTimeout(() => setShowNavigation(true), 50);
-        }
-      };
-      document.head.appendChild(link);
-      return link;
-    });
-
-    return () => {
-      links.forEach((link) => {
-        if (link && link.parentNode) {
-          link.parentNode.removeChild(link);
-        }
-      });
-    };
-  }, []);
+  useStyleInjection(miscCss, 'dynamic-app-style-misc');
+  useStyleInjection(indexCss, 'dynamic-app-style-index');
+  useStyleInjection(navCss, 'dynamic-app-style-nav');
+  useStyleInjection(sortByCss, 'dynamic-app-style-sortby');
+  useStyleInjection(titleCss, 'dynamic-app-style-title');
+  useStyleInjection(uiCardsCss, 'dynamic-app-style-uicards');
+  useStyleInjection(overlayCss, 'dynamic-app-style-overlay');
 
   useEffect(() => {
     setTimeout(() => {
@@ -96,10 +77,9 @@ function DynamicTheme() {
     }, 400);
   }, []);
 
-  const isInShadowDOM = document.querySelector('.dynamic-app')?.getRootNode() instanceof ShadowRoot;
   useEffect(() => {
     if (!isLoading) {
-      setupIntersectionObserver(pauseAnimation, document, isInShadowDOM);
+      setupIntersectionObserver(pauseAnimation, document);
       setupAltObserver(handleActivate, handleDeactivate);
     }
   }, [isLoading, sortedImages, pauseAnimation]);
@@ -117,8 +97,8 @@ function DynamicTheme() {
 
   const handleActivate = (alt1) => {
     const colors = colorMapping[alt1];
-     console.log('[👁️ Alt Activated]', alt1); // ✅ log the alt1 being detected
-      console.log('[🎨 Mapped Colors]', colors); // ✅ log associated colors
+     console.log('[👁️ Alt Activated]', alt1); // log the alt1 being detected
+      console.log('[🎨 Mapped Colors]', colors); // log associated colors
 
     if (colors && colors[0] !== activeColor) {
       setActiveColor(colors[2]);
@@ -193,23 +173,20 @@ function DynamicTheme() {
       <meta name="twitter:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! This is the 2025 curation." />
       <meta name="twitter:image" content="https://www.example.com/image-path/twitter-image.jpg" />
     </Helmet>
+    
     <div className="dynamic-app" ref={dynamicAppRef}>
-      {!cssReady ? (
-        <div className="loading-screen" />
-      ) : isLoading ? (
-        <LoadingScreen isFullScreen={true} />
-      ) : (
+        {isLoading ? (
+          <LoadingScreen isFullScreen={true} />
+        ) : (
         <div className="homePage-container">
           <IntroOverlay />
           <div className="navigation-wrapper">
-            {showNavigation && (
               <Navigation
                 customArrowIcon2={svgIcons['arrow1']}
                 customArrowIcon={svgIcons['arrow2']}
                 items={sortedImages}
                 activeColor={activeColor}
               />
-            )}
           </div>
           <div className="firework-divider">
             <div className="section-divider"></div>

@@ -1,5 +1,6 @@
 // utils/global-tooltip.ts
 import { isMobile, isTablet } from 'react-device-detect';
+import '../../styles/tooltip.css';
 
 type TooltipInfo = {
   tags: string[];
@@ -28,7 +29,8 @@ const createTooltipDOM = () => {
   el.style.color = '#fff';
   el.style.transition = 'opacity 0.3s ease, visibility 0.3s ease';
   el.className = 'custom-tooltip-blur';
-  document.body.appendChild(el);
+  const root = document.getElementById('efe-portfolio') || document.body;
+  root.appendChild(el);
   return el;
 };
 
@@ -81,7 +83,7 @@ export const initGlobalTooltip = () => {
       tooltipEl!.style.opacity = '0';
       tooltipEl!.style.visibility = 'hidden';
       currentKey = '';
-    }, 2000);
+    }, 99000);
   };
 
   const hideTooltip = () => {

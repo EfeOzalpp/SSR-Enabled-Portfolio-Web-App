@@ -1,0 +1,49 @@
+import { useEffect, useRef, useState } from 'react';
+import lottie from 'lottie-web';
+import loading from '../../svg/loading.json';
+
+type LoadingScreenProps = {
+  isFullScreen?: boolean;
+};
+
+const LoadingScreen = ({ isFullScreen = true }: LoadingScreenProps) => {
+  const container = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState(70); // default to largest
+
+  useEffect(() => {
+    // Determine viewport width and apply appropriate size
+    const width = window.innerWidth;
+    if (width <= 767) {
+      setSize(32);
+    } else if (width <= 1024) {
+      setSize(48);
+    } else {
+      setSize(70);
+    }
+
+    const anim = lottie.loadAnimation({
+      container: container.current!,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      animationData: loading,
+    });
+
+    return () => anim.destroy();
+  }, []);
+
+  return (
+    <div className={`loading-screen-wrapper ${isFullScreen ? 'fullscreen' : 'contained'}`}>
+      <div
+        className="loading-lottie"
+        ref={container}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+        }}
+      />
+    </div>
+  );
+};
+
+export default LoadingScreen;

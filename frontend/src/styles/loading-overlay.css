@@ -1,0 +1,33 @@
+/* Fullscreen loader */
+.loading-screen-wrapper.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background-color: #1e1e1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Contained loader — always forces vertical centering */
+.loading-screen-wrapper.contained {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+
+  width: 100%;
+  min-height: 360px;  /* fallback if parent has no height */
+  height: 100%;       /* take height if parent provides it */
+  box-sizing: border-box;
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* No need to style .loading-lottie dimensions in CSS anymore,
+   since they're handled inline in React */
+.loading-lottie {
+  display: block;
+}

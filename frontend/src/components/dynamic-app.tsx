@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import client from '../utils/sanity';
 import DynamicAppInbound from '../dynamic-app/dynamic-app-shadow.jsx';
-import Loading from '../utils/loading.tsx';
 
 const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
   if (width < 768) return 'phone';
@@ -12,8 +11,6 @@ const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
 const DynamicApp = () => {
   const [svgMap, setSvgMap] = useState<Record<string, string>>({});
   const [device, setDevice] = useState<'phone' | 'tablet' | 'laptop'>(getDeviceType(window.innerWidth));
-  const [shouldLoadApp, setShouldLoadApp] = useState(false);
-  const screenRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     client
@@ -40,23 +37,6 @@ const DynamicApp = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    if (!screenRef.current) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShouldLoadApp(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(screenRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   const svgUrl = svgMap[device];
 
   return (
@@ -64,12 +44,8 @@ const DynamicApp = () => {
       <div className="device-wrapper">
         <img src={svgUrl} alt={device} className={`device-frame ${device}`} />
 
-        <div className="screen-overlay" ref={screenRef}>
-          {shouldLoadApp ? (
-            <DynamicAppInbound />
-          ) : (
-            <Loading isFullScreen={false} />
-          )}
+        <div className="screen-overlay">
+          <DynamicAppInbound />
         </div>
       </div>
     </section>

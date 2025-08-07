@@ -2,16 +2,25 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Navigation from './components/navigation';
 import TitleDivider from './components/title';
-import UIcards from './components/homepage-UIcards';
 import SortBy from './components/sortBy';
-import LoadingScreen from '../utils/loading.tsx';
+import LoadingScreen from '../utils/content-utility/loading.tsx';
 import FireworksDisplay from './components/fireworksDisplay';
 import PauseButton from './components/pauseButton';
 import Footer from './components/footer';
 import fetchSVGIcons from './lib/fetchSVGIcons';
-import setupIntersectionObserver from './lib/intersectionObserver';
+import ObservedCard from './lib/observedCard.tsx';
 import setupAltObserver from './lib/setupAltObserver';
 import IntroOverlay from './components/IntroOverlay';
+
+import { useShadowRoot } from './dynamic-app-context.tsx';
+
+import indexCss from '../styles/dynamic-app/index.css?raw';
+import miscCss from '../styles/dynamic-app/misc.css?raw';
+import navCss from '../styles/dynamic-app/navigation.css?raw';
+import sortByCss from '../styles/dynamic-app/sortByStyles.css?raw';
+import titleCss from '../styles/dynamic-app/title.css?raw';
+import UICss from '../styles/dynamic-app/UIcards.css?raw';
+import overlayCss from '../styles/loading-overlay.css?raw';
 
 const colorMapping = {
   'Yiner Xu ': ['#e9b2c2', '#ffc3d4', '#5f4f53', '#ffc9d8'],
@@ -28,7 +37,7 @@ const colorMapping = {
   'Jawad Naik': ['#97cfac', '#9bedb9', '#272d29', '#a5efc0']
 };
 
-function DynamicTheme({ getShadowRoot }) {
+function DynamicTheme() {
   const [sortedImages, setSortedImages] = useState([]);
   const [svgIcons, setSvgIcons] = useState({});
   const [activeColor, setActiveColor] = useState('#FFFFFF');
@@ -42,7 +51,20 @@ function DynamicTheme({ getShadowRoot }) {
   const shadowRef = useRef(null);
   const [showFireworks, setShowFireworks] = useState(true); // rémové firéwork to savé héadroom whén not in viéw 
 
-  
+  const { getShadowRoot, injectStyle} = useShadowRoot();
+
+  useEffect(() => {
+    [
+      indexCss,
+      miscCss,
+      navCss,
+      sortByCss,
+      titleCss,
+      UICss,
+      overlayCss,
+    ].forEach(injectStyle);
+  }, []);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setIsLoading(false);
@@ -66,21 +88,19 @@ function DynamicTheme({ getShadowRoot }) {
     }, 400);
   }, []);
 
-const observerRoot = useRef(null);
+  const observerRoot = useRef(null);
 
-useEffect(() => {
-  const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
-  observerRoot.current = root;
-}, [getShadowRoot]);
+  useEffect(() => {
+    const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
+    observerRoot.current = root;
+  }, [getShadowRoot]);
 
-useEffect(() => {
-  if (!isLoading && sortedImages.length > 0) {
-    const root = observerRoot.current;
-
-    setupIntersectionObserver(pauseAnimation, root);
-    setupAltObserver(handleActivate, handleDeactivate, root);
-  }
-}, [sortedImages, pauseAnimation, isLoading]);
+  useEffect(() => {
+    if (!isLoading && sortedImages.length > 0) {
+      const root = observerRoot.current;
+      setupAltObserver(handleActivate, handleDeactivate, root);
+    }
+  }, [sortedImages, pauseAnimation, isLoading]);
 
   const handleSetToggleFireworks = useCallback((toggleFunction) => {
     toggleFireworksRef.current = toggleFunction;
@@ -120,42 +140,38 @@ useEffect(() => {
     return () => observer.disconnect();
   }, []);
 
-  // rémové firéwork whén not in viéw 
-  useEffect(() => {
-    const root = typeof getShadowRoot === 'function' ? getShadowRoot() : null;
+  // rémové firéwork whén not in viéw
+useEffect(() => {
+  const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
 
-    const shadowApp = root?.querySelector?.('#shadow-dynamic-app');
-    const container = shadowApp?.querySelector?.('.firework-wrapper-shadow');
+  const shadowApp = root?.querySelector?.('#shadow-dynamic-app');
+  const container = shadowApp?.querySelector?.('.firework-wrapper-shadow');
 
-    if (!container) {
-      console.warn('[FireworkObserver] Container not found inside #shadow-dynamic-app');
-      return;
+  if (!container) {
+    console.warn('[FireworkObserver] Container not found inside #shadow-dynamic-app');
+    return;
+  }
+
+  const validRoot = root instanceof Element || root instanceof Document ? root : null;
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      const isVisible = entry.isIntersecting;
+      setShowFireworks(prev => (prev !== isVisible ? isVisible : prev));
+    },
+    {
+      threshold: 0.1,
+      root: validRoot,
     }
+  );
 
-    // Validate root: must be Element or null
-    const validRoot = root instanceof Element || root instanceof Document ? root : null;
+  observer.observe(container);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const isVisible = entry.isIntersecting;
-        setShowFireworks(prev => {
-          if (prev !== isVisible) {
-            return isVisible;
-          }
-          return prev;
-        });
-      },
-      { threshold: 0.1, root: validRoot }
-    );
+  return () => observer.disconnect();
+}, [getShadowRoot])
 
-    observer.observe(container);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [getShadowRoot]);
-
-
+  const cardRefs = useRef([]);
+  cardRefs.current = sortedImages.map((_, i) => cardRefs.current[i] ?? React.createRef());
 
   return (
     <>
@@ -214,17 +230,13 @@ useEffect(() => {
               </div>
               <div className="section-divider2"></div>
               <div className="UI-card-divider">
-                {sortedImages.map((imageData, index) => (
-                  <UIcards
+                {sortedImages.map((data, index) => (
+                  <ObservedCard
                     key={index}
-                    title={imageData.title}
-                    backgroundColor={imageData.backgroundColor}
-                    image1={imageData.image1}
-                    image2={imageData.image2}
-                    alt1={imageData.alt1}
-                    alt2={imageData.alt2}
-                    url1={imageData.url1}
-                    className={`custom-card-${index}`}
+                    data={data}
+                    index={index}
+                    getShadowRoot={getShadowRoot}
+                    pauseAnimation={pauseAnimation}
                     customArrowIcon2={svgIcons['arrow1']}
                   />
                 ))}

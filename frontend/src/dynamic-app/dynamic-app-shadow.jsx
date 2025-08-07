@@ -1,6 +1,8 @@
+// dynamic app shadow DOM wrappér
 import React, { useRef, useEffect, useState } from 'react';
 import createShadowRoot from 'react-shadow';
 import DynamicTheme from './dynamic-app-outgoing.jsx';
+import { ShadowRootProvider } from './dynamic-app-context.tsx'; 
 
 const DynamicAppInbound = ({ onFocusChange }) => {
   const shadowRef = useRef(null);
@@ -8,17 +10,16 @@ const DynamicAppInbound = ({ onFocusChange }) => {
   const ShadowRoot = createShadowRoot.div;
 
   useEffect(() => {
-    // Wait for next tick so shadowRoot is mounted
     setTimeout(() => {
       const root = shadowRef.current?.getRootNode?.();
-      if (root?.host) {
+      if (root && root.host) {
         setShadowRoot(root);
       } else {
-        console.warn('[⚠️ ShadowRoot not found]');
+        console.warn('[⚠️ Not a ShadowRoot]', root);
       }
     }, 0);
   }, []);
-  
+
   useEffect(() => {
     const el = shadowRef.current;
     if (!el) return;
@@ -34,25 +35,22 @@ const DynamicAppInbound = ({ onFocusChange }) => {
         pointerType: 'touch',
       });
       el.dispatchEvent(down);
-
-      onFocusChange?.(true); // Notify parent controller
+      onFocusChange?.(true);
       console.log('[📌 Focus triggered in embedded app]');
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
+    const handleTouchStart = (e) => {
       if (e.touches.length === 0) return;
       startY = e.touches[0].clientY;
       focusTriggered = false;
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
+    const handleTouchMove = (e) => {
       if (focusTriggered || e.touches.length === 0) return;
-
       const deltaY = e.touches[0].clientY - startY;
 
       if (Math.abs(deltaY) > 1) {
-        // Small threshold to detect intention to drag
-        el.scrollTop += 1; // Nudge the scroll context to wake up scrollability
+        el.scrollTop += 1;
         triggerSyntheticClick();
         focusTriggered = true;
       }
@@ -68,26 +66,16 @@ const DynamicAppInbound = ({ onFocusChange }) => {
       el.removeEventListener('touchmove', handleTouchMove);
     };
   }, [onFocusChange]);
-  
+
   return (
-     <div className="embedded-app">
+    <div className="embedded-app">
       <ShadowRoot>
-        <>
-          <link rel="stylesheet" href="/dynamic-app/styles/index.css" />
-          <link rel="stylesheet" href="/dynamic-app/styles/misc.css" />
-          <link rel="stylesheet" href="/dynamic-app/styles/navigation.css" />
-          <link rel="stylesheet" href="/dynamic-app/styles/sortByStyles.css" />
-          <link rel="stylesheet" href="/dynamic-app/styles/title.css" />
-          <link rel="stylesheet" href="/dynamic-app/styles/UIcards.css" />
-          <link rel="stylesheet" href="/dynamic-app/fonts/rubik.css" />
-          <link rel="stylesheet" href="/dynamic-app/fonts/orbitron.css" />
-          <link rel="stylesheet" href="/styles/loading-overlay.css" />
-        </>
-        <div
-          ref={shadowRef}
-          className="dynamic-app"
-          id='shadow-dynamic-app'>
-          <DynamicTheme getShadowRoot={() => shadowRoot} />
+        <div ref={shadowRef} className="dynamic-app" id="shadow-dynamic-app">
+          {shadowRoot ? (
+            <ShadowRootProvider getShadowRoot={() => shadowRoot}>
+              <DynamicTheme />
+            </ShadowRootProvider>
+          ) : null}
         </div>
       </ShadowRoot>
     </div>

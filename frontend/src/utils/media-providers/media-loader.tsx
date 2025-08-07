@@ -1,7 +1,7 @@
 // src/components/MediaLoader.tsx
 import { useRef, useState, useEffect } from 'react';
 import { useVideoVisibility } from './video-observer.tsx';
-import LoadingScreen from '../loading.tsx';
+import LoadingScreen from '../content-utility/loading.tsx';
 import { SanityImageSource } from '@sanity/image-url/lib/types/types';
 import {
   getOptimizedImageUrl,
@@ -104,11 +104,11 @@ const MediaLoader = ({
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
       {!loaded && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+        <div className="absolute inset-0 z-10">
           <LoadingScreen isFullScreen={false} />
         </div>
       )}
-
+      
       {type === 'image' ? (
         <img
         loading="lazy"

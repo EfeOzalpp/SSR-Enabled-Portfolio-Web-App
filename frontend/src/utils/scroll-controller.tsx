@@ -1,13 +1,11 @@
-import { useEffect, useRef, useState, Suspense } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useProjectVisibility } from './project-context.tsx';
 
 import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-case-study.tsx';
-
-import LoadingScreen from './loading.tsx';
-
+import LoadingScreen from './content-utility/loading.tsx';
 import { attachOpacityObserver } from '../utils/content-utility/opacity-observer.tsx';
-
-import { projects } from '../utils/content-utility/component-loader.tsx'; 
+import { projects } from '../utils/content-utility/component-loader.tsx';
+import LazyInView from './content-utility/lazy-view.tsx';
 
 const ScrollController = () => {
   const {
@@ -80,28 +78,19 @@ const ScrollController = () => {
     }
   }, [focusedProjectKey, justExitedFocusKey]);
 
-    // embedded-app scroll passthrough
-    useEffect(() => {
-      const scrollContainer = scrollContainerRef.current;
-      if (!scrollContainer) return;
+useEffect(() => {
+  const scrollContainer = scrollContainerRef.current;
+  if (!scrollContainer) return;
 
-      let embeddedEl: HTMLElement | null = null;
-      let retries = 0;
-      const maxRetries = 10;
+  let cleanupFns: (() => void)[] = [];
 
-    const attachHandlers = () => {
-      embeddedEl = document.querySelector('.embedded-app');
-      if (!embeddedEl) {
-        retries++;
-        if (retries <= maxRetries) {
-          setTimeout(attachHandlers, 300);
-        }
-        return;
-      }
-
+  const observer = new MutationObserver(() => {
+    const embeddedEl = document.querySelector('.embedded-app');
+    if (embeddedEl && cleanupFns.length === 0) {
+      // attach handlers once
       const handleWheel = (e: WheelEvent) => {
         const { deltaY } = e;
-        const { scrollTop, scrollHeight, clientHeight } = embeddedEl!;
+        const { scrollTop, scrollHeight, clientHeight } = embeddedEl;
         const atTop = scrollTop <= 0;
         const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
 
@@ -122,7 +111,7 @@ const ScrollController = () => {
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - startY;
 
-        const { scrollTop, scrollHeight, clientHeight } = embeddedEl!;
+        const { scrollTop, scrollHeight, clientHeight } = embeddedEl;
         const atTop = scrollTop <= 0;
         const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
         const scrollAmount = Math.max(100, window.innerHeight * 0.9);
@@ -139,18 +128,25 @@ const ScrollController = () => {
       embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
       embeddedEl.addEventListener('touchmove', handleTouchMove, { passive: false });
 
-      return () => {
-        embeddedEl?.removeEventListener('wheel', handleWheel);
-        embeddedEl?.removeEventListener('touchstart', handleTouchStart);
-        embeddedEl?.removeEventListener('touchmove', handleTouchMove);
-      };
-    };
+      cleanupFns = [
+        () => embeddedEl.removeEventListener('wheel', handleWheel),
+        () => embeddedEl.removeEventListener('touchstart', handleTouchStart),
+        () => embeddedEl.removeEventListener('touchmove', handleTouchMove),
+      ];
+    }
+  });
 
-    const cleanup = attachHandlers();
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, []);
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  return () => {
+    observer.disconnect();
+    cleanupFns.forEach((fn) => fn());
+  };
+}, []);
+
 
   useEffect(() => {
     const blockIds = projects.map((p) => `#block-${p.key}`);
@@ -177,7 +173,6 @@ const ScrollController = () => {
       {projects.map((item) => {
         const isFocused = focusedProjectKey === item.key;
         const isHidden = invisibleKeys.has(item.key);
-        const Component = item.Component;
 
         return (
           <div
@@ -195,10 +190,11 @@ const ScrollController = () => {
             }}
           >
             <div style={{ minHeight: viewportStyle.height }}>
-              <Suspense fallback={<LoadingScreen isFullScreen={false} />}>
-                <Component />
-                {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
-              </Suspense>
+              <LazyInView
+                load={item.lazyImport}
+                fallback={<LoadingScreen isFullScreen={false} />}
+              />
+              {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
             </div>
           </div>
         );

@@ -1,9 +1,12 @@
-// src/components/UIcards.tsx
+import React from 'react';
 import MediaLoader from '../../utils/media-providers/media-loader.tsx';
 
-function UIcards({ title, image1, image2, alt1, alt2, url1, className, customArrowIcon2 }) {
-  return ( 
-    <div className={`card-container ${className}`}>
+const UIcards = React.forwardRef(function UIcards(
+  { title, image1, image2, alt1, alt2, url1, className, customArrowIcon2 },
+  ref
+) {
+  return (
+    <div ref={ref} className={`card-container ${className}`}>
       <div className={`image-container ${className}`}>
         <a href={url1} className={`ui-link ${className}`}>
           <MediaLoader
@@ -39,6 +42,6 @@ function UIcards({ title, image1, image2, alt1, alt2, url1, className, customArr
       </div>
     </div>
   );
-}
+});
 
 export default UIcards;
