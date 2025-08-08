@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import fetchImages from '../lib/fetchUser';
 
-import { useStyleInjection } from '../dynamic-app-style-injector.ts'; // Adjust path as needed
+import { useStyleInjection } from '../../utils/context-providers/style-injector.ts'; // Adjust path as needed
 import sortByCss from '../../styles/dynamic-app/sortByStyles.css?raw';
 
 const options = [

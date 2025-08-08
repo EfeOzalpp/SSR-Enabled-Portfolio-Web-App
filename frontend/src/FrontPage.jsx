@@ -6,20 +6,9 @@ import { TitleProvider } from './utils/title/title-context.tsx';
 import Loading from './utils/content-utility/loading.tsx'; 
 import ScrollController from './utils/scroll-controller.tsx'; 
 import ThemeColorUpdater from './utils/theme-color-updater.tsx';  
-import { ProjectVisibilityProvider } from './utils/project-context.tsx';
+import { ProjectVisibilityProvider } from './utils/context-providers/project-context.tsx';
 
 import { Helmet } from 'react-helmet';
-
-// Import your CSS directly
-import './styles/block-type-1.css';
-import './styles/block-type-g.css';
-import './styles/block-type-a.css';
-import './styles/general-block.css';
-import './styles/loading-overlay.css';
-
-// If fonts were converted to CSS @font-face rules, import here too
-import './styles/fonts/fonts1.css';
-import './styles/fonts/epilogue.css';
 
 function Frontpage() {
   const [isLoading, setIsLoading] = useState(true);

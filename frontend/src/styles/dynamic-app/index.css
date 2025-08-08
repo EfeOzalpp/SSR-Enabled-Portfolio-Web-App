@@ -1,6 +1,6 @@
 /* General styles */
 body { background-color: #1e1e1f; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Orbitron', 'Rubik', 'Oxygen','Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;}
-body #homePage {background-color: #1e1e1f;}
+body #homePage {background-color: #1e1e1f; }
 div {background-color: transparent;}
 .no-overflow {overflow: hidden;}
 a { text-decoration: none;}
@@ -8,6 +8,7 @@ a { text-decoration: none;}
 h-title a {color: #ffffff;}
 label p {color: #dbdbdb;}
 .lottie-container { filter: brightness(1.3);}
+.custom-arrow { filter: brightness(0.8);}
 
 #shadow-dynamic-app {background-color: #1e1e1f; padding-left: 1.2em; padding-right: 1.2em; user-select: none; overflow: hidden;} 
 #shadow-dynamic-app .menu-item {display: none;}
@@ -19,11 +20,12 @@ label p {color: #dbdbdb;}
 .section-divider { height: 3.6em;} .section-divider2 { height: 2.2em;} .section-divider3 { height: 0.2em; margin-top: -0.6em;}
 #shadow-dynamic-app {padding-left: 0.8em; padding-right: 0.8em;}
 #shadow-dynamic-app h5 { font-size: clamp(13px, 0.6em, 24px);}
-#shadow-dynamic-app h4 { font-size: clamp(17px, 1.1em, 28px);}
+#shadow-dynamic-app h4 { font-size: clamp(16px, 1.1em, 28px);}
 #shadow-dynamic-app h3 { font-size: clamp(19px, 1.4em, 32px);}
-#shadow-dynamic-app h-name { font-size: clamp(19px, 0.8em, 46px);}
-#shadow-dynamic-app #homePage {padding-left: 0.4em; padding-right: 0.2em;}
+#shadow-dynamic-app h-name { font-size: clamp(16px, 0.8em, 46px);}
+#shadow-dynamic-app #homePage {padding-left: 0.8em; padding-right: 0.2em;}
 #shadow-dynamic-app .section-divider { height: 0.8em;} 
+body #homePage {padding-left: 8px;}
 /* Fonts */
 h1 {
   font-size: clamp(40px, 3.2em, 116px); 
@@ -180,8 +182,10 @@ p, .p {
 @media screen and (min-width: 1025px) {
 
 /* General padding and spacers for Desktop */ 
-.section-divider {height: 4.8em;} .section-divider2 {height: 1.2em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
-#shadow-dynamic-app .section-divider {height: 1.2em;} .section-divider2 {height: 1.6em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
+.section-divider {height: 5.6em;} .section-divider2 {height: 1.6em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
+#shadow-dynamic-app .section-divider {height: 2.4em;} .section-divider2 {height: 1.6em;} .section-divider3 {height: 0.2em; margin-top: -0.6em;}
+
+
 /* Fonts */
 h1 {
   font-size: clamp(76px, 3.4em, 120px); 

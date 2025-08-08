@@ -40,6 +40,7 @@ const Footer = ({ customArrowIcon2, linkArrowIcon }) => {
             <h4>UI/UX & Development by Efe Ozalp</h4>
             {linkArrowIcon && (
               <div
+                id="link-arrow"
                 className="arrow3"
                 dangerouslySetInnerHTML={{ __html: linkArrowIcon }}
               />
@@ -56,6 +57,7 @@ const Footer = ({ customArrowIcon2, linkArrowIcon }) => {
             <h4>Illustrations by Yiner Xu @yxuart</h4>
             {linkArrowIcon && (
               <div
+                id="link-arrow"
                 className="arrow3"
                 dangerouslySetInnerHTML={{ __html: linkArrowIcon }}
               />

@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import createShadowRoot from 'react-shadow';
 import DynamicTheme from './dynamic-app-outgoing.jsx';
-import { ShadowRootProvider } from './dynamic-app-context.tsx'; 
+import { ShadowRootProvider } from '../utils/context-providers/shadow-root-context.tsx'; 
 
 const DynamicAppInbound = ({ onFocusChange }) => {
   const shadowRef = useRef(null);

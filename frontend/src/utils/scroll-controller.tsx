@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useProjectVisibility } from './project-context.tsx';
+import { useProjectVisibility } from './context-providers/project-context.tsx';
 
 import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-case-study.tsx';
 import LoadingScreen from './content-utility/loading.tsx';

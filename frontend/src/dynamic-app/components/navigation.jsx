@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import fetchGallery from '../lib/fetchGallery';
 
-import { useStyleInjection } from '../dynamic-app-style-injector.ts'; // Adjust path as needed
+import { useStyleInjection } from '../../utils/context-providers/style-injector.ts'; // Adjust path as needed
 import navCss from '../../styles/dynamic-app/navigation.css?raw';
 
 const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2, isInShadow = false }) => {

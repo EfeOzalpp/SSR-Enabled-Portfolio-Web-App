@@ -4,6 +4,8 @@ import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller.tsx';
 import MediaLoader from '../utils/media-providers/media-loader.tsx';
 
+import '../styles/block-type-1.css';
+
 const RotaryLamp = () => {
   const [data, setData] = useState(null);
   const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 55 : 50));

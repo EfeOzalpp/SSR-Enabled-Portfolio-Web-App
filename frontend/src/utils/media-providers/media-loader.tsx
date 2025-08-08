@@ -29,6 +29,7 @@ type MediaLoaderProps = {
   playsInline?: boolean;
   preload?: 'auto' | 'metadata' | 'none';
   enableVisibilityControl?: boolean;
+  priority?: boolean;
 };
 
 const MediaLoader = ({
@@ -44,6 +45,7 @@ const MediaLoader = ({
   playsInline = true,
   preload = 'metadata',
   enableVisibilityControl = true,
+  priority = false,
 }: MediaLoaderProps) => {
   const [loaded, setLoaded] = useState(false); // LQIP loaded
   const [showMedium, setShowMedium] = useState(false); // show medium
@@ -51,20 +53,25 @@ const MediaLoader = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Register image on mount
+  // Register image immediately + upgrade logic
   useEffect(() => {
+    if (type === 'image') {
+      registerImage(); // track this image as soon as it mounts
+    }
+
     if (loaded && type === 'image') {
       // Upgrade to medium first
       const mediumTimer = setTimeout(() => setShowMedium(true), 200);
 
       // Then high-res later (after all low-res images load)
       onAllLowResLoaded(() => {
-        setTimeout(() => setShowHigh(true), 500); // or 1500 if you want to space it out
+        setTimeout(() => setShowHigh(true), 500);
       });
 
       return () => clearTimeout(mediumTimer);
     }
   }, [loaded, type]);
+
 
   const onMediaLoaded = () => {
     setLoaded(true);
@@ -111,7 +118,7 @@ const MediaLoader = ({
       
       {type === 'image' ? (
         <img
-        loading="lazy"
+        loading={priority ? 'eager' : 'lazy'}
         id={id}
         src={resolvedSrc}
         alt={alt}

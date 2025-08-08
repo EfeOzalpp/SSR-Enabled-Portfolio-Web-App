@@ -4,7 +4,7 @@ import lottie from 'lottie-web';
 import desktopOnboarding from '../../svg/desktop-onboarding.json';
 import mobileOnboarding from '../../svg/mobile-onboarding.json';
 
-import { useProjectVisibility } from '../../utils/project-context.tsx';
+import { useProjectVisibility } from '../../utils/context-providers/project-context.tsx';
 
 import { updateHighScore } from './updateHighScore.js';
 import { useHighScoreSubscription } from './subscribeHighScore.js';
@@ -13,6 +13,8 @@ import BlockGOnboarding from './block-g-onboarding.tsx';
 import ExitButton from './block-g-exit.tsx';
 import CoinCounter from './block-g-coin-counter.tsx';
 import BlockGGameOver from './block-g-game-over.tsx';
+
+import '../../styles/block-type-g.css';
 
 import { isMobile, isTablet, isDesktop } from 'react-device-detect';
 

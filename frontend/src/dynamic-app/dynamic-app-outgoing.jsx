@@ -12,7 +12,7 @@ import ObservedCard from './lib/observedCard.tsx';
 import setupAltObserver from './lib/setupAltObserver';
 import IntroOverlay from './components/IntroOverlay';
 
-import { useShadowRoot } from './dynamic-app-context.tsx';
+import { useShadowRoot } from '../utils/context-providers/shadow-root-context.tsx';
 
 import indexCss from '../styles/dynamic-app/index.css?raw';
 import miscCss from '../styles/dynamic-app/misc.css?raw';

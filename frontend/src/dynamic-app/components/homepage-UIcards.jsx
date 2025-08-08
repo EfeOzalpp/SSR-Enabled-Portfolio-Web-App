@@ -1,7 +1,7 @@
 import React from 'react';
 import MediaLoader from '../../utils/media-providers/media-loader.tsx';
 
-import { useStyleInjection } from '../dynamic-app-style-injector.ts'; // Adjust path as needed
+import { useStyleInjection } from '../../utils/context-providers/style-injector.ts'; // Adjust path as needed
 import uiCardsCss from '../../styles/dynamic-app/UIcards.css?raw'; // RAW CSS
 
 const UIcards = React.forwardRef(function UIcards(
@@ -19,6 +19,7 @@ const UIcards = React.forwardRef(function UIcards(
             src={image2}
             alt={alt1}
             className={`ui-image1 ${className}`}
+            priority={true}
           />
         </a>
       </div>
@@ -30,6 +31,7 @@ const UIcards = React.forwardRef(function UIcards(
             src={image1}
             alt={alt2}
             className={`ui-image2 ${className}-2`}
+            priority={true}
           />
         </a>
 

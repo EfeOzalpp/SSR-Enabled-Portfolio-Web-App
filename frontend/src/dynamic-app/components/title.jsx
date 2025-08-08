@@ -1,5 +1,5 @@
 // Updated TitleDivider component
-import { useStyleInjection } from '../../dynamic-app/dynamic-app-style-injector.ts';
+import { useStyleInjection } from '../../utils/context-providers/style-injector.ts';
 import titleCss from '../../styles/dynamic-app/title.css?raw';
 
 const TitleDivider = ({ svgIcon, movingTextColors, pauseAnimation }) => {

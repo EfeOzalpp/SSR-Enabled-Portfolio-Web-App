@@ -1,6 +1,6 @@
 // src/components/ThemeColorUpdater.tsx
 import { useEffect } from 'react';
-import { useProjectVisibility } from './project-context.tsx';
+import { useProjectVisibility } from './context-providers/project-context.tsx';
 
 const ThemeColorUpdater = () => {
   const { activeProject, focusedProjectKey } = useProjectVisibility();

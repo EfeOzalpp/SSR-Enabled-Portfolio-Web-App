@@ -21,7 +21,7 @@ import miscCss from './styles/dynamic-app/misc.css?raw';
 import indexCss from './styles/dynamic-app/index.css?raw';
 import overlayCss from './styles/loading-overlay.css?raw';
 
-import { useStyleInjection } from './dynamic-app/dynamic-app-style-injector.ts';
+import { useStyleInjection } from './utils/context-providers/style-injector.ts';
 
 const colorMapping = {
   'Yiner Xu ': ['#e9b2c2', '#ffc3d4', '#5f4f53', '#ffc9d8'],

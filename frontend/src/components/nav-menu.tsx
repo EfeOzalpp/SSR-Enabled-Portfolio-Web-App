@@ -1,6 +1,6 @@
 // src/components/NavMenu.tsx
 import { useEffect, useRef } from "react";
-import { useProjectVisibility } from '../utils/project-context.tsx';
+import { useProjectVisibility } from "../utils/context-providers/project-context.tsx";
 import lottie from "lottie-web";
 import titleData from "../svg/efeozalp.json";
 import githubData from "../svg/github.json";
@@ -11,67 +11,87 @@ const NavMenu = () => {
   const githubContainer = useRef<HTMLDivElement>(null);
   const linkedinContainer = useRef<HTMLDivElement>(null);
 
-  const { setCurrentIndex, currentIndex, projectCount, scrollContainerRef, isDragging } = useProjectVisibility();
+  const {
+    setCurrentIndex,
+    currentIndex,
+    projectCount,
+    scrollContainerRef,
+    isDragging,
+  } = useProjectVisibility();
 
   const clickStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const touchStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const lastScrollTime = useRef(0);
+  const handledByTouchTs = useRef(0);
   const SCROLL_DELAY = 300; // ms
 
-  // Mouse events for click vs drag
-  const handleMouseDown = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  // ---- Click vs Drag (mouse) ----
+  const handleMouseDown = (e: React.MouseEvent<HTMLAnchorElement>) => {
     clickStartPos.current = { x: e.clientX, y: e.clientY };
   };
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, url: string) => {
-    const deltaX = Math.abs(e.clientX - clickStartPos.current.x);
-    const deltaY = Math.abs(e.clientY - clickStartPos.current.y);
+  const handleLinkClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    url: string
+  ) => {
+    // Ignore synthetic click right after a touch
+    if (Date.now() - handledByTouchTs.current < 600) {
+      e.preventDefault();
+      return;
+    }
 
-    if (deltaX < 5 && deltaY < 5) {
+    const dx = Math.abs(e.clientX - clickStartPos.current.x);
+    const dy = Math.abs(e.clientY - clickStartPos.current.y);
+
+    // Treat as click (not drag)
+    if (dx < 5 && dy < 5) {
+      e.preventDefault();
       if (url === "/") {
-        window.location.reload(); // refresh current page
+        window.location.reload();
       } else {
         window.open(url, "_blank", "noopener,noreferrer");
       }
     } else {
-      e.preventDefault();
+      e.preventDefault(); // drag -> no nav
     }
   };
 
-
-  // Touch events for tap vs drag within links
+  // ---- Touch: tap vs drag on links ----
   const handleLinkTouchStart = (e: React.TouchEvent<HTMLAnchorElement>) => {
-    const touch = e.touches[0];
-    clickStartPos.current = { x: touch.clientX, y: touch.clientY };
+    const t = e.touches[0];
+    clickStartPos.current = { x: t.clientX, y: t.clientY };
   };
 
-  const handleLinkTouchEnd = (e: React.TouchEvent<HTMLAnchorElement>, url: string) => {
-    const touch = e.changedTouches[0];
-    const deltaX = Math.abs(touch.clientX - clickStartPos.current.x);
-    const deltaY = Math.abs(touch.clientY - clickStartPos.current.y);
-    const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+  const handleLinkTouchEnd = (
+    e: React.TouchEvent<HTMLAnchorElement>,
+    url: string
+  ) => {
+    const t = e.changedTouches[0];
+    const dx = Math.abs(t.clientX - clickStartPos.current.x);
+    const dy = Math.abs(t.clientY - clickStartPos.current.y);
+    const dist = Math.hypot(dx, dy);
 
-    if (distance < 10) {
+    if (dist < 10) {
+      e.preventDefault();
+      handledByTouchTs.current = Date.now();
       window.open(url, "_blank", "noopener,noreferrer");
     }
   };
 
-  // Touch events for nav drag scrolling behaviour
+  // ---- Touch: vertical drag to scroll projects ----
   const handleNavTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    const t = e.touches[0];
+    touchStartPos.current = { x: t.clientX, y: t.clientY };
   };
 
   const handleNavTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-     if (isDragging) return;
-     
+    if (isDragging) return;
+
     const now = Date.now();
     if (now - lastScrollTime.current < SCROLL_DELAY) return;
 
-    const touch = e.touches[0];
-    const deltaY = touch.clientY - touchStartPos.current.y;
-
-      console.log('Drag detected', { deltaY });
+    const t = e.touches[0];
+    const deltaY = t.clientY - touchStartPos.current.y;
 
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -79,24 +99,27 @@ const NavMenu = () => {
     if (Math.abs(deltaY) > 30) {
       if (deltaY > 0 && currentIndex > 0) {
         const target = container.children[currentIndex - 1] as HTMLElement;
-        target.scrollIntoView({ behavior: 'smooth' });
+        target.scrollIntoView({ behavior: "smooth" });
         setCurrentIndex(currentIndex - 1);
       } else if (deltaY < 0 && currentIndex < projectCount - 1) {
         const target = container.children[currentIndex + 1] as HTMLElement;
-        target.scrollIntoView({ behavior: 'smooth' });
+        target.scrollIntoView({ behavior: "smooth" });
         setCurrentIndex(currentIndex + 1);
       }
-      window.dispatchEvent(new CustomEvent('arrowWiggle'));
 
+      window.dispatchEvent(new CustomEvent("arrowWiggle"));
       lastScrollTime.current = now;
-      touchStartPos.current.y = touch.clientY; // reset start for continuous drag
+      touchStartPos.current.y = t.clientY;
     }
   };
 
-  // Lottie title animation with hover reverse effect
+  // ---- Lottie: Title ----
   useEffect(() => {
+    const containerEl = lottieContainer.current;
+    if (!containerEl) return;
+
     const anim = lottie.loadAnimation({
-      container: lottieContainer.current!,
+      container: containerEl,
       renderer: "svg",
       loop: false,
       autoplay: true,
@@ -105,7 +128,8 @@ const NavMenu = () => {
 
     const targetFrameStart = 80;
     const targetFrameEnd = 175;
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    let destroyed = false;
 
     const onEnterFrame = () => {
       if (anim.currentFrame >= targetFrameEnd) {
@@ -119,11 +143,8 @@ const NavMenu = () => {
       if (interval) clearInterval(interval);
       interval = setInterval(() => {
         const current = anim.currentFrame;
-        if (
-          (!reverse && current >= target) ||
-          (reverse && current <= target)
-        ) {
-          clearInterval(interval!);
+        if ((!reverse && current >= target) || (reverse && current <= target)) {
+          if (interval) clearInterval(interval);
           anim.goToAndStop(target, true);
           return;
         }
@@ -131,30 +152,32 @@ const NavMenu = () => {
       }, 16); // ~60fps
     };
 
-    const containerEl = lottieContainer.current!;
-    containerEl.addEventListener("mouseenter", () =>
-      stepToFrame(targetFrameStart, true)
-    );
-    containerEl.addEventListener("mouseleave", () =>
-      stepToFrame(targetFrameEnd, false)
-    );
+    const onMouseEnter = () => stepToFrame(targetFrameStart, true);
+    const onMouseLeave = () => stepToFrame(targetFrameEnd, false);
 
+    containerEl.addEventListener("mouseenter", onMouseEnter);
+    containerEl.addEventListener("mouseleave", onMouseLeave);
     anim.addEventListener("enterFrame", onEnterFrame);
 
     return () => {
-      anim.removeEventListener("enterFrame", onEnterFrame);
-      anim.destroy();
+      if (!destroyed) {
+        destroyed = true;
+        anim.removeEventListener("enterFrame", onEnterFrame);
+        anim.destroy();
+      }
       if (interval) clearInterval(interval);
-      containerEl.removeEventListener("mouseenter", () => {});
-      containerEl.removeEventListener("mouseleave", () => {});
+      containerEl.removeEventListener("mouseenter", onMouseEnter);
+      containerEl.removeEventListener("mouseleave", onMouseLeave);
     };
   }, []);
 
-
-  // GitHub and LinkedIn animations (unchanged)
+  // ---- Lottie: GitHub ----
   useEffect(() => {
+    const containerEl = githubContainer.current;
+    if (!containerEl) return;
+
     const githubAnim = lottie.loadAnimation({
-      container: githubContainer.current!,
+      container: containerEl,
       renderer: "svg",
       loop: false,
       autoplay: false,
@@ -162,32 +185,40 @@ const NavMenu = () => {
     });
 
     githubAnim.goToAndStop(0, true);
-
     const stopFrame = 26;
+    let destroyed = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const timeout = setTimeout(() => {
+    const onGithubEnterFrame = () => {
+      if (githubAnim.currentFrame >= stopFrame) {
+        githubAnim.removeEventListener("enterFrame", onGithubEnterFrame);
+        githubAnim.pause();
+        githubAnim.goToAndStop(stopFrame, true);
+      }
+    };
+
+    timeoutId = setTimeout(() => {
       githubAnim.play();
-
-      const onGithubEnterFrame = () => {
-        if (githubAnim.currentFrame >= stopFrame) {
-          githubAnim.removeEventListener("enterFrame", onGithubEnterFrame);
-          githubAnim.pause();
-          githubAnim.goToAndStop(stopFrame, true);
-        }
-      };
-
       githubAnim.addEventListener("enterFrame", onGithubEnterFrame);
     }, 1600);
 
     return () => {
-      clearTimeout(timeout);
-      githubAnim.destroy();
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!destroyed) {
+        destroyed = true;
+        githubAnim.removeEventListener("enterFrame", onGithubEnterFrame);
+        githubAnim.destroy();
+      }
     };
   }, []);
 
+  // ---- Lottie: LinkedIn ----
   useEffect(() => {
+    const containerEl = linkedinContainer.current;
+    if (!containerEl) return;
+
     const linkedinAnim = lottie.loadAnimation({
-      container: linkedinContainer.current!,
+      container: containerEl,
       renderer: "svg",
       loop: false,
       autoplay: false,
@@ -195,26 +226,30 @@ const NavMenu = () => {
     });
 
     linkedinAnim.goToAndStop(0, true);
-
     const stopFrame = 20;
+    let destroyed = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const timeout = setTimeout(() => {
+    const onLinkedinEnterFrame = () => {
+      if (linkedinAnim.currentFrame >= stopFrame) {
+        linkedinAnim.removeEventListener("enterFrame", onLinkedinEnterFrame);
+        linkedinAnim.pause();
+        linkedinAnim.goToAndStop(stopFrame, true);
+      }
+    };
+
+    timeoutId = setTimeout(() => {
       linkedinAnim.play();
-
-      const onLinkedinEnterFrame = () => {
-        if (linkedinAnim.currentFrame >= stopFrame) {
-          linkedinAnim.removeEventListener("enterFrame", onLinkedinEnterFrame);
-          linkedinAnim.pause();
-          linkedinAnim.goToAndStop(stopFrame, true);
-        }
-      };
-
       linkedinAnim.addEventListener("enterFrame", onLinkedinEnterFrame);
     }, 1200);
 
     return () => {
-      clearTimeout(timeout);
-      linkedinAnim.destroy();
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!destroyed) {
+        destroyed = true;
+        linkedinAnim.removeEventListener("enterFrame", onLinkedinEnterFrame);
+        linkedinAnim.destroy();
+      }
     };
   }, []);
 
@@ -248,7 +283,9 @@ const NavMenu = () => {
           onMouseDown={handleMouseDown}
           onClick={(e) => handleLinkClick(e, "https://github.com/EfeOzalpp")}
           onTouchStart={handleLinkTouchStart}
-          onTouchEnd={(e) => handleLinkTouchEnd(e, "https://github.com/EfeOzalpp")}
+          onTouchEnd={(e) =>
+            handleLinkTouchEnd(e, "https://github.com/EfeOzalpp")
+          }
         >
           <div ref={githubContainer} className="github-lottie"></div>
         </a>

@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: transparent;
+  background: none;
 
   width: 100%;
   min-height: 360px;  /* fallback if parent has no height */

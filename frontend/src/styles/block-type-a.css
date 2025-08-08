@@ -8,6 +8,10 @@
 .embedded-app { width: 100%; height: 100%; overflow: auto; background: #191919; scrollbar-width: none; -ms-overflow-style: none; }
 .embedded-app::-webkit-scrollbar { display: none; }
 
+.device-wrapper { position: relative; }
+.device-frame { position: relative; z-index: 1; display: block; width: 100%; }
+.screen-overlay { position: absolute; z-index: 2; /* your existing positioning logic */ }
+
 /* only on phoné */
 .phone { height: 97svh; }
 /* only on tablét */
@@ -20,17 +24,17 @@
   .device-wrapper {position: relative; width: min(92vw, 96svh); margin-inline: auto; max-height: 94svh;}
   .device-frame {display: block; width: 100%; height: 95dvh; margin: 0 auto;}
   .phone { height: 96svh; }
- .screen-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    z-index: 1000;
-  }
+  .screen-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 1000;
+    }
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {

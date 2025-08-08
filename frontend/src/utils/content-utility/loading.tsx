@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import loading from '../../svg/loading.json';
 
+import '../../styles/loading-overlay.css';
+
 type LoadingScreenProps = {
   isFullScreen?: boolean;
 };

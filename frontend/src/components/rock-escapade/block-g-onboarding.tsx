@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
-import { useProjectVisibility } from '../../utils/project-context.tsx';
+import { useProjectVisibility } from '../../utils/context-providers/project-context.tsx';
 
 const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const [visible, setVisible] = useState(true);

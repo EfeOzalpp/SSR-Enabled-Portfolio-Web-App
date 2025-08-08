@@ -13,7 +13,7 @@ export const componentMap = {
 export type ProjectKey = keyof typeof componentMap;
 
 export interface ProjectMeta {
-  key: ProjectKey;
+  key: ProjectKey; 
   title: string;
   isLink?: boolean;
 }

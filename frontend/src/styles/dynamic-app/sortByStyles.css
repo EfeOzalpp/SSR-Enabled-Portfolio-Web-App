@@ -47,7 +47,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-bottom: 5.4em; padding-left: 1.6em;}
-#shadow-dynamic-app .pause-button-wrapper {padding-bottom: 6.8em;}
+#shadow-dynamic-app .pause-button-wrapper {padding-bottom: 4.8em;}
 .lottie-container {width: 2.4em; height: 2.4em; z-index: 100; position: relative; top: 1.2em;}
 #shadow-dynamic-app .lottie-container {width: 3em; height: 3em; top: 1.8em;}
 }
@@ -99,7 +99,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 /* Sort by filtering for desktop */
 @media screen and (min-width: 1025px) { 
 /* Sort by general styles */  
-.sort-by-divider {padding-right: 3.2em; padding-top: 64px;}
+.sort-by-divider {padding-right: 3.2em; padding-top: 3.2em;}
 #sort {width: 100%; height: 14.4vw; border-radius: 1px; padding-left: 16px;}
 .sort-by-container {display: flex; z-index: 10; position: relative; flex-direction: column; align-items: center; padding-right: 0px; width: 50%;}
 .sort-container2 {width: clamp(34%, 3em, 240px); align-self: flex-end;} 
@@ -126,10 +126,10 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-left: 20%; padding-top: 24px;}
-.lottie-container {width: 2.4em; height: 2.4em; z-index: 100; position: relative;}
+.lottie-container {width: 2.8em; height: 2.8em; z-index: 100; position: relative;}
 
 #shadow-dynamic-app .sort-by-container {transform: scale(0.8);}
-#shadow-dynamic-app .sort-by-divider {padding-left: 8em; padding-right: 8em; padding-bottom: 1.8em; padding-top: 3.6em;}
+#shadow-dynamic-app .sort-by-divider {padding-left: 8em; padding-right: 8em; padding-bottom: 1.8em; padding-top: 0.8em;}
 #shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container  {min-width: 42%;} 
 #shadow-dynamic-app .custom-arrow {top: 50%;}
 #shadow-dynamic-app .pause-button-wrapper {padding-left: 16em; padding-top: 1.8em; transform: scale(0.95);}

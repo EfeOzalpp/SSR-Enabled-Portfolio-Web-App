@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from 'react';
 import client from '../utils/sanity';
 import MediaLoader from '../utils/media-providers/media-loader.tsx';
 
+import '../styles/block-type-1.css';
+
 const DataVisualizationBlock = () => {
   const [data, setData] = useState<{
     mediaOne?: {

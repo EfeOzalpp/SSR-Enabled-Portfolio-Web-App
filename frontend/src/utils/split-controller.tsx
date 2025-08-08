@@ -1,7 +1,7 @@
 /* Drag handler for block type 1 */
 import React, { useRef, useEffect, useState } from 'react';
 import lottie from 'lottie-web';
-import { useProjectVisibility } from './project-context.tsx';
+import { useProjectVisibility } from './context-providers/project-context.tsx';
 import arrowData2 from '../svg/arrow2.json';
 
 const SplitDragHandler = ({ split, setSplit }) => {
