@@ -78,9 +78,9 @@ const ScrollController = () => {
     }
   }, [focusedProjectKey, justExitedFocusKey]);
 
-useEffect(() => {
-  const scrollContainer = scrollContainerRef.current;
-  if (!scrollContainer) return;
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
 
   let cleanupFns: (() => void)[] = [];
 
@@ -114,7 +114,7 @@ useEffect(() => {
         const { scrollTop, scrollHeight, clientHeight } = embeddedEl;
         const atTop = scrollTop <= 0;
         const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-        const scrollAmount = Math.max(100, window.innerHeight * 0.9);
+        const scrollAmount = Math.max(100, window.innerHeight * 1);
 
         if (deltaY > 5 && atTop) {
           e.preventDefault();

@@ -15,7 +15,7 @@ const DynamicAppInbound = ({ onFocusChange }) => {
       if (root && root.host) {
         setShadowRoot(root);
       } else {
-        console.warn('[⚠️ Not a ShadowRoot]', root);
+        console.warn('[Not a ShadowRoot]', root);
       }
     }, 0);
   }, []);
@@ -36,7 +36,7 @@ const DynamicAppInbound = ({ onFocusChange }) => {
       });
       el.dispatchEvent(down);
       onFocusChange?.(true);
-      console.log('[📌 Focus triggered in embedded app]');
+      console.log('[Focus triggered in embedded app]');
     };
 
     const handleTouchStart = (e) => {

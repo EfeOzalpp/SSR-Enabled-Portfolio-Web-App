@@ -1,30 +1,15 @@
 /* Firework q5-canvas styles */
 /* canvas {background-color: #1e1e1f;} /* Background colors just incase to avoid color flickering */
-.firework-divider {margin-top: -4.8em; pointer-events: none; display: block; position: absolute; height: 60vw; width: 100%; background-color: #1e1e1f;}
+.firework-divider { pointer-events: none; display: block; position: absolute; background-color: #1e1e1f;}
 .q5Canvas {display: block; width: 100% !important; height: 125% !important; overflow: hidden; /* background-color: #1e1e1f; */}
 
-/* Shadow DOM */
-.firework-wrapper-shadow {
-  position: relative; /* makes .firework-divider scroll with layout */
-  width: 100%;
-  z-index: 0; /* behind overlapping UI */
-}
-
-.firework-divider-shadow {
-  position: absolute; /* allows z-index layering */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 48vw; /* adjust as needed */
-  z-index: 0;
-  pointer-events: none;
-  transform: scale(1.3);
-  background-color: #1e1e1f; /* fallback canvas background */
-}
+#shadow-dynamic-app .firework-wrapper {position: relative; width: 100%; z-index: 1;}
+#shadow-dynamic-app .firework-divider {  position: absolute; top: 0; left: 0;
+width: 100%; height: 48vw; z-index: 1; pointer-events: none;} 
 
 @media screen and (max-width: 767px) {
-.firework-divider { margin-top: -6.8em;}  
-.firework-divider-shadow { height: 15em; margin-top: -0.8em;  transform: scale(0.9);}
+.firework-divider {height: 15em; margin-top: -0.8em;}  
+#shadow-dynamic-app .firework-divider {height: 0em !important; margin-top: -3.6em; background-color: transparent !important;} 
 }
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 .firework-divider {margin-top: -6.8em;}  

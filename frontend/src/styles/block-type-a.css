@@ -9,28 +9,28 @@
 .embedded-app::-webkit-scrollbar { display: none; }
 
 /* only on phoné */
-.phone { height: 96dvh; }
+.phone { height: 97svh; }
 /* only on tablét */
 .tablet { height: 84%; padding-top: 12%;}
 /* only on laptop */
 .laptop { height: calc(100% - 12px); } 
 
-
-/* Media Queries */
-@media (max-width: 379px) {
-  .screen-overlay {max-height: 190vw; top: 16vw !important;} }
-
-@media (max-width: 424px) {
-  .screen-overlay {left: 9% !important; width: 82% !important;} }
-
-@media (min-width: 425px) and (max-width: 767px) {
-  .screen-overlay {max-width: 353px; left: 9% !important;} }
-
 @media (max-width: 767px) {
-  .block-type-a { height: 98dvh; }
-  .device-wrapper {aspect-ratio: 19.5/9; max-width: 420px; padding-left: 8px; padding-right: 8px;}
-  .device-frame {display: block; margin: 0 auto;}
-  .screen-overlay  {top: 3.5%; left: 5%; width: 90%; height: 91%;} 
+  .block-type-a {height: 98svh; display: flex; align-items: center; justify-content: center; padding: 0;}
+  .device-wrapper {position: relative; width: min(92vw, 96svh); margin-inline: auto; max-height: 94svh;}
+  .device-frame {display: block; width: 100%; height: 95dvh; margin: 0 auto;}
+  .phone { height: 96svh; }
+ .screen-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 1000;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -38,7 +38,6 @@
   .device-wrapper {width: 96dvh; aspect-ratio: 3 / 4;}
   .device-frame {display: block; margin: 0 auto;}
   .screen-overlay  {top: 13%;  left: 13%; width: 74%; height: 78%;} 
-
 }
 
 @media (min-width: 1025px) and (max-width: 2024px) {

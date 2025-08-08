@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import client from '../utils/sanity';
 import DynamicAppInbound from '../dynamic-app/dynamic-app-shadow.jsx';
+import { useDynamicOverlay } from '../utils/content-utility/dynamic-overlay.ts';
+import { useRealMobileViewport } from '../utils/content-utility/real-mobile.ts';
 
 const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
   if (width < 768) return 'phone';
@@ -10,7 +12,17 @@ const getDeviceType = (width: number): 'phone' | 'tablet' | 'laptop' => {
 
 const DynamicApp = () => {
   const [svgMap, setSvgMap] = useState<Record<string, string>>({});
-  const [device, setDevice] = useState<'phone' | 'tablet' | 'laptop'>(getDeviceType(window.innerWidth));
+  const [device, setDevice] = useState<'phone' | 'tablet' | 'laptop'>(
+    getDeviceType(window.innerWidth)
+  );
+
+  const frameRef = useRef<HTMLImageElement>(null);
+
+  // Get overlay sizes
+  const overlaySize = useDynamicOverlay(frameRef);
+
+  // Detect real mobile viewport (vs devtools)
+  const isRealMobile = useRealMobileViewport();
 
   useEffect(() => {
     client
@@ -42,9 +54,26 @@ const DynamicApp = () => {
   return (
     <section className="block-type-a">
       <div className="device-wrapper">
-        <img src={svgUrl} alt={device} className={`device-frame ${device}`} />
+        <img
+          ref={frameRef}
+          src={svgUrl}
+          alt={device}
+          className={`device-frame ${device}`}
+        />
 
-        <div className="screen-overlay">
+        <div
+          className="screen-overlay"
+          style={
+            window.innerWidth < 768
+              ? {
+                  width: `${overlaySize.width}px`,
+                  height: isRealMobile
+                    ? `${overlaySize.heightSet1}svh` // mobile svh + 60→92 range
+                    : `${overlaySize.heightSet2}px`  // desktop/devtools px + 250→650 range
+                }
+              : {} // no inline styles for >= 768px
+          }
+        >
           <DynamicAppInbound />
         </div>
       </div>

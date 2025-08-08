@@ -15,7 +15,6 @@ import './styles/block-type-1.css';
 import './styles/block-type-g.css';
 import './styles/block-type-a.css';
 import './styles/general-block.css';
-import './styles/font+theme.css';
 import './styles/loading-overlay.css';
 
 // If fonts were converted to CSS @font-face rules, import here too

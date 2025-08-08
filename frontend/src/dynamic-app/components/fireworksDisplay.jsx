@@ -385,7 +385,7 @@ useEffect(() => {
             let screenMultiplier = 1; // Default multiplier
           
             if (screenWidth < 768) {
-              screenMultiplier = p.random(1.1, 1.6);
+              screenMultiplier = p.random(1.8, 2.6);
             } else if (screenWidth >= 768 && screenWidth <= 1024) {
               screenMultiplier = p.random(1.6, 2.2);
             } else if (screenWidth > 1024) {

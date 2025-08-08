@@ -16,8 +16,6 @@ import { useShadowRoot } from './dynamic-app-context.tsx';
 
 import indexCss from '../styles/dynamic-app/index.css?raw';
 import miscCss from '../styles/dynamic-app/misc.css?raw';
-import navCss from '../styles/dynamic-app/navigation.css?raw';
-import sortByCss from '../styles/dynamic-app/sortByStyles.css?raw';
 import titleCss from '../styles/dynamic-app/title.css?raw';
 import overlayCss from '../styles/loading-overlay.css?raw';
 
@@ -56,8 +54,6 @@ function DynamicTheme() {
     [
       indexCss,
       miscCss,
-      navCss,
-      sortByCss,
       titleCss,
       overlayCss,
     ].forEach(injectStyle);
@@ -143,7 +139,7 @@ useEffect(() => {
   const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
 
   const shadowApp = root?.querySelector?.('#shadow-dynamic-app');
-  const container = shadowApp?.querySelector?.('.firework-wrapper-shadow');
+  const container = shadowApp?.querySelector?.('.firework-wrapper');
 
   if (!container) {
     console.warn('[FireworkObserver] Container not found inside #shadow-dynamic-app');
@@ -190,8 +186,8 @@ useEffect(() => {
                 />
               )}
             </div>
-        <div className="firework-wrapper-shadow">
-            <div className="firework-divider-shadow">
+        <div className="firework-wrapper">
+            <div className="firework-divider">
               {showFireworks && (
               <FireworksDisplay
                 colorMapping={colorMapping}

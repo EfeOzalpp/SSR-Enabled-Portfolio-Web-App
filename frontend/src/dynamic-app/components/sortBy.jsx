@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import fetchImages from '../lib/fetchUser';
 
+import { useStyleInjection } from '../dynamic-app-style-injector.ts'; // Adjust path as needed
+import sortByCss from '../../styles/dynamic-app/sortByStyles.css?raw';
+
 const options = [
   { value: 'random', label: 'Randomized' },
   { value: 'titleAsc', label: 'A to Z' },
@@ -21,6 +24,8 @@ function SortBy({ onFetchItems, customArrowIcon, colorMapping, getRoot = () => d
   const [selectedValue, setSelectedValue] = useState('random');
   const [items, setItems] = useState([]);
   const dropdownRef = useRef(null);
+
+  useStyleInjection(sortByCss, 'dynamic-app-style-sortby');
 
   const handleOptionClick = (value) => {
     setSelectedValue(value);
