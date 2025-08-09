@@ -2,17 +2,11 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import Frontpage from './FrontPage.jsx';
 
-// Fonts always loaded
-import './styles/dynamic-app/fonts/rubik.css';
-import './styles/dynamic-app/fonts/orbitron.css';
-
 const path = window.location.pathname;
 
 if (path === '/' || path === '/home') {
   // Load extra fonts + theme only for efe-portfolio route
   Promise.all([
-    import('./styles/fonts/fonts1.css'),
-    import('./styles/fonts/epilogue.css'),
     import('./styles/font+theme.css'),
     import ('./styles/general-block.css'),
   ]).then(() => {

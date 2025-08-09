@@ -7,7 +7,6 @@ import Loading from './utils/content-utility/loading.tsx';
 import ScrollController from './utils/scroll-controller.tsx'; 
 import ThemeColorUpdater from './utils/theme-color-updater.tsx';  
 import { ProjectVisibilityProvider } from './utils/context-providers/project-context.tsx';
-
 import { Helmet } from 'react-helmet';
 
 function Frontpage() {

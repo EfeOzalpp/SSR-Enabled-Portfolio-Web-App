@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import client from '../utils/sanity';
 import MediaLoader from '../utils/media-providers/media-loader.tsx';
-
+import { useTooltipInit } from '../utils/tooltip/tooltipInit.ts';
 import '../styles/block-type-1.css';
 
 const DataVisualizationBlock = () => {
@@ -17,7 +17,7 @@ const DataVisualizationBlock = () => {
       };
     };
   } | null>(null);
-
+  useTooltipInit();
   useEffect(() => {
     client
       .fetch(

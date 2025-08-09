@@ -1,42 +1,40 @@
-// utils/color-map.ts
+// Master color config
+export interface ProjectColor {
+  rgb: string;         // "204, 85, 41"
+  tooltipAlpha?: number;
+  defaultAlpha?: number;
+  darkThemeTop?: string; // optional override for theme-color
+}
 
-type ProjectColorInfo = {
-  base: string;       // raw RGB like "234, 103, 97"
-  bgOpacity?: number; // default opacity (optional)
-  themeColor?: string; // for <meta name="theme-color">
-};
-
-export const projectColorMap: Record<string, ProjectColorInfo> = {
-  'Ice Cream Scoop': {
-    base: '234, 103, 97',
-    themeColor: 'rgba(23, 27, 24, 1)',
-  },
+export const projectColors: Record<string, ProjectColor> = {
   'Rotary Lamp': {
-    base: '204, 85, 41',
-    themeColor: 'rgba(19, 21, 21, 1)',
+    rgb: '204, 85, 41',
+    tooltipAlpha: 0.6,
+    defaultAlpha: 0.6,
+    darkThemeTop: 'rgba(19, 21, 21, 1)'
   },
-  'Evade the Rock': {
-    base: '101, 86, 175',
-    themeColor: 'rgb(25, 25, 25)',
+  'Ice Cream Scoop': {
+    rgb: '234, 103, 97',
+    tooltipAlpha: 0.6,
+    defaultAlpha: 0.6,
+    darkThemeTop: 'rgba(23, 27, 24, 1)'
   },
   'Data Visualization': {
-    base: '153, 199, 7',
-    themeColor: 'rgba(28, 30, 31, 1)',
+    rgb: '153, 199, 7',
+    tooltipAlpha: 0.8,
+    defaultAlpha: 0.6,
+    darkThemeTop: 'rgba(28, 30, 31, 1)'
+  },
+  'Evade the Rock': {
+    rgb: '101, 86, 175',
+    tooltipAlpha: 0.6,
+    defaultAlpha: 0.6,
+    darkThemeTop: 'rgb(25, 25, 25)'
   },
   'Dynamic App': {
-    base: '120, 211, 255',
-    themeColor: 'rgba(28, 30, 31, 1)',
-  },
-};
-
-export const getProjectColor = (title: string, options?: { opacity?: number }) => {
-  const info = projectColorMap[title];
-  if (!info) return null;
-
-  const opacity = options?.opacity ?? 0.6;
-  const rgba = `rgba(${info.base}, ${opacity})`;
-  return {
-    ...info,
-    rgba,
-  };
+    rgb: '120, 211, 255',
+    tooltipAlpha: 0.6,
+    defaultAlpha: 0.6,
+    darkThemeTop: 'rgba(28, 30, 31, 1)'
+  }
 };

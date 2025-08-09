@@ -4,5 +4,6 @@ import SVG2 from './SVG2'
 import SVG from './SVG'
 import profilephotos from './uiCards'
 import Gallery from './Gallery'
+import videoSet from './objects/videoSet';
 
-export const schemaTypes = [twoImage, highScore, SVG2, SVG, profilephotos, Gallery]
+export const schemaTypes = [twoImage, highScore, SVG2, SVG, profilephotos, Gallery,  videoSet]

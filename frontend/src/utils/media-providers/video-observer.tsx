@@ -1,69 +1,44 @@
+// video-observer.tsx
 import { useEffect } from 'react';
 
 export const useVideoVisibility = (
   videoRef: React.RefObject<HTMLVideoElement> | null,
   containerRef: React.RefObject<HTMLElement> | null,
-  threshold = 0.4
+  threshold: number = 0.4
 ) => {
   useEffect(() => {
-    // Safeguard early if no refs
     if (!videoRef?.current || !containerRef?.current) return;
 
-    let observer: IntersectionObserver;
-    let rafId: number;
-    let retryCount = 0;
-    const MAX_RETRIES = 30;
+    const t = typeof threshold === 'number' && threshold >= 0 && threshold <= 1 ? threshold : 0.4;
 
-    const trySetup = () => {
-      const video = videoRef.current;
-      const container = containerRef.current;
+    let observer: IntersectionObserver | undefined;
 
-      if (!video || !container) {
-        if (retryCount < MAX_RETRIES) {
-          retryCount++;
-          rafId = requestAnimationFrame(trySetup);
+    const video = videoRef.current!;
+    const container = containerRef.current!;
+
+    // IMPORTANT: load even when using <source> children
+    // (video.src is empty in that case; currentSrc is set after load())
+    video.load();
+    video.muted = true;
+
+    observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => setTimeout(() => video.play().catch(() => {}), 500));
+        } else {
+          video.pause();
         }
-        return;
-      }
+      },
+      { threshold: t }
+    );
 
-      if (!video.src) return;
+    observer.observe(container);
 
-      video.load();
-      video.muted = true;
+    // kick once if already in view
+    const rect = container.getBoundingClientRect();
+    const ratio = Math.min(Math.max((window.innerHeight - rect.top) / window.innerHeight, 0), 1);
+    if (ratio >= t) video.play().catch(() => {});
 
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          const isVisible = entry.isIntersecting;
-
-          if (isVisible) {
-            video.play().catch((err) => {
-              console.warn('Autoplay blocked, retrying in 500ms', err);
-              setTimeout(() => video.play().catch(() => {}), 500);
-            });
-          } else {
-            video.pause();
-          }
-        },
-        { threshold }
-      );
-
-      observer.observe(container);
-
-      const rect = container.getBoundingClientRect();
-      const ratio = Math.min(Math.max((window.innerHeight - rect.top) / window.innerHeight, 0), 1);
-
-      if (ratio >= threshold) {
-        video.play().catch(() => {});
-      } else {
-        video.pause();
-      }
-    };
-
-    rafId = requestAnimationFrame(trySetup);
-
-    return () => {
-      if (observer) observer.disconnect();
-      cancelAnimationFrame(rafId);
-    };
+    return () => observer?.disconnect();
   }, [videoRef, containerRef, threshold]);
 };

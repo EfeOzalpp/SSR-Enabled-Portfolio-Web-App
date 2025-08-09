@@ -14,34 +14,24 @@ export const getLowResImageUrl = (source: any) =>
     .width(128)
     .height(128)
     .quality(30)
-    .format('webp')
-    .auto('format')
+    .auto('format')        // ← keep ONLY auto('format')
     .url();
 
-// Medium quality (fast but decent)
 export const getMediumImageUrl = (source: any) =>
   urlFor(source)
     .ignoreImageParams()
     .width(640)
     .height(360)
     .quality(60)
-    .format('webp')
-    .auto('format')
+    .auto('format')        // ← no .format('webp')
     .url();
 
-// High quality (final sharp)
-export const getHighQualityImageUrl = (
-  source: any,
-  width = 1920,
-  height = 1080,
-  quality = 100
-) =>
+export const getHighQualityImageUrl = (source: any, width=1920, height=1080, quality=100) =>
   urlFor(source)
     .ignoreImageParams()
     .width(width)
     .height(height)
     .quality(quality)
-    .format('webp')
-    .auto('format')
+    .auto('format')        // ← no .format('webp')
     .url();
 

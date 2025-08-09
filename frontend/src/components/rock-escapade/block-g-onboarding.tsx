@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
 import { useProjectVisibility } from '../../utils/context-providers/project-context.tsx';
+import { useTooltipInit } from '../../utils/tooltip/tooltipInit.ts';
 
 const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const [visible, setVisible] = useState(true);
@@ -9,7 +10,7 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const lottieRef = useRef(null);
   const containerRef = useRef(null);
   const lottieInstance = useRef(null);
-
+  useTooltipInit();
   const {
     focusedProjectKey,
     scrollContainerRef,

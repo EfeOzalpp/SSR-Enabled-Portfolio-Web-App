@@ -4,17 +4,11 @@ import arrowData from '../../svg/arrow.json';
 import linkData from '../../svg/link.json';
 
 import { useActiveTitle } from './title-context.tsx';
-import { projects } from '../content-utility/component-loader.tsx';
-import TitleObserver from './title-observer.tsx';
 
-// Project title → background RGB color mapping
-const projectColors: { [key: string]: string } = {
-  'Ice Cream Scoop': '234, 103, 97',
-  'Rotary Lamp': '204, 85, 41',
-  'Evade the Rock': '101, 86, 175',
-  'Data Visualization': '153, 199, 7',
-  'Dynamic App': '120, 211, 255',
-};
+import { projects } from '../content-utility/component-loader.tsx';
+import { projectColors } from '../content-utility/color-map.ts'; 
+
+import TitleObserver from './title-observer.tsx';
 
 const ViewProject = () => {
   const { activeTitle } = useActiveTitle();
@@ -32,8 +26,11 @@ const ViewProject = () => {
 
   // Return computed background RGBA string
   const getBackgroundColor = () => {
-    const rgb = projectColors[activeTitle];
-    return rgb ? `rgba(${rgb}, ${hovered ? 1 : 0.6})` : 'rgba(240, 240, 240, 0.7)';
+    const colorInfo = projectColors[activeTitle];
+    if (!colorInfo) return 'rgba(240, 240, 240, 0.7)';
+    
+    const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.6);
+    return `rgba(${colorInfo.rgb}, ${alpha})`;
   };
 
   // Fade logic — show background and hide after 2s
