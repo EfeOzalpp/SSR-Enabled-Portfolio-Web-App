@@ -55,7 +55,6 @@ function Frontpage() {
         <meta name="description" content="Efe Ozalp | WebApp Development, Visual Design, 3D Modeling" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
-        <meta name="theme-color" content="#1e1e1f" />
       </Helmet>
 
       <ProjectVisibilityProvider>
@@ -69,8 +68,8 @@ function Frontpage() {
             <Loading isFullScreen={true} />
           ) : (
             <div className="HereGoesNothing" id="landing">
-              <ThemeColorUpdater />
               <NavMenu />
+              <ThemeColorUpdater />
               <TitleProvider>
                 <ViewProject />
               </TitleProvider>

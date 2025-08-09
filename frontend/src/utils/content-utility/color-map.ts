@@ -11,7 +11,7 @@ export const projectColors: Record<string, ProjectColor> = {
     rgb: '204, 85, 41',
     tooltipAlpha: 0.6,
     defaultAlpha: 0.6,
-    darkThemeTop: 'rgba(19, 21, 21, 1)'
+    darkThemeTop: 'rgba(72, 161, 161, 1)'
   },
   'Ice Cream Scoop': {
     rgb: '234, 103, 97',
@@ -35,6 +35,6 @@ export const projectColors: Record<string, ProjectColor> = {
     rgb: '120, 211, 255',
     tooltipAlpha: 0.6,
     defaultAlpha: 0.6,
-    darkThemeTop: 'rgba(28, 30, 31, 1)'
+    darkThemeTop: 'rgba(17, 17, 17, 1)'
   }
 };

@@ -27,7 +27,7 @@ const TitleDivider = ({ svgIcon, movingTextColors, pauseAnimation }) => {
   ];
 
   const textSegments = [
-    { text: 'Institute', suffix: '' },
+    { text: 'Institute Gallery', suffix: '' },
     { text: 'Dyna', suffix: 'mic Media' },
     { text: 'Dyn', suffix: 'mic Media' },
   ];
@@ -58,7 +58,7 @@ const TitleDivider = ({ svgIcon, movingTextColors, pauseAnimation }) => {
   return (
     <div className="title-container">
       <div className="static-title">
-        <h1>MassArt 2025</h1>
+        <h1>MassArt 2024</h1>
       </div>
       <div className={`moving-title ${pauseAnimation ? 'paused' : ''}`}>
         <h1 className="title-with-icon moving-text-wrapper">

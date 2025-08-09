@@ -1,14 +1,14 @@
 /* Nav menu */
 .nav-menu {
-  user-select: none;           /* Prevents text selection */
-  -webkit-user-select: none;   /* Safari */
-  -ms-user-select: none;       /* IE/Edge */
+  user-select: none !important;           /* Prevents text selection */
+  -webkit-user-select: none !important;   /* Safari */
+  -ms-user-select: none !important;       /* IE/Edge */
 
-  -webkit-user-drag: none;     /* Prevents dragging in Safari */
-  -khtml-user-drag: none;      /* Older Safari */
-  -moz-user-select: none;      /* Firefox */
-  -o-user-select: none;        /* Opera */
-  pointer-events: auto;        /* Still allow click events */ 
+  -webkit-user-drag: none !important;     /* Prevents dragging in Safari */
+  -khtml-user-drag: none !important;      /* Older Safari */
+  -moz-user-select: none !important;      /* Firefox */
+  -o-user-select: none !important;        /* Opera */
+  pointer-events: none !important;        /* Still allow click events */ 
   display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; padding-bottom: 16px; z-index: 2000; }
 .nav-left { width: 50%; display: flex; justify-content: flex-start; padding-left: 16px; }
 .nav-right { padding: 24px; gap: 24px; display: flex; justify-content: flex-end;  width: fit-content; pointer-events: all;}
@@ -17,7 +17,7 @@
 .icon-svg:hover { transform: scale(1.1); }
 .title-lottie { width: 12.8em; pointer-events: all;}
 .title-lottie:hover { scale: 1.02; padding-left: 0.06em; }
-.github-lottie, .linkedin-lottie { width: 2.4em; pointer-events: all; user-select: none;}
+.github-lottie, .linkedin-lottie { width: 2.4em; pointer-events: all !important; user-select: none;}
 .github-lottie:hover, .linkedin-lottie:hover { scale: 1.03; }
 
 /* View Project */

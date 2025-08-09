@@ -1,6 +1,6 @@
 /* Firework q5-canvas styles */
 /* canvas {background-color: #1e1e1f;} /* Background colors just incase to avoid color flickering */
-.firework-divider { pointer-events: none; display: block; position: absolute;  background: transparent !important;}
+.firework-divider { pointer-events: none; display: block; position: absolute; background-color: #1e1e1f;}
 .q5Canvas {z-index: 1 !important; position: relative; display: block; width: 100% !important; height: 125% !important; overflow: hidden;  background: transparent !important;}
 canvas {
   background-color: transparent !important;

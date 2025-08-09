@@ -19,7 +19,7 @@
 .navigation.visible { transform: translateY(0);}
 
 /* Hamburger menu and site title positioning */
-.top-bar-items {padding-left: 1.6em; padding-right: 1.6em; padding-top: 16px; padding-bottom: 16px;}
+.top-bar-items {padding-left: 1.6em; padding-right: 1.7em; padding-top: 16px; padding-bottom: 16px;}
 #shadow-dynamic-app .top-bar-items {padding-left: 2.2em; padding-right: 2.2em;}
 .menu-icon {cursor: pointer; display: flex; align-items: center; position: relative; width: 24px; height: 24px;}
 

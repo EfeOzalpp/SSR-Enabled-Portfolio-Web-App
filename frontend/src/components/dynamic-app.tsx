@@ -13,14 +13,17 @@ const getDeviceType = (w: number): 'phone' | 'tablet' | 'laptop' =>
 const BLANK_IMG =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMB9qzG3iAAAAAASUVORK5CYII=';
 
+const DEBOUNCE_MS = 150;
+
 const DynamicApp = () => {
   const [svgMap, setSvgMap] = useState<Record<string, string>>({});
-  const [device, setDevice] = useState<'phone'|'tablet'|'laptop'>(getDeviceType(window.innerWidth));
+  const [device, setDevice] = useState<'phone' | 'tablet' | 'laptop'>(getDeviceType(window.innerWidth));
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const frameRef = useRef<HTMLImageElement>(null);
+  const resizeTimer = useRef<number | null>(null);
 
-  // measure overlay against the <img> (needs the element to exist!)
+  // measure overlay against the <img>
   const overlaySize = useDynamicOverlay(frameRef);
   const isRealMobile = useRealMobileViewport();
 
@@ -33,29 +36,50 @@ const DynamicApp = () => {
       }`)
       .then((results: any[]) => {
         const map: Record<string, string> = {};
-        results.forEach((item) => {
+        results.forEach((item: any) => {
           map[item.title.toLowerCase()] = item.file?.asset?.url;
         });
         setSvgMap(map);
       });
   }, []);
 
-  // responsive device
+  // responsive device — ONLY clear loaded if the device bucket changes (debounced)
   useEffect(() => {
-    const onResize = () => {
-      const next = getDeviceType(window.innerWidth);
-      setDevice((prev) => (prev !== next ? next : prev));
-      setImgLoaded(false); // force recalculation after frame size change
+    const handleResize = () => {
+      if (resizeTimer.current) window.clearTimeout(resizeTimer.current);
+      resizeTimer.current = window.setTimeout(() => {
+        const next = getDeviceType(window.innerWidth);
+        setDevice(prev => {
+          if (prev !== next) {
+            setImgLoaded(false); // src will change; safe to wait for onLoad
+            return next;
+          }
+          return prev; // do NOT touch imgLoaded
+        });
+      }, DEBOUNCE_MS);
     };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      if (resizeTimer.current) window.clearTimeout(resizeTimer.current);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const svgUrl = svgMap[device];
 
-  // when URL changes, mark not loaded so onLoad will reflow
+  // when URL changes, mark not loaded so onLoad will reflow; handle cached images
   useEffect(() => {
-    setImgLoaded(false);
+    if (svgUrl) {
+      const img = frameRef.current;
+      if (img && img.complete) {
+        setImgLoaded(true);
+      } else {
+        setImgLoaded(false);
+      }
+    } else {
+      setImgLoaded(false);
+    }
   }, [svgUrl]);
 
   return (
@@ -68,20 +92,23 @@ const DynamicApp = () => {
           alt={device}
           className={`device-frame ${device}`}
           onLoad={() => setImgLoaded(true)}
+          onError={() => setImgLoaded(true)} // don't stay hidden on error
           draggable={false}
-          // hide the blank or while loading to avoid flicker
-          style={{ visibility: imgLoaded && svgUrl ? 'visible' : 'hidden' }}
+          // Keep it in the flow; fade it instead of hiding visibility.
+          style={{
+            visibility: svgUrl ? 'visible' : 'hidden',
+            opacity: imgLoaded && svgUrl ? 1 : 0,
+            transition: 'opacity 150ms ease',
+          }}
         />
 
         <div
           className="screen-overlay"
           style={
-            window.innerWidth < 768
+            device === 'phone'
               ? {
                   width: `${overlaySize.width}px`,
-                  height: isRealMobile
-                    ? `${overlaySize.heightSet1}svh`
-                    : `${overlaySize.heightSet2}px`,
+                  height: isRealMobile ? `${overlaySize.heightSet1}svh` : `${overlaySize.heightSet2}px`,
                 }
               : {}
           }
