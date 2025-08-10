@@ -1,8 +1,10 @@
+// config-overrides.js
 const path = require('path');
 const postcssPrefixSelector = require('postcss-prefix-selector');
+const LoadablePlugin = require('@loadable/webpack-plugin');
 
 module.exports = function override(config, env) {
-  // Extend fallback (your existing code)
+  // ---- keep your existing fallbacks
   config.resolve = {
     ...config.resolve,
     fallback: {
@@ -29,7 +31,7 @@ module.exports = function override(config, env) {
   const oneOfRule = config.module.rules.find((rule) => Array.isArray(rule.oneOf));
 
   if (oneOfRule) {
-    // ✅ 1. Inject raw-loader for ?raw
+    // 1) your ?raw css loader (unchanged)
     oneOfRule.oneOf.unshift({
       test: /\.css$/i,
       resourceQuery: /raw/,
@@ -37,7 +39,7 @@ module.exports = function override(config, env) {
       include: path.resolve(__dirname, 'src/styles'),
     });
 
-    // ✅ 2. Modify existing .css rule to add postcss-loader only for FrontPage styles
+    // 2) add postcss prefixer after css-loader (unchanged)
     const cssRule = oneOfRule.oneOf.find(
       (rule) =>
         rule.test &&
@@ -46,11 +48,9 @@ module.exports = function override(config, env) {
     );
 
     if (cssRule) {
-      // Insert postcss-loader *after* css-loader
       const cssLoaderIndex = cssRule.use.findIndex(
         (loader) => loader.loader && loader.loader.includes('css-loader')
       );
-
       if (cssLoaderIndex !== -1) {
         cssRule.use.splice(cssLoaderIndex + 1, 0, {
           loader: require.resolve('postcss-loader'),
@@ -59,15 +59,13 @@ module.exports = function override(config, env) {
               plugins: [
                 postcssPrefixSelector({
                   prefix: '#efe-portfolio',
-                  transform: (prefix, selector, prefixedSelector) => {
+                  transform: (prefix, selector, prefixed) => {
                     if (
                       selector.startsWith('html') ||
                       selector.startsWith('body') ||
                       selector.startsWith(':root')
-                    ) {
-                      return selector;
-                    }
-                    return prefixedSelector;
+                    ) return selector;
+                    return prefixed;
                   },
                 }),
               ],
@@ -76,9 +74,35 @@ module.exports = function override(config, env) {
         });
       }
     } else {
-      console.warn('[⚠️ Webpack config issue] Could not find base CSS rule to patch postcss-loader');
+      console.warn('[⚠️] Could not find base CSS rule to patch postcss-loader');
+    }
+    
+    // SSR
+    // 3) add Emotion babel plugin to babel-loader
+    const babelRule = oneOfRule.oneOf.find(
+      (rule) => rule.loader && rule.loader.includes('babel-loader')
+    );
+    if (babelRule && babelRule.options) {
+      babelRule.options.plugins = babelRule.options.plugins || [];
+      const hasEmotion = babelRule.options.plugins.some((p) => {
+        const name = Array.isArray(p) ? p[0] : p;
+        return typeof name === 'string' && name.includes('@emotion/babel-plugin');
+      });
+      if (!hasEmotion) {
+        babelRule.options.plugins.push(require.resolve('@emotion/babel-plugin'));
+      }
     }
   }
+
+  // 4) emit loadable-stats.json for SSR chunk discovery
+  const isDev = process.env.NODE_ENV !== 'production';
+  config.plugins.push(
+    new LoadablePlugin({
+      filename: 'loadable-stats.json',
+      writeToDisk: true,          // ← important for CRA dev server
+    })
+  );
+
 
   return config;
 };
