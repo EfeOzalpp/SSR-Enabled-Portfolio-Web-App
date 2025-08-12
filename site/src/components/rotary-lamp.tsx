@@ -4,15 +4,22 @@ import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller';
 import MediaLoader from '../utils/media-providers/media-loader';
 import { useTooltipInit } from '../utils/tooltip/tooltipInit';
+import { useSsrData } from '../utils/context-providers/ssr-data-context';
 import '../styles/block-type-1.css';
 
 const RotaryLamp = () => {
-  const [data, setData] = useState(null);
+  const ssrData = useSsrData();
+  const preloaded = ssrData?.preloaded?.rotary; // assuming you key it as "rotary"
+
+  const [data, setData] = useState(preloaded || null);
   const [split, setSplit] = useState(() => (window.innerWidth < 768 ? 55 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
+
   useTooltipInit();
-  // Fetch media block from Sanity
+
+  // Fetch only if SSR data wasn't provided
   useEffect(() => {
+    if (data) return;
     const fetchData = async () => {
       const res = await client.fetch(`
         *[_type == "mediaBlock" && title match "Rotary Lamp"][0]{
@@ -32,7 +39,7 @@ const RotaryLamp = () => {
     };
 
     fetchData();
-  }, []);
+  }, [data]);
 
   // Handle orientation switch
   useEffect(() => {

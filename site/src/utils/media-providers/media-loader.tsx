@@ -1,20 +1,41 @@
+// MediaLoader
 import { useRef, useState, useEffect } from 'react';
 import { useVideoVisibility } from './video-observer';
 import LoadingScreen from '../content-utility/loading';
 import { SanityImageSource } from '@sanity/image-url/lib/types/types';
-
 import {
   getLowResImageUrl,
   getMediumImageUrl,
   getHighQualityImageUrl,
   urlFor,
 } from './image-builder';
-
 import {
   registerImage,
   notifyLowResLoaded,
   onAllLowResLoaded,
 } from './image-upgrade-manager';
+
+function useNearViewport<T extends Element>(
+  ref: React.RefObject<T>,
+  { rootMargin = '900px 0px', threshold = 0, once = true } = {}
+) {
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    if (!ref.current || near) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setNear(true);
+          if (once) io.disconnect();
+        }
+      },
+      { rootMargin, threshold }
+    );
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [ref, near, rootMargin, threshold, once]);
+  return near;
+}
 
 type VideoSetSrc = {
   webmUrl?: string;
@@ -24,8 +45,6 @@ type VideoSetSrc = {
 
 type MediaLoaderProps = {
   type: 'image' | 'video';
-  // image: Sanity image or URL string
-  // video: URL string (legacy) OR {webmUrl, mp4Url, poster}
   src: string | SanityImageSource | VideoSetSrc;
   alt?: string;
   id?: string;
@@ -38,7 +57,7 @@ type MediaLoaderProps = {
   preload?: 'auto' | 'metadata' | 'none';
   enableVisibilityControl?: boolean;
   priority?: boolean;
-  controls?: boolean; // handy for debugging
+  controls?: boolean;
 };
 
 const MediaLoader = ({
@@ -64,30 +83,32 @@ const MediaLoader = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // -------- IMAGE upgrade flow --------
-  useEffect(() => {
-    if (type === 'image') {
-      registerImage(); // track this image as soon as it mounts
-    }
+  const isNear = useNearViewport(containerRef);
+  const shouldStart = priority || isNear;
 
-    if (loaded && type === 'image') {
-      const mediumTimer = setTimeout(() => setShowMedium(true), 200);
-      onAllLowResLoaded(() => {
-        setTimeout(() => setShowHigh(true), 500);
-      });
-      return () => clearTimeout(mediumTimer);
-    }
-  }, [loaded, type]);
+  // IMAGE upgrade flow
+  useEffect(() => {
+    if (type !== 'image') return;
+    registerImage();
+
+    // start medium once near (or after 2s as a safety)
+    const t1 = setTimeout(() => setShowMedium(true), shouldStart ? 0 : 2000);
+    if (shouldStart) setShowMedium(true);
+
+    // upgrade to high when all low-res are in OR 5s safety
+    const off = () => setTimeout(() => setShowHigh(true), 300);
+    onAllLowResLoaded(off);
+    const t2 = setTimeout(() => setShowHigh(true), 5000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [type, shouldStart]);
 
   const onMediaLoaded = () => {
     setLoaded(true);
-
-    if (type === 'image') {
-      notifyLowResLoaded();
-      onAllLowResLoaded(() => {
-        setTimeout(() => setShowHigh(true), 300);
-      });
-    }
+    if (type === 'image') notifyLowResLoaded();
 
     if (id) {
       const event = new CustomEvent('mediaReady', { detail: { id } });
@@ -95,18 +116,33 @@ const MediaLoader = ({
     }
   };
 
-  // -------- VIDEO visibility/autoplay control --------
+  // VIDEO visibility/autoplay + fetch control
   useVideoVisibility(
     videoRef,
     containerRef,
     type === 'video' && enableVisibilityControl ? 0.4 : undefined
   );
 
-  // no src? bail
+  // kick off video fetching when near (or fallback after 2s)
+  useEffect(() => {
+    if (type !== 'video' || !videoRef.current) return;
+    const v = videoRef.current;
+    const start = () => {
+      // switch to metadata so the browser actually fetches
+      if (v.preload !== 'metadata') v.preload = 'metadata';
+      // if sources are present, ensure load is called
+      try { v.load(); } catch {}
+    };
+    if (shouldStart) start();
+    const t = setTimeout(start, 2000);
+    return () => clearTimeout(t);
+  }, [type, shouldStart]);
+
   if (!src) return null;
 
-  // ================= IMAGE =================
+  // ============== IMAGE ==============
   if (type === 'image') {
+    // Always render LQIP immediately; upgrade sources via state
     const ultraLowSrc = typeof src === 'string' ? src : getLowResImageUrl(src);
     const mediumSrc   = typeof src === 'string' ? src : getMediumImageUrl(src);
     const highResSrc  = typeof src === 'string' ? src : getHighQualityImageUrl(src);
@@ -121,33 +157,30 @@ const MediaLoader = ({
           </div>
         )}
 
-        <img
-          loading={priority ? 'eager' : 'lazy'}
-          id={id}
-          src={resolvedSrc}
-          alt={alt}
-          onLoad={onMediaLoaded}
-          onError={(e) =>
-            console.warn('Image failed', (e.target as HTMLImageElement).src)
-          }
-          className={className}
-          draggable={false}
-          style={{
-            ...style,
-            objectFit: 'cover',
-            opacity: loaded ? 1 : 0,
-            transition: 'filter 0.5s ease, opacity 0.3s ease',
-          }}
-        />
+          <img
+            loading={priority ? 'eager' : undefined} // undefined → default
+            fetchPriority={showHigh || priority ? 'high' : showMedium ? 'auto' : 'low'}
+            id={id}
+            src={resolvedSrc}
+            alt={alt}
+            onLoad={onMediaLoaded}
+            onError={(e) => console.warn('Image failed', (e.target as HTMLImageElement).src)}
+            className={className}
+            draggable={false}
+            style={{
+              ...style,
+              objectFit: 'cover',
+              opacity: loaded ? 1 : 0,
+              transition: 'filter 0.5s ease, opacity 0.3s ease',
+            }}
+          />
       </div>
     );
   }
 
-  // ================= VIDEO =================
+  // ============== VIDEO ==============
   const isVideoSetObj =
-    typeof src === 'object' &&
-    // if it's a SanityImageSource it will have an asset key; we only treat it as videoSet when it doesn't
-    !('asset' in (src as any)) &&
+    typeof src === 'object' && !('asset' in (src as any)) &&
     (('webmUrl' in (src as any)) || ('mp4Url' in (src as any)));
 
   const vs = (isVideoSetObj ? (src as VideoSetSrc) : undefined);
@@ -185,16 +218,14 @@ const MediaLoader = ({
         loop={loop}
         muted={muted}
         playsInline={playsInline}
-        preload={preload}
+        // start conservative; we'll bump to 'metadata' and call load() when near
+        preload="none"
         controls={controls}
-        // Safari quirks
-        // @ts-ignore
-        defaultMuted={muted}
         poster={posterUrl}
+        {...(muted ? { defaultmuted: true } : {})}
       >
-        {/* Prefer WebM, then MP4, else legacy single URL */}
         {vs?.webmUrl && <source src={vs.webmUrl} type="video/webm" />}
-        {vs?.mp4Url  && <source src={vs.mp4Url}  type="video/mp4" />}
+        {vs?.mp4Url  && <source src={vs.mp4Url}  type="video/mp4"  />}
         {!vs?.webmUrl && !vs?.mp4Url && legacyVideoUrl && <source src={legacyVideoUrl} />}
       </video>
     </div>

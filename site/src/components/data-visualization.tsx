@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import client from '../utils/sanity';
 import MediaLoader from '../utils/media-providers/media-loader';
 import { useTooltipInit } from '../utils/tooltip/tooltipInit';
+import { useSsrData } from '../utils/context-providers/ssr-data-context';
 import '../styles/block-type-1.css';
 
 type VideoSet = {
@@ -22,12 +23,16 @@ type DataVizData = {
 };
 
 const DataVisualizationBlock = () => {
-  const [data, setData] = useState<DataVizData | null>(null);
+  const ssrData = useSsrData(); // <-- read from SSR context
+  const [data, setData] = useState<DataVizData | null>(
+    (ssrData?.preloaded?.dataviz as DataVizData) || null
+  );
 
   useTooltipInit();
 
   // Fetch data from Sanity
 useEffect(() => {
+  if (data) return; // already have SSR data
   client
    .fetch<DataVizData>(
       `*[_type == "mediaBlock" && slug.current == $slug][0]{

@@ -1,40 +1,28 @@
-import { useEffect, useRef, useState } from 'react';
+// src/utils/scroll-controller.tsx
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useProjectVisibility } from './context-providers/project-context';
 
-import LoadingScreen from './content-utility/loading';
+import { attachOpacityObserver } from './content-utility/opacity-observer';
 
-import { attachOpacityObserver } from '../utils/content-utility/opacity-observer';
-
-import { projects } from '../utils/content-utility/component-loader';
-import LazyInView from './content-utility/lazy-view';
+import { projects } from './content-utility/component-loader'; 
+import { ProjectPane } from './project-pane'; 
 
 const ScrollController = () => {
-  const {
-    scrollContainerRef,
-    focusedProjectKey,
-    currentIndex,
-  } = useProjectVisibility();
+  const { scrollContainerRef, focusedProjectKey, currentIndex } = useProjectVisibility();
 
   const [justExitedFocusKey, setJustExitedFocusKey] = useState<string | null>(null);
   const [invisibleKeys, setInvisibleKeys] = useState<Set<string>>(new Set());
   const projectRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const [viewportStyle, setViewportStyle] = useState({
-    height: '98dvh',
-    paddingBottom: '2dvh',
-  });
+  const [viewportStyle, setViewportStyle] = useState({ height: '98dvh', paddingBottom: '2dvh' });
 
   const updateViewportStyle = () => {
     const width = window.innerWidth;
-    if (width >= 1025) {
-      setViewportStyle({ height: '96dvh', paddingBottom: '4dvh' });
-    } else if (width >= 768) {
-      setViewportStyle({ height: '92dvh', paddingBottom: '8dvh' });
-    } else {
-      setViewportStyle({ height: '98dvh', paddingBottom: '2dvh' });
-    }
+    if (width >= 1025) setViewportStyle({ height: '96dvh', paddingBottom: '4dvh' });
+    else if (width >= 768) setViewportStyle({ height: '92dvh', paddingBottom: '8dvh' });
+    else setViewportStyle({ height: '98dvh', paddingBottom: '2dvh' });
   };
-  
+
   useEffect(() => {
     updateViewportStyle();
     window.addEventListener('resize', updateViewportStyle);
@@ -51,9 +39,7 @@ const ScrollController = () => {
 
   useEffect(() => {
     if (focusedProjectKey) {
-      const keysToHide = projects
-        .filter((p) => p.key !== focusedProjectKey)
-        .map((p) => p.key);
+      const keysToHide = projects.filter(p => p.key !== focusedProjectKey).map(p => p.key);
       setInvisibleKeys(new Set(keysToHide));
     } else {
       const timeout = setTimeout(() => setInvisibleKeys(new Set()), 400);
@@ -62,9 +48,7 @@ const ScrollController = () => {
   }, [focusedProjectKey]);
 
   useEffect(() => {
-    if (focusedProjectKey) {
-      setJustExitedFocusKey(focusedProjectKey);
-    }
+    if (focusedProjectKey) setJustExitedFocusKey(focusedProjectKey);
   }, [focusedProjectKey]);
 
   useEffect(() => {
@@ -83,77 +67,67 @@ const ScrollController = () => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
-  let cleanupFns: (() => void)[] = [];
+    let cleanupFns: (() => void)[] = [];
+    const observer = new MutationObserver(() => {
+      const embeddedEl = document.querySelector('.embedded-app') as HTMLElement | null;
+      if (embeddedEl && cleanupFns.length === 0) {
+        const handleWheel = (e: WheelEvent) => {
+          const { deltaY } = e;
+          const { scrollTop, scrollHeight, clientHeight } = embeddedEl;
+          const atTop = scrollTop <= 0;
+          const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+          if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
+            e.preventDefault();
+            scrollContainer.scrollBy({ top: deltaY > 0 ? 300 : -300, behavior: 'smooth' });
+          }
+        };
 
-  const observer = new MutationObserver(() => {
-    const embeddedEl = document.querySelector('.embedded-app');
-    if (embeddedEl && cleanupFns.length === 0) {
-      // attach handlers once
-      const handleWheel = (e: WheelEvent) => {
-        const { deltaY } = e;
-        const { scrollTop, scrollHeight, clientHeight } = embeddedEl;
-        const atTop = scrollTop <= 0;
-        const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+        let startY = 0;
+        const handleTouchStart = (e: TouchEvent) => {
+          if (e.touches.length === 1) startY = e.touches[0].clientY;
+        };
+        const handleTouchMove = (e: TouchEvent) => {
+          if (e.touches.length !== 1) return;
+          const currentY = e.touches[0].clientY;
+          const deltaY = currentY - startY;
+          const { scrollTop, scrollHeight, clientHeight } = embeddedEl;
+          const atTop = scrollTop <= 0;
+          const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+          const scrollAmount = Math.max(100, window.innerHeight * 1);
+          if (deltaY > 5 && atTop) {
+            e.preventDefault();
+            scrollContainer.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+          } else if (deltaY < -5 && atBottom) {
+            scrollContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+          }
+        };
 
-        if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
-          e.preventDefault();
-          scrollContainer.scrollBy({ top: deltaY > 0 ? 300 : -300, behavior: 'smooth' });
-        }
-      };
+        embeddedEl.addEventListener('wheel', handleWheel, { passive: false });
+        embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+        embeddedEl.addEventListener('touchmove', handleTouchMove, { passive: false });
 
-      let startY = 0;
+        cleanupFns = [
+          () => embeddedEl.removeEventListener('wheel', handleWheel),
+          () => embeddedEl.removeEventListener('touchstart', handleTouchStart),
+          () => embeddedEl.removeEventListener('touchmove', handleTouchMove),
+        ];
+      }
+    });
 
-      const handleTouchStart = (e: TouchEvent) => {
-        if (e.touches.length === 1) startY = e.touches[0].clientY;
-      };
+    observer.observe(document.body, { childList: true, subtree: true });
 
-      const handleTouchMove = (e: TouchEvent) => {
-        if (e.touches.length !== 1) return;
-        const currentY = e.touches[0].clientY;
-        const deltaY = currentY - startY;
+    return () => {
+      observer.disconnect();
+      cleanupFns.forEach(fn => fn());
+    };
+  }, []);
 
-        const { scrollTop, scrollHeight, clientHeight } = embeddedEl;
-        const atTop = scrollTop <= 0;
-        const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-        const scrollAmount = Math.max(100, window.innerHeight * 1);
-
-        if (deltaY > 5 && atTop) {
-          e.preventDefault();
-          scrollContainer.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
-        } else if (deltaY < -5 && atBottom) {
-          scrollContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-        }
-      };
-
-      embeddedEl.addEventListener('wheel', handleWheel, { passive: false });
-      embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
-      embeddedEl.addEventListener('touchmove', handleTouchMove, { passive: false });
-
-      cleanupFns = [
-        () => embeddedEl.removeEventListener('wheel', handleWheel),
-        () => embeddedEl.removeEventListener('touchstart', handleTouchStart),
-        () => embeddedEl.removeEventListener('touchmove', handleTouchMove),
-      ];
-    }
-  });
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
-
-  return () => {
-    observer.disconnect();
-    cleanupFns.forEach((fn) => fn());
-  };
-}, []);
-
-
+  // Build block ids once (micro-optimization)
+  const blockIds = useMemo(() => projects.map(p => `#block-${p.key}`), []);
   useEffect(() => {
-    const blockIds = projects.map((p) => `#block-${p.key}`);
     const cleanup = attachOpacityObserver(blockIds, focusedProjectKey);
     return cleanup;
-  }, [focusedProjectKey]);
+  }, [blockIds, focusedProjectKey]);
 
   return (
     <div
@@ -174,30 +148,15 @@ const ScrollController = () => {
       {projects.map((item) => {
         const isFocused = focusedProjectKey === item.key;
         const isHidden = invisibleKeys.has(item.key);
-
         return (
-          <div
+          <ProjectPane
             key={item.key}
-            id={`block-${item.key}`}
-            ref={(el: HTMLDivElement | null) => {projectRefs.current[item.key] = el;}}
-            style={{
-              height: isHidden ? '0px' : isFocused ? 'auto' : viewportStyle.height,
-              overflow: isFocused ? 'visible' : 'hidden',
-              scrollSnapAlign: isHidden ? 'none' : 'start',
-              opacity: isHidden ? 0 : 1,
-              visibility: isHidden ? 'hidden' : 'visible',
-              pointerEvents: isHidden ? 'none' : 'auto',
-              transition: 'opacity 0.4s ease, visibility 0.4s ease',
-            }}
-          >
-            <div style={{ minHeight: viewportStyle.height }}>
-              <LazyInView
-                load={item.lazyImport}             
-                fallback={<LoadingScreen isFullScreen={false} />}
-              />
-              {isFocused && item.title === 'Evade the Rock' && null}
-            </div>
-          </div>
+            item={item}
+            viewportHeight={viewportStyle.height}
+            isFocused={isFocused}
+            isHidden={isHidden}
+            setRef={(el) => { projectRefs.current[item.key] = el; }}
+          />
         );
       })}
     </div>

@@ -51,19 +51,6 @@ function Frontpage() {
 
   return (
     <>
-      {/* React 19 automatically hoists these into <head> during SSR/CSR */}
-      <meta
-        name="description"
-        content="Efe Ozalp | WebApp Development, Visual Design, 3D Modeling"
-      />
-      <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-      <link rel="apple-touch-icon" href="/favicon.svg" />
-      {/* add OG/Twitter tags here too if you want */}
-      {/* <meta property="og:title" content="Efe Ozalp" /> */}
-      {/* <meta property="og:description" content="..." /> */}
-      {/* <meta property="og:image" content="https://yourdomain.com/og-image.jpg" /> */}
-      {/* <meta name="twitter:card" content="summary_large_image" /> */}
-
       <ProjectVisibilityProvider>
         <div
           className={`transition-wrapper ${

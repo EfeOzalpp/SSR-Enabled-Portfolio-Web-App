@@ -3,6 +3,7 @@ import client from '../utils/sanity';
 import SplitDragHandler from '../utils/split-controller';
 import MediaLoader from '../utils/media-providers/media-loader';
 import { useTooltipInit } from '../utils/tooltip/tooltipInit';
+import { useSsrData } from '../utils/context-providers/ssr-data-context';
 import '../styles/block-type-1.css';
 
 type VideoSet = {
@@ -23,22 +24,27 @@ type IceData = {
 };
 
 const IceCreamScoop = () => {
-  const [data, setData] = useState<IceData | null>(null);
+  const ssrData = useSsrData();
+  const preloadedData: IceData | null = ssrData?.preloaded?.['ice-scoop'] || null;
+
+  const [data, setData] = useState<IceData | null>(preloadedData);
   const [split, setSplit] = useState(() => (window.innerWidth < 1024 ? 45 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
   useTooltipInit();
 
+  // Orientation listener
   useEffect(() => {
     const handleResize = () => setIsPortrait(window.innerHeight > window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch by slug; adjust slug string to match your Studio document
+  // Fetch from Sanity only if not already preloaded
   useEffect(() => {
+    if (data) return;
     client
-      .fetch<any>(
+      .fetch<IceData>(
         `*[_type == "mediaBlock" && slug.current == $slug][0]{
           mediaOne{
             alt,
@@ -66,7 +72,7 @@ const IceCreamScoop = () => {
         console.warn('[IceCreamScoop] GROQ fetch failed:', err);
         setData(null);
       });
-  }, []);
+  }, [data]);
 
   if (!data) return null;
 
@@ -136,7 +142,7 @@ const IceCreamScoop = () => {
       >
         <MediaLoader
           type={media2IsVideo ? 'video' : 'image'}
-          src={media2IsVideo ? media2.video! : media2.image!} // pass videoSet object
+          src={media2IsVideo ? media2.video! : media2.image!}
           alt={alt2}
           id="icecream-media-2"
           className="media-item-2 tooltip-ice-scoop"

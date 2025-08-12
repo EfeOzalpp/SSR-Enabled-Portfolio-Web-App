@@ -1,4 +1,5 @@
 // src/index.jsx
+import './set-public-path';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';

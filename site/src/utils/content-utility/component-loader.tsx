@@ -1,5 +1,6 @@
-// utils/component-loader.ts
+// src/utils/content-utility/component-loader.tsx
 import type { ComponentType } from 'react';
+import { useSsrData } from '../context-providers/ssr-data-context';
 
 export const componentMap = {
   rotary: () => import('../../components/rotary-lamp'),
@@ -21,7 +22,6 @@ export interface Project extends ProjectMeta {
   lazyImport: () => Promise<{ default: ComponentType<any> }>;
 }
 
-// helper to satisfy the Project.lazyImport return type
 const toComponent = <T extends ComponentType<any>>(p: Promise<{ default: T }>) =>
   p as unknown as Promise<{ default: ComponentType<any> }>;
 
@@ -53,3 +53,23 @@ export const projects: Project[] = [
     lazyImport: () => toComponent(import('../../components/dynamic-app')),
   },
 ].sort(() => Math.random() - 0.5);
+
+
+export function useProjectLoader(key: ProjectKey) {
+  const ssrData = useSsrData();
+  const project = projects.find(p => p.key === key);
+  if (!project) throw new Error(`Unknown project key: ${key}`);
+
+  // If SSR has preloaded content for this project
+  if (ssrData?.preloaded?.[key]) {
+    return async () => ({
+      default: () => {
+        // Replace with the actual component renderer
+        return <div dangerouslySetInnerHTML={{ __html: ssrData.preloaded[key] }} />;
+      }
+    });
+  }
+
+  // Fallback to lazyImport if no SSR data
+  return project.lazyImport;
+}
