@@ -1,20 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
+import type { AnimationItem } from 'lottie-web';
 import arrowData from '../../svg/arrow.json';
 import linkData from '../../svg/link.json';
 
-import { useActiveTitle } from './title-context.tsx';
+import { useActiveTitle } from './title-context';
 
-import { projects } from '../content-utility/component-loader.tsx';
-import { projectColors } from '../content-utility/color-map.ts'; 
+import { projects } from '../content-utility/component-loader';
+import { projectColors } from '../content-utility/color-map'; 
 
-import TitleObserver from './title-observer.tsx';
+import TitleObserver from './title-observer';
 
 const ViewProject = () => {
   const { activeTitle } = useActiveTitle();
 
   const arrowContainer = useRef<HTMLDivElement>(null);
-  const arrowAnimRef = useRef<lottie.AnimationItem | null>(null);
+  const arrowAnimRef = useRef<AnimationItem | null>(null);
   const lastTitleRef = useRef(activeTitle);
 
   const [hovered, setHovered] = useState(false);

@@ -33,12 +33,14 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build:client": "react-app-rewired build",
-    "build:server": "webpack --config webpack.server.js --mode=production",
-    "build": "npm run build:client && npm run build:server",
-    "serve": "node build-ssr/server.js",
-    "dev:ssr": "concurrently -k -n CLIENT,SERVER,SSR \"npx cross-env BROWSER=none react-app-rewired start\" \"npx webpack --config webpack.server.js --mode=development --watch\" \"npx cross-env PORT=3001 wait-on tcp:3000 && npx nodemon --watch build-ssr --ext js,jsx --exec \\\"node build-ssr/server.js\\\"\"",
-    "test": "react-app-rewired test"
+    "build": "react-app-rewired build",
+    "build:ssr": "webpack --config webpack.server.js --mode=production",
+    "dev:ssr": "concurrently -k -n CLIENT,SSR-BUILD,SSR \"npm:dev:client\" \"npm:dev:ssr:watch\" \"npm:dev:ssr:run\"",
+    "dev:client": "cross-env PORT=3000 BROWSER=none react-app-rewired start",
+    "dev:ssr:watch": "webpack --config webpack.server.js --mode=development --watch",
+    "dev:ssr:run": "wait-on build-ssr/server.js http-get://localhost:3000 && nodemon -q --watch build-ssr --ext js --exec node build-ssr/server.js",
+    "start:ssr": "cross-env NODE_ENV=production node build-ssr/server.js",
+    "clean": "rimraf build build-ssr loadable-stats.json"
   },
   "eslintConfig": {
     "extends": [
@@ -79,6 +81,7 @@
     "process": "^0.11.10",
     "raw-loader": "^4.0.2",
     "react-app-rewired": "^2.2.1",
+    "rimraf": "^6.0.1",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
     "wait-on": "^8.0.4",

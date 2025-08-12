@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
-import { useProjectVisibility } from '../../utils/context-providers/project-context.tsx';
-import { useTooltipInit } from '../../utils/tooltip/tooltipInit.ts';
+import { useProjectVisibility } from '../../utils/context-providers/project-context';
+import { useTooltipInit } from '../../utils/tooltip/tooltipInit';
 
 const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   const [visible, setVisible] = useState(true);

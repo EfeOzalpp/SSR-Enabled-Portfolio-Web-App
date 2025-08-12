@@ -1,61 +1,11 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Efe Ozalp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <link rel="preload" href="/fonts/rubik.css" as="style">
-  <link rel="stylesheet" href="/fonts/rubik.css">
-
-  <link rel="preload" href="/fonts/orbitron.css" as="style">
-  <link rel="stylesheet" href="/fonts/orbitron.css">
-
-  <link rel="preload" href="/fonts2/poppins.css" as="style">
-  <link rel="stylesheet" href="/fonts2/poppins.css">
-
-  <link rel="preload" href="/fonts2/epilogue.css" as="style">
-  <link rel="stylesheet" href="/fonts2/epilogue.css">
-
-  <!-- Early connect to Sanity CDN to load first content eagerly -->
-  <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
-  <link rel="dns-prefetch" href="https://cdn.sanity.io">
-  
-  <!-- Your static loading styles -->
-  <style>
-    #static-loader {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #1e1e1f;
-      color: #fff;
-      font-family: sans-serif;
-      font-size: 1.2rem;
-      position: absolute;
-      inset: 0;
-      z-index: 9999;
-    }
-  </style>
-</head>
-<body>
-  <div id="static-loader">Loading...</div>
-  <div id="efe-portfolio"></div>
-  <div id="dynamic-theme"></div>
-
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const interval = setInterval(() => {
-        const root1 = document.getElementById('efe-portfolio');
-        const root2 = document.getElementById('dynamic-theme');
-
-        const isMounted = (root1?.children.length || root2?.children.length);
-        if (isMounted) {
-          document.getElementById('static-loader')?.remove();
-          clearInterval(interval);
-        }
-      }, 50);
-    });
-  </script>
-  <script defer src="/static/js/bundle.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>

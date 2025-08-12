@@ -1,6 +1,6 @@
 // utils/tooltip/global-tooltip.ts
 import '../../styles/tooltip.css';
-import { projectColors } from '../content-utility/color-map.ts';
+import { projectColors } from '../content-utility/color-map';
 
 type TooltipInfo = { tags: string[]; backgroundColor: string };
 const tooltipDataCache: Record<string, TooltipInfo> = {};
@@ -44,7 +44,7 @@ let tooltipEl: HTMLDivElement | null = null;
 let currentKey = '';
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
-export const fetchTooltipDataForKey = async (key: string) => {
+export const fetchTooltipDataForKey = async (key: string): Promise<TooltipInfo> => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
 
   const bg = bgForKey(key);
@@ -59,15 +59,15 @@ export const fetchTooltipDataForKey = async (key: string) => {
   // CMS fetch by slug
   try {
     const client = (await import('../sanity')).default;
-    const res = await client.fetch(
+    const res = await client.fetch<{ tags?: string[] } | null>(
       `*[_type=="mediaBlock" && slug.current == $key][0]{ tags }`,
       { key }
     );
-    const info = { tags: res?.tags ?? [], backgroundColor: bg };
+    const info: TooltipInfo = { tags: res?.tags ?? [], backgroundColor: bg };
     tooltipDataCache[key] = info;
     return info;
   } catch {
-    const info = { tags: [], backgroundColor: bg };
+    const info: TooltipInfo = { tags: [], backgroundColor: bg };
     tooltipDataCache[key] = info;
     return info;
   }

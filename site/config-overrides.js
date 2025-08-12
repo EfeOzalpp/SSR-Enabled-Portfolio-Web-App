@@ -4,7 +4,7 @@ const postcssPrefixSelector = require('postcss-prefix-selector');
 const LoadablePlugin = require('@loadable/webpack-plugin');
 
 module.exports = function override(config, env) {
-  // ---- keep your existing fallbacks
+  // --- keep your existing fallbacks
   config.resolve = {
     ...config.resolve,
     fallback: {
@@ -31,7 +31,7 @@ module.exports = function override(config, env) {
   const oneOfRule = config.module.rules.find((rule) => Array.isArray(rule.oneOf));
 
   if (oneOfRule) {
-    // 1) your ?raw css loader (unchanged)
+    // 1) raw CSS as text via ?raw (for manual injection)
     oneOfRule.oneOf.unshift({
       test: /\.css$/i,
       resourceQuery: /raw/,
@@ -39,7 +39,7 @@ module.exports = function override(config, env) {
       include: path.resolve(__dirname, 'src/styles'),
     });
 
-    // 2) add postcss prefixer after css-loader (unchanged)
+    // 2) add postcss prefixer after css-loader (except font css)
     const cssRule = oneOfRule.oneOf.find(
       (rule) =>
         rule.test &&
@@ -55,20 +55,33 @@ module.exports = function override(config, env) {
         cssRule.use.splice(cssLoaderIndex + 1, 0, {
           loader: require.resolve('postcss-loader'),
           options: {
-            postcssOptions: {
-              plugins: [
-                postcssPrefixSelector({
-                  prefix: '#efe-portfolio',
-                  transform: (prefix, selector, prefixed) => {
-                    if (
-                      selector.startsWith('html') ||
-                      selector.startsWith('body') ||
-                      selector.startsWith(':root')
-                    ) return selector;
-                    return prefixed;
-                  },
-                }),
-              ],
+            postcssOptions: (loaderContext) => {
+              const file = loaderContext.resourcePath || '';
+              const isFontCss =
+                /[\\/]fonts[\\/]/i.test(file) || /[\\/]fonts2[\\/]/i.test(file);
+
+              return {
+                plugins: isFontCss
+                  ? []
+                  : [
+                      postcssPrefixSelector({
+                        prefix: '#efe-portfolio',
+                        transform: (prefix, selector, prefixed) => {
+                          if (
+                            selector.startsWith('html') ||
+                            selector.startsWith('body') ||
+                            selector.startsWith(':root') ||
+                            selector.includes('#dynamic-theme') ||
+                            selector.includes('#shadow-dynamic-app') ||
+                            selector.includes('::slotted')
+                          ) {
+                            return selector;
+                          }
+                          return prefixed;
+                        },
+                      }),
+                    ],
+              };
             },
           },
         });
@@ -76,33 +89,40 @@ module.exports = function override(config, env) {
     } else {
       console.warn('[⚠️] Could not find base CSS rule to patch postcss-loader');
     }
-    
-    // SSR
-    // 3) add Emotion babel plugin to babel-loader
-    const babelRule = oneOfRule.oneOf.find(
-      (rule) => rule.loader && rule.loader.includes('babel-loader')
+
+    // 3) add Emotion + Loadable babel plugins to every babel-loader (client build)
+    const babelRules = oneOfRule.oneOf.filter(
+      (rule) => rule.loader && rule.loader.includes('babel-loader') && rule.options
     );
-    if (babelRule && babelRule.options) {
-      babelRule.options.plugins = babelRule.options.plugins || [];
-      const hasEmotion = babelRule.options.plugins.some((p) => {
+
+    for (const br of babelRules) {
+      br.options.plugins = br.options.plugins || [];
+
+      const hasEmotion = br.options.plugins.some((p) => {
         const name = Array.isArray(p) ? p[0] : p;
         return typeof name === 'string' && name.includes('@emotion/babel-plugin');
       });
       if (!hasEmotion) {
-        babelRule.options.plugins.push(require.resolve('@emotion/babel-plugin'));
+        br.options.plugins.push(require.resolve('@emotion/babel-plugin'));
+      }
+
+      const hasLoadable = br.options.plugins.some((p) => {
+        const name = Array.isArray(p) ? p[0] : p;
+        return typeof name === 'string' && name.includes('@loadable/babel-plugin');
+      });
+      if (!hasLoadable) {
+        br.options.plugins.push(require.resolve('@loadable/babel-plugin'));
       }
     }
   }
 
   // 4) emit loadable-stats.json for SSR chunk discovery
-  const isDev = process.env.NODE_ENV !== 'production';
   config.plugins.push(
     new LoadablePlugin({
       filename: 'loadable-stats.json',
-      writeToDisk: true,          // ← important for CRA dev server
+      writeToDisk: true, // ensure CRA dev server writes it
     })
   );
-
 
   return config;
 };

@@ -1,6 +1,6 @@
 // injéct stylés whéN it isnt in shadow dom
 import { useEffect } from 'react';
-import { useShadowRoot } from './shadow-root-context.tsx';
+import { useShadowRoot } from './shadow-root-context';
 
 const injected = (() => {
   if (typeof window !== 'undefined') {

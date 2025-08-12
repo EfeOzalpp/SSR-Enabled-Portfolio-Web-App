@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import client from '../utils/sanity';
-import SplitDragHandler from '../utils/split-controller.tsx';
-import MediaLoader from '../utils/media-providers/media-loader.tsx';
-import { useTooltipInit } from '../utils/tooltip/tooltipInit.ts';
+import SplitDragHandler from '../utils/split-controller';
+import MediaLoader from '../utils/media-providers/media-loader';
+import { useTooltipInit } from '../utils/tooltip/tooltipInit';
 import '../styles/block-type-1.css';
 
 type VideoSet = {
@@ -38,7 +38,7 @@ const IceCreamScoop = () => {
   // Fetch by slug; adjust slug string to match your Studio document
   useEffect(() => {
     client
-      .fetch(
+      .fetch<any>(
         `*[_type == "mediaBlock" && slug.current == $slug][0]{
           mediaOne{
             alt,
@@ -112,7 +112,7 @@ const IceCreamScoop = () => {
       </div>
 
       {/* SPLITTER */}
-      <SplitDragHandler split={split} setSplit={setSplit} isPortrait={isPortrait} />
+      <SplitDragHandler split={split} setSplit={setSplit} />
 
       {/* RIGHT / BOTTOM */}
       <div

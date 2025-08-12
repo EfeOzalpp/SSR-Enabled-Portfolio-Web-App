@@ -1,27 +1,21 @@
-import ReactDOM from 'react-dom/client';
+// src/index.jsx
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import Frontpage from './FrontPage.jsx';
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import { loadableReady } from '@loadable/component';
+import App from './App';
 
-const path = window.location.pathname;
+const container = document.getElementById('root');
+const app = (
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
 
-if (path === '/' || path === '/home') {
-  // Load extra fonts + theme only for efe-portfolio route
-  Promise.all([
-    import('./styles/font+theme.css'),
-    import ('./styles/general-block.css'),
-  ]).then(() => {
-    ReactDOM.createRoot(document.getElementById('efe-portfolio')).render(
-      <BrowserRouter>
-        <Frontpage />
-      </BrowserRouter>
-    );
+if (container && container.hasChildNodes()) {
+  loadableReady(() => {
+    hydrateRoot(container, app);
   });
-} else if (path === '/dynamic-theme') {
-  import('./DynamicTheme.jsx').then(({ default: DynamicTheme }) => {
-    ReactDOM.createRoot(document.getElementById('dynamic-theme')).render(
-      <BrowserRouter>
-        <DynamicTheme />
-      </BrowserRouter>
-    );
-  });
+} else {
+  createRoot(container).render(app);
 }

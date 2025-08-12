@@ -1,8 +1,8 @@
 // src/components/DataVisualizationBlock.tsx
 import { useEffect, useState } from 'react';
 import client from '../utils/sanity';
-import MediaLoader from '../utils/media-providers/media-loader.tsx';
-import { useTooltipInit } from '../utils/tooltip/tooltipInit.ts';
+import MediaLoader from '../utils/media-providers/media-loader';
+import { useTooltipInit } from '../utils/tooltip/tooltipInit';
 import '../styles/block-type-1.css';
 
 type VideoSet = {
@@ -27,28 +27,29 @@ const DataVisualizationBlock = () => {
   useTooltipInit();
 
   // Fetch data from Sanity
-  useEffect(() => {
-    client
-      .fetch(
-        `*[_type == "mediaBlock" && slug.current == $slug][0]{
-          mediaOne{
-            alt,
-            image,
-            video{
-              "webmUrl": webm.asset->url,
-              "mp4Url": mp4.asset->url,
-              poster
-            }
+useEffect(() => {
+  client
+   .fetch<DataVizData>(
+      `*[_type == "mediaBlock" && slug.current == $slug][0]{
+        mediaOne{
+          alt,
+          image,
+          video{
+            "webmUrl": webm.asset->url,
+            "mp4Url": mp4.asset->url,
+            poster
           }
-        }`,
-        { slug: 'data-viz' }
-      )
-      .then(setData)
-      .catch((err: any) => {
-        console.warn('[DataVisualizationBlock] GROQ fetch failed:', err);
-        setData(null);
-      });
-  }, []);
+        }
+      }`,
+      { slug: 'data-viz' }
+    )
+    .then(setData)
+    .catch((err: any) => {
+      console.warn('[DataVisualizationBlock] GROQ fetch failed:', err);
+      setData(null);
+    });
+}, []);
+
 
   if (!data || !data.mediaOne) return null;
 

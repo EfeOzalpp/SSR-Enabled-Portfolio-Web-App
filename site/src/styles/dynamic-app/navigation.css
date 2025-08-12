@@ -235,7 +235,7 @@ background: var(--edgeColor, #444); width: 100%; border-radius: 2px; overflow: h
 width: var(--progress-dimension, 2%); background: #fff; transition: width 0.1s ease-in-out;}
 
 /* Scroll hint overlay */
-.scroll-hint { position: absolute; top: 43.5%; background: #222222; border: var(--darkerColor) 1.6px solid; padding: 13px 12px 13px 18px; border-radius: 2px; text-align: center; opacity: 1; transition: opacity 0.8s ease-out; pointer-events: none; z-index: 10; display: flex; align-items: center; gap: 12px;  
+.scroll-hint { position: absolute; top: 43.5%; background: #222222; border: var(--darkerColor) 1.6px solid; padding: 16px 15px 16px 21px; border-radius: 2px; text-align: center; opacity: 1; transition: opacity 0.8s ease-out; pointer-events: none; z-index: 10; display: flex; align-items: center; gap: 12px;  
 animation: scrollHintMove 1s infinite alternate ease-in-out; transition: opacity 0.2s ease-out;}
 @keyframes scrollHintMove {0% {left: 4%;} 100% {left: 5%;}}
 

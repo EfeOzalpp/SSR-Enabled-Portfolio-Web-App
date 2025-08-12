@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import client from '../utils/sanity';
 import DynamicAppInbound from '../dynamic-app/dynamic-app-shadow.jsx';
-import { useDynamicOverlay } from '../utils/content-utility/dynamic-overlay.ts';
-import { useRealMobileViewport } from '../utils/content-utility/real-mobile.ts';
+import { useDynamicOverlay } from '../utils/content-utility/dynamic-overlay';
+import { useRealMobileViewport } from '../utils/content-utility/real-mobile';
 
 import '../styles/block-type-a.css';
 
@@ -113,7 +113,7 @@ const DynamicApp = () => {
               : {}
           }
         >
-          <DynamicAppInbound />
+          <DynamicAppInbound onFocusChange={() => {}} />
         </div>
       </div>
     </section>

@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useProjectVisibility } from './context-providers/project-context.tsx';
+import { useProjectVisibility } from './context-providers/project-context';
 
-import RockEscapade from '../components/rock-escapade-case-study/rock-escapade-case-study.tsx';
-import LoadingScreen from './content-utility/loading.tsx';
+import LoadingScreen from './content-utility/loading';
 
-import { attachOpacityObserver } from '../utils/content-utility/opacity-observer.tsx';
+import { attachOpacityObserver } from '../utils/content-utility/opacity-observer';
 
-import { projects } from '../utils/content-utility/component-loader.tsx';
-import LazyInView from './content-utility/lazy-view.tsx';
+import { projects } from '../utils/content-utility/component-loader';
+import LazyInView from './content-utility/lazy-view';
 
 const ScrollController = () => {
   const {
@@ -19,8 +18,6 @@ const ScrollController = () => {
   const [justExitedFocusKey, setJustExitedFocusKey] = useState<string | null>(null);
   const [invisibleKeys, setInvisibleKeys] = useState<Set<string>>(new Set());
   const projectRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  const [eagerKeys, setEagerKeys] = useState<Set<string>>(new Set()); // éagér load first projéct for fastér first contént visibility
 
   const [viewportStyle, setViewportStyle] = useState({
     height: '98dvh',
@@ -38,24 +35,6 @@ const ScrollController = () => {
     }
   };
   
-  // éagér load usééfféct
-  useEffect(() => {
-  const container = scrollContainerRef.current;
-  if (!container) return;
-  const id = requestAnimationFrame(() => {
-    const cTop = container.getBoundingClientRect().top;
-    const entries = projects.map(p => {
-      const el = projectRefs.current[p.key];
-      const top = el?.getBoundingClientRect().top ?? Infinity;
-      return { key: p.key, top: top - cTop };
-    }).filter(e => Number.isFinite(e.top)).sort((a,b)=>a.top-b.top);
-
-    const i = Math.max(0, entries.findIndex(e => e.top >= 0));
-    setEagerKeys(new Set([entries[i]?.key ?? projects[0].key]));
-  });
-    return () => cancelAnimationFrame(id);
-  }, [scrollContainerRef]);
-
   useEffect(() => {
     updateViewportStyle();
     window.addEventListener('resize', updateViewportStyle);
@@ -200,7 +179,7 @@ const ScrollController = () => {
           <div
             key={item.key}
             id={`block-${item.key}`}
-            ref={(el) => (projectRefs.current[item.key] = el)}
+            ref={(el: HTMLDivElement | null) => {projectRefs.current[item.key] = el;}}
             style={{
               height: isHidden ? '0px' : isFocused ? 'auto' : viewportStyle.height,
               overflow: isFocused ? 'visible' : 'hidden',
@@ -213,12 +192,10 @@ const ScrollController = () => {
           >
             <div style={{ minHeight: viewportStyle.height }}>
               <LazyInView
-                eager={eagerKeys.has(item.key)}
-                load={item.lazyImport}
-                rootMargin="900px 0"                // start others early
+                load={item.lazyImport}             
                 fallback={<LoadingScreen isFullScreen={false} />}
               />
-              {isFocused && item.title === 'Evade the Rock' && <RockEscapade />}
+              {isFocused && item.title === 'Evade the Rock' && null}
             </div>
           </div>
         );

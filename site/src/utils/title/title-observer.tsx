@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { projects } from '../content-utility/component-loader.tsx';
-import { useActiveTitle } from './title-context.tsx';
+import { projects } from '../content-utility/component-loader';
+import { useActiveTitle } from './title-context';
 
 const TitleObserver = () => {
   const { setActiveTitle } = useActiveTitle();

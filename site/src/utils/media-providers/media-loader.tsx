@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import { useVideoVisibility } from './video-observer.tsx';
-import LoadingScreen from '../content-utility/loading.tsx';
+import { useVideoVisibility } from './video-observer';
+import LoadingScreen from '../content-utility/loading';
 import { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 import {
@@ -8,13 +8,13 @@ import {
   getMediumImageUrl,
   getHighQualityImageUrl,
   urlFor,
-} from './image-builder.js';
+} from './image-builder';
 
 import {
   registerImage,
   notifyLowResLoaded,
   onAllLowResLoaded,
-} from './image-upgrade-manager.ts';
+} from './image-upgrade-manager';
 
 type VideoSetSrc = {
   webmUrl?: string;

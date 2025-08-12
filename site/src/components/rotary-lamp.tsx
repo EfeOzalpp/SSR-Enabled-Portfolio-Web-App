@@ -1,9 +1,9 @@
 // src/sections/RotaryLamp.tsx
 import { useEffect, useRef, useState } from 'react';
 import client from '../utils/sanity';
-import SplitDragHandler from '../utils/split-controller.tsx';
-import MediaLoader from '../utils/media-providers/media-loader.tsx';
-import { useTooltipInit } from '../utils/tooltip/tooltipInit.ts';
+import SplitDragHandler from '../utils/split-controller';
+import MediaLoader from '../utils/media-providers/media-loader';
+import { useTooltipInit } from '../utils/tooltip/tooltipInit';
 import '../styles/block-type-1.css';
 
 const RotaryLamp = () => {

@@ -1,0 +1,56 @@
+* [33m832761c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Addéd SSR configuration
+* [33m1aed98d[m Bug fixés and optimization
+* [33m71b2f04[m Vidéo formatting updatés
+* [33m4bea29f[m CSS scoping for pérformancé among shadow dom, and react router dom cases and scoped css within lazy loading components to save headroom
+* [33m04c8449[m Updatés furthér improvéméNt
+* [33m9ca51d2[m pérformancé updatés and css scoping
+* [33ma245c99[m Scoping and pérformancé changés
+* [33mc07c1d6[m Pérformancé updatés for FCL / LCL
+* [33m85973ce[m Imagé Optimization
+* [33mdc054df[m Addéd loading pagé placéholdérs and céntralizéd imagé and vidéo uploading format, finishéd émbéd dynamic app and dynamic app itsélf to work on all dévicés
+* [33mf8117e7[m Addéd support for mobilé for émbéddéd app
+* [33me692e01[m Updatés for émbéddéd app codé and somé pérformancé updatés. Moré pérformancé and UX updatés incoming tomorrow
+* [33ma910c1d[m Support for émbéd app for Ipad
+* [33md129da7[m Somé updatés to thé dynamic app again
+* [33mcb5ad13[m Continué intégrating dynamic app diréctly
+* [33ma109c88[m embedding project
+* [33m4340752[m Optimizéd componénts for npm run build command, rémovéd légacy q5 and p5 and updatéd firéwork canvas to work with q5 3.2.4 instéad and céntralizéd backénd to oné sanity projéct
+* [33mab864f7[m Updated the dynamic theme to modern standards
+* [33mbf3a724[m Integrated Project dynamic-theme
+* [33m5e0b118[m Improved the transitions, and performance, via centralization of tooltip
+* [33m2dca947[m Added toolbar tip for project description
+* [33m2195b71[m Unmount q5.js on no visibility for performance
+* [33m912e00a[m Added data visualization project section
+* [33m9184f84[m Onboarding instructions for game complete
+* [33m9d8aedb[m Onboarding instructions update
+* [33mc7d6032[m Updates to the opacity observer and minor bug fixes
+* [33mdf3278f[m Updates to the opacity observer and minor bug fixes
+* [33mf65d1ab[m Beginning to make project case study section
+* [33m6f8cc61[m Rctangls xplod on contact with projctil
+* [33m6e9b84e[m Added shooting logic to the game, and improved the game performance via speeding up the ingame values to counter act lower fps slowness on mobile
+* [33m7052f29[m Added CTA UX improvements focusing on keeping immersion while calling attention to the Case Study CTA and gameplay UI for high score and other subtle interactive delights
+* [33m4076085[m Improved Q5 game UX
+* [33m62fae3d[m Additional SVG indicators and responsiveness & interaction improvements
+* [33m02c1229[m Added the split touch handle for mobile devices
+* [33mf383d30[m Drag based image for type-1 projects implementation
+* [33m7d60a83[m More lottie effects, responsiveness additions and quality of life improvements
+* [33ma2c7e9c[m event handler fixes and implementing next set of lottie animations
+* [33m88cd6a5[m Added linkedin and github svg animations
+* [33m938bbb3[m Added Game Over displays
+* [33m86a1b9f[m Reduced redundancies and improved game interface and gameplay
+* [33mb81907c[m Addd onboarding, coin counter, touch based movement, and fullscreen modes for game
+* [33m48f2844[m Q5js game component application v1
+* [33mda86a14[m Applied Lottie animation and thematic change settings
+* [33m1cbfe74[m Implemented changing titles for each project respecting the project randomization feature
+* [33mbcbfed6[m Added Observer to change opacity based on visibility for enhanced content focus
+* [33m1d88563[m Focused UX fixes through scroll behavior and keeping it simple and effective
+* [33mcf95b80[m Changes to the UI/UX and mobile experience
+* [33mb60f7d9[m Added Naavigation placeholder plus some changes to the general styles
+* [33m08b0089[m First component concept finished
+* [33ma718d9e[m Set up fonts, and general CSS
+* [33m4170da4[m Added Sanity Client
+* [33m7191ffa[m Initial commit: frontend and backend with .gitignore applied
+*   [33m105eb38[m Merge branch 'main' of https://github.com/EfeOzalpp/portfolio-site
+[32m|[m[33m\[m  
+[32m|[m * [33m9ae4c78[m Initial commit
+* [33mfd8243a[m Initial commit: project files set up with frontend and backend

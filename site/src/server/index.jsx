@@ -3,9 +3,8 @@
 
 import path from 'path';
 import fs from 'fs';
-import express from 'express';
 import React from 'react';
-import { StaticRouter } from 'react-router-dom';    
+import { StaticRouter } from 'react-router';   
 import { renderToPipeableStream, renderToString } from 'react-dom/server';
 import App from '../App';
 import { ChunkExtractor } from '@loadable/server';
@@ -13,6 +12,7 @@ import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import createEmotionServer from '@emotion/server/create-instance';
 
+const express = require('express');
 const app = express();
 const IS_DEV = process.env.NODE_ENV !== 'production';
 const DEV_ASSETS_ORIGIN = 'http://localhost:3000/';

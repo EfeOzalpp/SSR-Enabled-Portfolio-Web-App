@@ -8,7 +8,7 @@ import FireworksDisplay from './components/fireworksDisplay';
 import PauseButton from './components/pauseButton';
 import Footer from './components/footer';
 import fetchSVGIcons from './lib/fetchSVGIcons';
-import ObservedCard from './lib/observedCard.tsx';
+import ObservedCard from './lib/observedCard.jsx';
 import setupAltObserver from './lib/setupAltObserver';
 import IntroOverlay from './components/IntroOverlay';
 import { colorMapping } from './lib/colorString.ts';

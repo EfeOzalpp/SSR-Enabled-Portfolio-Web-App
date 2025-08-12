@@ -19,7 +19,7 @@ label p {color: #dbdbdb;}
 /* Padding and spacers for Mobile */  
 .section-divider { height: 3.6em;} .section-divider2 { height: 2.2em;} .section-divider3 { height: 0.2em; margin-top: -0.6em;}
 #shadow-dynamic-app {padding-left: 0.8em; padding-right: 0.8em;}
-#shadow-dynamic-app h5 { font-size: clamp(13px, 0.6em, 24px);}
+#shadow-dynamic-app h5 { font-size: clamp(14px, 0.6em, 24px);}
 #shadow-dynamic-app h4 { font-size: clamp(16px, 1.1em, 28px);}
 #shadow-dynamic-app h3 { font-size: clamp(19px, 1.4em, 32px);}
 #shadow-dynamic-app h-name { font-size: clamp(16px, 0.8em, 46px);}

@@ -7,6 +7,9 @@ import Loading from './utils/content-utility/loading.tsx';
 import ScrollController from './utils/scroll-controller.tsx';
 import { ProjectVisibilityProvider } from './utils/context-providers/project-context.tsx';
 
+import './styles/font+theme.css';
+import './styles/general-block.css';
+
 function Frontpage() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasFadedIn, setHasFadedIn] = useState(false);
