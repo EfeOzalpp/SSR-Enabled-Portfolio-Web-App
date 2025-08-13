@@ -4,9 +4,9 @@ import { useSsrData } from '../context-providers/ssr-data-context';
 import { ssrRegistry } from '../../ssr/registry';
 
 export const componentMap = {
-  rotary: () => import('../../components/rotary-lamp'),
-  scoop: () => import('../../components/ice-cream-scoop'),
-  dataviz: () => import('../../components/data-visualization'),
+  rotary: () => import('../../components/block-type-1/rotary-lamp'),
+  scoop: () => import('../../components/block-type-1/ice-cream-scoop'),
+  dataviz: () => import('../../components/block-type-1/data-visualization'),
   game: () => import('../../components/rock-escapade/evade-the-rock.jsx'),
   dynamic: () => import('../../components/dynamic-app'),
 };
@@ -28,9 +28,9 @@ const toComponent = <T extends ComponentType<any>>(p: Promise<{ default: T }>) =
 
 // stable base list
 export const baseProjects: Project[] = [
-  { key: 'scoop',   title: 'Ice Cream Scoop',   lazyImport: () => toComponent(import('../../components/ice-cream-scoop')) },
-  { key: 'rotary',  title: 'Rotary Lamp',       lazyImport: () => toComponent(import('../../components/rotary-lamp')) },
-  { key: 'dataviz', title: 'Data Visualization',lazyImport: () => toComponent(import('../../components/data-visualization')) },
+  { key: 'scoop',   title: 'Ice Cream Scoop',   lazyImport: () => toComponent(import('../../components/block-type-1/ice-cream-scoop')) },
+  { key: 'rotary',  title: 'Rotary Lamp',       lazyImport: () => toComponent(import('../../components/block-type-1/rotary-lamp')) },
+  { key: 'dataviz', title: 'Data Visualization',lazyImport: () => toComponent(import('../../components/block-type-1/data-visualization')) },
   { key: 'game',    title: 'Evade the Rock',    lazyImport: () => toComponent(import('../../components/rock-escapade/evade-the-rock.jsx')) },
   { key: 'dynamic', title: 'Dynamic App', isLink: true, lazyImport: () => toComponent(import('../../components/dynamic-app')) },
 ];
@@ -43,18 +43,17 @@ export function useProjectLoader(key: ProjectKey) {
   const payload = ssr?.preloaded?.[key];
   const desc = ssrRegistry[key];
 
-  // inside useProjectLoader
+  // SSR path
   if (payload && desc?.render) {
     const data = payload.data ?? payload;
 
-    // rotary gets the enhancer
+    // Rotary with enhancer
     if (key === 'rotary') {
       return async () => {
         const Enhancer = (await import('../../ssr/projects/rotary.enhancer')).default;
         return {
           default: () => (
             <>
-              {/* SSR markup already contains #rotary-enhancer-mount */}
               {desc.render!(data)}
               <Enhancer />
             </>
@@ -63,12 +62,27 @@ export function useProjectLoader(key: ProjectKey) {
       };
     }
 
-    // all other SSR components render normally
+    // Scoop with enhancer
+    if (key === 'scoop') {
+      return async () => {
+        const Enhancer = (await import('../../ssr/projects/scoop.enhancer')).default;
+        return {
+          default: () => (
+            <>
+              {desc.render!(data)}
+              <Enhancer />
+            </>
+          ),
+        };
+      };
+    }
+
+    // All other SSR components
     return async () => ({
       default: () => <>{desc.render!(data)}</>,
     });
   }
 
-  // Fallback: lazy load real component on the client
+  // Fallback: client lazy load
   return project.lazyImport;
 }

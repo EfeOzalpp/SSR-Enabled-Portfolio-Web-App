@@ -23,7 +23,7 @@ export function ProjectPane({
   const payload = ssr?.preloaded?.[item.key];
   const desc = ssrRegistry[item.key];
 
-  // ✅ Delay showing any client-only fallback until after hydration
+  // Delay showing any client-only fallback until after hydration
   const [isHydrated, setIsHydrated] = useState(false);
   useEffect(() => { setIsHydrated(true); }, []);
 

@@ -424,7 +424,7 @@ function ProjectPane({
   const payload = ssr?.preloaded?.[item.key];
   const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_5__.ssrRegistry[item.key];
 
-  // ✅ Delay showing any client-only fallback until after hydration
+  // Delay showing any client-only fallback until after hydration
   const [isHydrated, setIsHydrated] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     setIsHydrated(true);

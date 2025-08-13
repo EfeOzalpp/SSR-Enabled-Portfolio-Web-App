@@ -16,13 +16,14 @@ const queries: Record<string, string> = {
   // add others as I go
 };
 
-export async function getProjectData(key: string) {
+export async function getProjectData<T>(key: string): Promise<T | null> {
   const q = queries[key];
   if (!q) return null;
   try {
-    return await client.fetch(q);
+    return await client.fetch<T>(q);
   } catch (e) {
     console.error(`[getProjectData] ${key} failed:`, e);
     return null;
   }
 }
+

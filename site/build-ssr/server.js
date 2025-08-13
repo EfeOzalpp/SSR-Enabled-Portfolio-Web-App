@@ -17618,7 +17618,8 @@ function createEmotion() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   buildHtmlClose: () => (/* binding */ buildHtmlClose),
-/* harmony export */   buildHtmlOpen: () => (/* binding */ buildHtmlOpen)
+/* harmony export */   buildHtmlOpen: () => (/* binding */ buildHtmlOpen),
+/* harmony export */   prefixCss: () => (/* binding */ prefixCss)
 /* harmony export */ });
 /* harmony import */ var node_fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:fs */ "node:fs");
 /* harmony import */ var node_fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_fs__WEBPACK_IMPORTED_MODULE_0__);
@@ -17653,7 +17654,8 @@ function buildHtmlOpen(opts) {
     fontsCss,
     extractorLinkTags,
     extractorStyleTags,
-    emotionStyleTags
+    emotionStyleTags,
+    extraCriticalCss = ''
   } = opts;
   const ROOT = process.cwd();
   const cssTheme = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/font+theme.css'));
@@ -17662,7 +17664,7 @@ function buildHtmlOpen(opts) {
   // Inline prefixed CSS only for landing routes
   let appCriticalCss = '';
   if (routePath === '/' || routePath === '/home') {
-    appCriticalCss = prefixCss(cssTheme) + '\n/* --- separator --- */\n' + prefixCss(cssBlocks);
+    appCriticalCss = prefixCss(cssTheme) + '\n/* --- separator --- */\n' + prefixCss(cssBlocks) + (extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '');
   }
   return `<!doctype html>
 <html lang="en">
@@ -17693,10 +17695,11 @@ ${extractorLinkTags}
 ${extractorStyleTags}
 ${emotionStyleTags}
 </head>
-<body id="efe-portfolio">
+<body>
 <div id="root">`;
 }
 function buildHtmlClose(ssrPayload, scriptTags) {
+  // write the SSR payload safely
   const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
 ${scriptTags}
@@ -17732,10 +17735,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__);
 /* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
-/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
-/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
-/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
+/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
+/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
+/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/server/index.jsx
 
 
@@ -17751,8 +17755,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
 // helpers
- // fresh seed per request
 
 
 
@@ -17765,22 +17770,15 @@ const {
   BUILD_DIR,
   STATS_FILE,
   ASSET_MANIFEST
-} = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.resolveStatsFile)();
+} = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.resolveStatsFile)();
 
 /** -----------------------------
- * Static assets (dev & prod)
- * Serve the entire public/ directory BEFORE SSR catch-all.
+ * Static assets
  * ----------------------------- */
 app.use(express__WEBPACK_IMPORTED_MODULE_3___default()["static"](path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public'), {
   maxAge: '1y',
-  index: false // never serve a public/index.html; SSR handles HTML
+  index: false
 }));
-
-// (Optional) keep these if you want stricter headers, but public/ already covers them
-// app.use('/fonts', express.static(path.join(process.cwd(), 'public', 'fonts'), { maxAge: '1y' }));
-// app.use('/fonts2', express.static(path.join(process.cwd(), 'public', 'fonts2'), { maxAge: '1y' }));
-
-/** Dev asset proxy for CRA */
 if (IS_DEV) {
   app.use('/static', (0,http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__.createProxyMiddleware)({
     target: DEV_ASSETS_ORIGIN,
@@ -17793,8 +17791,6 @@ if (IS_DEV) {
     ws: true
   }));
 }
-
-/** Prod build file serving */
 if (!IS_DEV) {
   app.use('/static', express__WEBPACK_IMPORTED_MODULE_3___default()["static"](path__WEBPACK_IMPORTED_MODULE_0___default().join(BUILD_DIR, 'static'), {
     maxAge: '1y',
@@ -17809,63 +17805,81 @@ if (!IS_DEV) {
  * SSR catch-all
  * ----------------------------- */
 app.get('/*', async (req, res) => {
-  // 0) seed for deterministic randomness (fresh every request)
+  // 0) seed per request
   const {
     seed
-  } = (0,_seed__WEBPACK_IMPORTED_MODULE_13__.getEphemeralSeed)();
+  } = (0,_seed__WEBPACK_IMPORTED_MODULE_15__.getEphemeralSeed)();
 
-  // 1) Prepare SSR payload (seed + preloaded first project data)
+  // 1) SSR payload
   const ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_12__.prepareSsrData)(seed);
   if (!fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(STATS_FILE)) {
     res.status(500).send('<pre>Missing build artifacts. Run `npm run build` (prod) or `npm run dev:ssr` (dev) to generate loadable-stats.json.</pre>');
     return;
   }
 
-  // 2) Setup loadable extractor
+  // 2) loadable
   const extractor = new _loadable_server__WEBPACK_IMPORTED_MODULE_7__.ChunkExtractor({
     statsFile: STATS_FILE,
     publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/'
   });
 
-  // 3) Emotion setup
+  // 3) emotion
   const {
     cache,
     extractCriticalToChunks,
     constructStyleTagsFromChunks
   } = (0,_emotion__WEBPACK_IMPORTED_MODULE_9__.createEmotion)();
 
-  // 4) Wrap in providers
-  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_8__.CacheProvider, {
+  // 4) providers
+  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_8__.CacheProvider, {
     value: cache,
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__.SsrDataProvider, {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__.SsrDataProvider, {
       value: ssrPayload,
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_4__.StaticRouter, {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_4__.StaticRouter, {
         location: req.url,
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_App__WEBPACK_IMPORTED_MODULE_6__["default"], {})
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_App__WEBPACK_IMPORTED_MODULE_6__["default"], {})
       })
     })
   }));
 
-  // 5) Pre-render for Emotion critical CSS
+  // 5) emotion critical CSS
   const prerender = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_5__.renderToString)(jsx);
   const emotionChunks = extractCriticalToChunks(prerender);
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks);
 
-  // 6) Manifest (prod only) + icons
-  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
+  // 6) manifest/icons
+  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
   const iconSvg = '/favicon.svg';
 
-  // 7) Fonts
-  const fontsCss = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.readFontCss)();
+  // 7) fonts
+  const fontsCss = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.readFontCss)();
 
-  // 8) Preload first media (optional)
+  // 8) preload first media (depends on ssrPayload)
   const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
   const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
-  const preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.buildPreloadLinks)(firstData);
+  const preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.buildPreloadLinks)(firstData);
 
-  // 9) Build HTML parts
-  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlOpen)({
+  // 8.5) per-first-project critical CSS (compute here)
+  let extraCriticalCss = '';
+  if (firstKey) {
+    const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_13__.ssrRegistry[firstKey];
+    const files = desc?.criticalCssFiles || [];
+    if (files.length > 0) {
+      const ROOT = process.cwd();
+      const readSafe = p => {
+        try {
+          return fs__WEBPACK_IMPORTED_MODULE_1___default().readFileSync(path__WEBPACK_IMPORTED_MODULE_0___default().resolve(ROOT, p), 'utf8');
+        } catch {
+          return '';
+        }
+      };
+      extraCriticalCss = files.map(relPath => (0,_html__WEBPACK_IMPORTED_MODULE_14__.prefixCss)(readSafe(relPath))).filter(Boolean).join('\n/* --- separator --- */\n');
+    }
+  }
+
+  // 9) HTML
+  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_14__.buildHtmlOpen)({
     IS_DEV,
     routePath: req.path,
     iconSvg,
@@ -17874,11 +17888,12 @@ app.get('/*', async (req, res) => {
     fontsCss,
     extractorLinkTags: extractor.getLinkTags(),
     extractorStyleTags: extractor.getStyleTags(),
-    emotionStyleTags
+    emotionStyleTags,
+    extraCriticalCss
   });
-  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlClose)(ssrPayload, extractor.getScriptTags());
+  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_14__.buildHtmlClose)(ssrPayload, extractor.getScriptTags());
 
-  // 10) Stream the app (with proper lifecycle)
+  // 10) stream
   let didError = false;
   const ABORT_MS = IS_DEV ? 30000 : 10000;
   const stream = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_5__.renderToPipeableStream)(jsx, {
@@ -17886,7 +17901,6 @@ app.get('/*', async (req, res) => {
       res.statusCode = didError ? 500 : 200;
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.write(htmlOpen);
-      // IMPORTANT: don't auto-end; we'll write htmlClose ourselves
       stream.pipe(res, {
         end: false
       });
@@ -17947,7 +17961,7 @@ async function prepareSsrData(seed) {
   let preloadLinks = [];
   const desc = first ? _ssr_registry__WEBPACK_IMPORTED_MODULE_2__.ssrRegistry[first.key] : undefined;
   if (desc?.fetch) {
-    const data = await desc.fetch(); // 👈 server fetch
+    const data = await desc.fetch(); // server fetch
     preloaded[first.key] = {
       kind: first.key,
       data
@@ -18137,11 +18151,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
 /* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
-/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../styles/block-type-1.css */ "./src/styles/block-type-1.css");
-/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/ssr/projects/rotary.ssr.tsx
-
 
 
 
@@ -18151,40 +18162,41 @@ const rotarySSR = {
   render: data => {
     const m1 = data?.mediaOne || {};
     const m2 = data?.mediaTwo || {};
-    const img1 = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m1.image, 1920, 1080, 90) : m1?.imageUrl;
-    const img2 = m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.image, 1920, 1080, 90) : m2?.imageUrl;
 
-    // match the SplitDragHandler expectations:
-    // - section is relative, children are absolutely positioned containers
-    // - default split ~50%
-    const initialSplit = 50;
-    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+    // Build medium + high URLs safely
+    const m1Medium = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m1.image) : m1?.imageUrl;
+    const m1High = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m1.image, 1920, 1080, 90) : m1?.imageUrl;
+    const m2Medium = m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.image) : m2?.imageUrl;
+    const m2High = m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.image, 1920, 1080, 90) : m2?.imageUrl;
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
       id: "rotary-ssr",
-      className: "block-type-1",
+      className: "block-type-1 ssr-initial-split",
       style: {
         position: 'relative',
         width: '100%',
-        // Give the section a height so absolute children can size against it.
-        // Your CSS may already set this; if so, you can remove the line below.
-        minHeight: '60vh',
+        height: '100dvh',
+        // more deterministic than minHeight here
         overflow: 'hidden'
       },
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
         id: "rotary-media-1-container",
         className: "media-content-1",
         style: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: `${initialSplit}%`,
-          height: '100%'
+          position: 'absolute'
         },
-        children: img1 && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+        children: m1Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
           id: "rotary-media-1",
           className: "media-item-1 tooltip-rotary-lamp",
-          src: img1,
+          src: m1Medium
+          // only set data attr if different / available
+          ,
+          ...(m1High ? {
+            'data-src-full': m1High
+          } : {}),
           alt: m1?.alt ?? 'Rotary Lamp media',
           draggable: false,
+          decoding: "async",
+          fetchPriority: "high",
           style: {
             width: '100%',
             height: '100%',
@@ -18192,24 +18204,25 @@ const rotarySSR = {
             display: 'block'
           }
         })
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
         id: "rotary-enhancer-mount"
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
         id: "rotary-media-2-container",
         className: "media-content-2",
         style: {
-          position: 'absolute',
-          top: 0,
-          left: `${initialSplit}%`,
-          width: `${100 - initialSplit}%`,
-          height: '100%'
+          position: 'absolute'
         },
-        children: img2 && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+        children: m2Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
           id: "rotary-media-2",
           className: "media-item-2 tooltip-rotary-lamp",
-          src: img2,
+          src: m2Medium,
+          ...(m2High ? {
+            'data-src-full': m2High
+          } : {}),
           alt: m2?.alt ?? 'Rotary Lamp media',
           draggable: false,
+          decoding: "async",
+          fetchPriority: "high",
           style: {
             width: '100%',
             height: '100%',
@@ -18219,7 +18232,8 @@ const rotarySSR = {
         })
       })]
     });
-  }
+  },
+  criticalCssFiles: ['src/styles/block-type-1.css']
 };
 
 /***/ }),
@@ -18235,22 +18249,113 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   scoopSSR: () => (/* binding */ scoopSSR)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _blocks_type_1__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../blocks/type-1 */ "./src/ssr/blocks/type-1.tsx");
-/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/ssr/projects/scoop.ssr.tsx
 
 
 
 
 const scoopSSR = {
-  fetch: () => (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__.getProjectData)('ice-scoop'),
-  render: data => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_blocks_type_1__WEBPACK_IMPORTED_MODULE_1__.SsrMediaBlock, {
-    data: data
-  })
-  // buildPreloads: (data) => [...optional <link> tags from data],
+  fetch: () => (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__.getProjectData)('ice-scoop'),
+  render: data => {
+    const m1 = data?.mediaOne || {};
+    const m2 = data?.mediaTwo || {};
+
+    // Detect if mediaTwo is video
+    const isVideo2 = Boolean(m2?.video?.webmUrl || m2?.video?.mp4Url);
+
+    // LEFT / TOP media
+    const m1Medium = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m1.image) : m1?.imageUrl;
+    const m1High = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m1.image, 1920, 1080, 90) : m1?.imageUrl;
+
+    // RIGHT / BOTTOM media
+    const m2Medium = !isVideo2 ? m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.image) : m2?.imageUrl : m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.video.poster) : undefined;
+    const m2High = !isVideo2 ? m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.image, 1920, 1080, 90) : m2?.imageUrl : m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.video.poster, 1920, 1080, 90) : undefined;
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
+      id: "scoop-ssr",
+      className: "block-type-1 ssr-initial-split",
+      style: {
+        position: 'relative',
+        width: '100%',
+        height: '100dvh',
+        overflow: 'hidden'
+      },
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        id: "scoop-media-1-container",
+        className: "media-content-1",
+        style: {
+          position: 'absolute'
+        },
+        children: m1Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
+          id: "scoop-media-1",
+          className: "media-item-1 tooltip-ice-scoop",
+          src: m1Medium,
+          ...(m1High ? {
+            'data-src-full': m1High
+          } : {}),
+          alt: m1?.alt ?? 'Ice Cream Scoop media',
+          draggable: false,
+          decoding: "async",
+          fetchPriority: "high",
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block'
+          }
+        })
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        id: "scoop-enhancer-mount"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        id: "scoop-media-2-container",
+        className: "media-content-2",
+        style: {
+          position: 'absolute'
+        },
+        children: [!isVideo2 && m2Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
+          id: "scoop-media-2",
+          className: "media-item-2 tooltip-ice-scoop",
+          src: m2Medium,
+          ...(m2High ? {
+            'data-src-full': m2High
+          } : {}),
+          alt: m2?.alt ?? 'Ice Cream Scoop media',
+          draggable: false,
+          decoding: "async",
+          fetchPriority: "high",
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block'
+          }
+        }), isVideo2 && m2Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("video", {
+          id: "scoop-media-2-video",
+          className: "media-item-2 tooltip-ice-scoop",
+          poster: m2Medium,
+          preload: "none",
+          muted: true,
+          playsInline: true,
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block'
+          },
+          children: [m2?.video?.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
+            src: m2.video.webmUrl,
+            type: "video/webm"
+          }), m2?.video?.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
+            src: m2.video.mp4Url,
+            type: "video/mp4"
+          })]
+        })]
+      })]
+    });
+  },
+  criticalCssFiles: ['src/styles/block-type-1.css']
 };
 
 /***/ }),
@@ -18284,16 +18389,6 @@ const ssrRegistry = {
 
 /***/ }),
 
-/***/ "./src/styles/block-type-1.css":
-/*!*************************************!*\
-  !*** ./src/styles/block-type-1.css ***!
-  \*************************************/
-/***/ (() => {
-
-
-
-/***/ }),
-
 /***/ "./src/utils/content-utility/component-loader.tsx":
 /*!********************************************************!*\
   !*** ./src/utils/content-utility/component-loader.tsx ***!
@@ -18318,9 +18413,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const componentMap = {
-  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rotary-lamp */ "./src/components/rotary-lamp.tsx")),
-  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/ice-cream-scoop */ "./src/components/ice-cream-scoop.tsx")),
-  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/data-visualization */ "./src/components/data-visualization.tsx")),
+  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
+  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
+  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")),
   game: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_evade-the-rock_jsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/evade-the-rock.jsx */ "./src/components/rock-escapade/evade-the-rock.jsx")),
   dynamic: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx"))
 };
@@ -18330,15 +18425,15 @@ const toComponent = p => p;
 const baseProjects = [{
   key: 'scoop',
   title: 'Ice Cream Scoop',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/ice-cream-scoop */ "./src/components/ice-cream-scoop.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
 }, {
   key: 'rotary',
   title: 'Rotary Lamp',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rotary-lamp */ "./src/components/rotary-lamp.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
 }, {
   key: 'dataviz',
   title: 'Data Visualization',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/data-visualization */ "./src/components/data-visualization.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
 }, {
   key: 'game',
   title: 'Evade the Rock',
@@ -18356,11 +18451,11 @@ function useProjectLoader(key) {
   const payload = ssr?.preloaded?.[key];
   const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_2__.ssrRegistry[key];
 
-  // inside useProjectLoader
+  // SSR path
   if (payload && desc?.render) {
     const data = payload.data ?? payload;
 
-    // rotary gets the enhancer
+    // Rotary with enhancer
     if (key === 'rotary') {
       return async () => {
         const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
@@ -18372,7 +18467,19 @@ function useProjectLoader(key) {
       };
     }
 
-    // all other SSR components render normally
+    // Scoop with enhancer
+    if (key === 'scoop') {
+      return async () => {
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_scoop_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/scoop.enhancer */ "./src/ssr/projects/scoop.enhancer.tsx"))).default;
+        return {
+          default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+            children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
+          })
+        };
+      };
+    }
+
+    // All other SSR components
     return async () => ({
       default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
         children: desc.render(data)
@@ -18380,7 +18487,7 @@ function useProjectLoader(key) {
     });
   }
 
-  // Fallback: lazy load real component on the client
+  // Fallback: client lazy load
   return project.lazyImport;
 }
 

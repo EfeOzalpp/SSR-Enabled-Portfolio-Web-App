@@ -7,7 +7,7 @@ function readTextSafe(p: string) {
 }
 
 // Minimal prefixer to mimic your PostCSS rule
-function prefixCss(css: string, prefix = '#efe-portfolio') {
+export function prefixCss(css: string, prefix = '#efe-portfolio') {
   return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
     selector = selector.trim();
     if (
@@ -32,14 +32,17 @@ export function buildHtmlOpen(opts: {
   extractorLinkTags: string;
   extractorStyleTags: string;
   emotionStyleTags: string;
+  /** any extra critical CSS to inline (already prefixed) */
+  extraCriticalCss?: string;
 }) {
   const {
     IS_DEV, routePath, iconSvg, iconIco, preloadLinks,
     fontsCss, extractorLinkTags, extractorStyleTags, emotionStyleTags,
+    extraCriticalCss = '',
   } = opts;
 
   const ROOT = process.cwd();
-  const cssTheme = readTextSafe(path.resolve(ROOT, 'src/styles/font+theme.css'));
+  const cssTheme  = readTextSafe(path.resolve(ROOT, 'src/styles/font+theme.css'));
   const cssBlocks = readTextSafe(path.resolve(ROOT, 'src/styles/general-block.css'));
 
   // Inline prefixed CSS only for landing routes
@@ -48,7 +51,8 @@ export function buildHtmlOpen(opts: {
     appCriticalCss =
       prefixCss(cssTheme) +
       '\n/* --- separator --- */\n' +
-      prefixCss(cssBlocks);
+      prefixCss(cssBlocks) +
+      (extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '');
   }
 
   return `<!doctype html>
@@ -80,12 +84,14 @@ ${extractorLinkTags}
 ${extractorStyleTags}
 ${emotionStyleTags}
 </head>
-<body id="efe-portfolio">
+<body>
 <div id="root">`;
 }
 
 export function buildHtmlClose(ssrPayload: any, scriptTags: string) {
-  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
+  // write the SSR payload safely
+  const ssrJson =
+    `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
 ${scriptTags}
 </body></html>`;

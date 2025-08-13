@@ -1,8 +1,10 @@
 // src/ssr/projects/rotary.ssr.tsx
 import type { SsrDescriptor } from '../types';
 import { getProjectData } from '../../utils/get-project-data';
-import { getHighQualityImageUrl } from '../../utils/media-providers/image-builder';
-import '../../styles/block-type-1.css';
+import {
+  getMediumImageUrl,
+  getHighQualityImageUrl,
+} from '../../utils/media-providers/image-builder';
 
 export const rotarySSR: SsrDescriptor = {
   fetch: () => getProjectData('rotary-lamp'),
@@ -10,73 +12,61 @@ export const rotarySSR: SsrDescriptor = {
     const m1 = data?.mediaOne || {};
     const m2 = data?.mediaTwo || {};
 
-    const img1 = m1?.image ? getHighQualityImageUrl(m1.image, 1920, 1080, 90) : m1?.imageUrl;
-    const img2 = m2?.image ? getHighQualityImageUrl(m2.image, 1920, 1080, 90) : m2?.imageUrl;
+    // Build medium + high URLs safely
+    const m1Medium =
+      m1?.image ? getMediumImageUrl(m1.image) : (m1?.imageUrl as string | undefined);
+    const m1High =
+      m1?.image ? getHighQualityImageUrl(m1.image, 1920, 1080, 90) : (m1?.imageUrl as string | undefined);
 
-    // match the SplitDragHandler expectations:
-    // - section is relative, children are absolutely positioned containers
-    // - default split ~50%
-    const initialSplit = 50;
+    const m2Medium =
+      m2?.image ? getMediumImageUrl(m2.image) : (m2?.imageUrl as string | undefined);
+    const m2High =
+      m2?.image ? getHighQualityImageUrl(m2.image, 1920, 1080, 90) : (m2?.imageUrl as string | undefined);
 
     return (
       <section
         id="rotary-ssr"
-        className="block-type-1"
+        className="block-type-1 ssr-initial-split"
         style={{
           position: 'relative',
           width: '100%',
-          // Give the section a height so absolute children can size against it.
-          // Your CSS may already set this; if so, you can remove the line below.
-          minHeight: '60vh',
+          height: '100dvh', // more deterministic than minHeight here
           overflow: 'hidden',
         }}
       >
         {/* LEFT / TOP container */}
-        <div
-          id="rotary-media-1-container"
-          className="media-content-1"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: `${initialSplit}%`,
-            height: '100%',
-          }}
-        >
-          {img1 && (
+        <div id="rotary-media-1-container" className="media-content-1" style={{ position: 'absolute' }}>
+          {m1Medium && (
             <img
               id="rotary-media-1"
               className="media-item-1 tooltip-rotary-lamp"
-              src={img1}
+              src={m1Medium}
+              // only set data attr if different / available
+              {...(m1High ? { 'data-src-full': m1High } : {})}
               alt={m1?.alt ?? 'Rotary Lamp media'}
               draggable={false}
+              decoding="async"
+              fetchPriority="high"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           )}
         </div>
 
-        {/* SPLITTER mount point (Enhancer portal attaches here) */}
+        {/* SPLITTER mount point */}
         <div id="rotary-enhancer-mount" />
 
         {/* RIGHT / BOTTOM container */}
-        <div
-          id="rotary-media-2-container"
-          className="media-content-2"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: `${initialSplit}%`,
-            width: `${100 - initialSplit}%`,
-            height: '100%',
-          }}
-        >
-          {img2 && (
+        <div id="rotary-media-2-container" className="media-content-2" style={{ position: 'absolute' }}>
+          {m2Medium && (
             <img
               id="rotary-media-2"
               className="media-item-2 tooltip-rotary-lamp"
-              src={img2}
+              src={m2Medium}
+              {...(m2High ? { 'data-src-full': m2High } : {})}
               alt={m2?.alt ?? 'Rotary Lamp media'}
               draggable={false}
+              decoding="async"
+              fetchPriority="high"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           )}
@@ -84,4 +74,5 @@ export const rotarySSR: SsrDescriptor = {
       </section>
     );
   },
+  criticalCssFiles: ['src/styles/block-type-1.css'],
 };

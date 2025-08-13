@@ -1,10 +1,10 @@
 // src/components/DataVisualizationBlock.tsx
 import { useEffect, useState } from 'react';
-import client from '../utils/sanity';
-import MediaLoader from '../utils/media-providers/media-loader';
-import { useTooltipInit } from '../utils/tooltip/tooltipInit';
-import { useSsrData } from '../utils/context-providers/ssr-data-context';
-import '../styles/block-type-1.css';
+import client from '../../utils/sanity';
+import MediaLoader from '../../utils/media-providers/media-loader';
+import { useTooltipInit } from '../../utils/tooltip/tooltipInit';
+import { useSsrData } from '../../utils/context-providers/ssr-data-context';
+import '../../styles/block-type-1.css';
 
 type VideoSet = {
   webmUrl?: string;

@@ -138,13 +138,16 @@
   .nav-menu { padding-bottom: 12px;}
   .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6));}
   .view-project-arrow { width: 2.4em;}
+  .split-arrow {scale: 1;}
 }
 
 @media (orientation: portrait) and (max-width: 1024px) and (min-width: 768px) {
+  .split-arrow {scale: 1;}
   .view-project-wrapper { bottom: 40px; }
 }
 
 @media (orientation: landscape) and (max-width: 1024px) and (min-width: 768px) { 
+  .split-arrow {scale: 0.8;}
   .view-project-wrapper { bottom: 24px; }
 }
 
@@ -161,4 +164,5 @@
   .nav-menu { padding-bottom: 4px; }
   .nav-right { padding-right: 28px; gap: 24px; }
   .arrow-svg { filter: drop-shadow(0 0px 18px rgba(0,0,0,0.6)); }
+  .split-arrow {scale: 0.7;}
 }

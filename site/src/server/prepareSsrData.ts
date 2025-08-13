@@ -12,7 +12,7 @@ export async function prepareSsrData(seed: number) {
 
   const desc = first ? ssrRegistry[first.key] : undefined;
   if (desc?.fetch) {
-    const data = await desc.fetch(); // 👈 server fetch
+    const data = await desc.fetch(); // server fetch
     preloaded[first.key] = { kind: first.key, data }; // tiny discriminator is handy
     if (desc.buildPreloads) preloadLinks = desc.buildPreloads(data);
   }

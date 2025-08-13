@@ -12,16 +12,17 @@ import { createEmotion } from './emotion';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { SsrDataProvider } from '../utils/context-providers/ssr-data-context';
 import { prepareSsrData } from './prepareSsrData';
+import { ssrRegistry } from '../ssr/registry';
+import { prefixCss, buildHtmlOpen, buildHtmlClose } from './html';
 
 // helpers
-import { getEphemeralSeed } from './seed'; // fresh seed per request
+import { getEphemeralSeed } from './seed';
 import {
   resolveStatsFile,
   loadManifestIfAny,
   readFontCss,
   buildPreloadLinks,
 } from './assets';
-import { buildHtmlOpen, buildHtmlClose } from './html';
 
 const app = express();
 
@@ -33,27 +34,20 @@ const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
 const { BUILD_DIR, STATS_FILE, ASSET_MANIFEST } = resolveStatsFile();
 
 /** -----------------------------
- * Static assets (dev & prod)
- * Serve the entire public/ directory BEFORE SSR catch-all.
+ * Static assets
  * ----------------------------- */
 app.use(
   express.static(path.join(process.cwd(), 'public'), {
     maxAge: '1y',
-    index: false, // never serve a public/index.html; SSR handles HTML
+    index: false,
   })
 );
 
-// (Optional) keep these if you want stricter headers, but public/ already covers them
-// app.use('/fonts', express.static(path.join(process.cwd(), 'public', 'fonts'), { maxAge: '1y' }));
-// app.use('/fonts2', express.static(path.join(process.cwd(), 'public', 'fonts2'), { maxAge: '1y' }));
-
-/** Dev asset proxy for CRA */
 if (IS_DEV) {
   app.use('/static', createProxyMiddleware({ target: DEV_ASSETS_ORIGIN, changeOrigin: true, ws: true }));
   app.use('/sockjs-node', createProxyMiddleware({ target: DEV_ASSETS_ORIGIN, changeOrigin: true, ws: true }));
 }
 
-/** Prod build file serving */
 if (!IS_DEV) {
   app.use('/static', express.static(path.join(BUILD_DIR, 'static'), { maxAge: '1y', index: false }));
   app.use(express.static(BUILD_DIR, { index: false }));
@@ -63,10 +57,10 @@ if (!IS_DEV) {
  * SSR catch-all
  * ----------------------------- */
 app.get('/*', async (req, res) => {
-  // 0) seed for deterministic randomness (fresh every request)
+  // 0) seed per request
   const { seed } = getEphemeralSeed();
 
-  // 1) Prepare SSR payload (seed + preloaded first project data)
+  // 1) SSR payload
   const ssrPayload = await prepareSsrData(seed);
 
   if (!fs.existsSync(STATS_FILE)) {
@@ -76,16 +70,16 @@ app.get('/*', async (req, res) => {
     return;
   }
 
-  // 2) Setup loadable extractor
+  // 2) loadable
   const extractor = new ChunkExtractor({
     statsFile: STATS_FILE,
     publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/',
   });
 
-  // 3) Emotion setup
+  // 3) emotion
   const { cache, extractCriticalToChunks, constructStyleTagsFromChunks } = createEmotion();
 
-  // 4) Wrap in providers
+  // 4) providers
   const jsx = extractor.collectChunks(
     <CacheProvider value={cache}>
       <SsrDataProvider value={ssrPayload}>
@@ -96,25 +90,42 @@ app.get('/*', async (req, res) => {
     </CacheProvider>
   );
 
-  // 5) Pre-render for Emotion critical CSS
+  // 5) emotion critical CSS
   const prerender = renderToString(jsx);
   const emotionChunks = extractCriticalToChunks(prerender);
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks);
 
-  // 6) Manifest (prod only) + icons
+  // 6) manifest/icons
   const manifest = loadManifestIfAny(IS_DEV, ASSET_MANIFEST);
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
   const iconSvg = '/favicon.svg';
 
-  // 7) Fonts
+  // 7) fonts
   const fontsCss = readFontCss();
 
-  // 8) Preload first media (optional)
+  // 8) preload first media (depends on ssrPayload)
   const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
   const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
   const preloadLinks = buildPreloadLinks(firstData);
 
-  // 9) Build HTML parts
+  // 8.5) per-first-project critical CSS (compute here)
+  let extraCriticalCss = '';
+  if (firstKey) {
+    const desc = ssrRegistry[firstKey];
+    const files = desc?.criticalCssFiles || [];
+    if (files.length > 0) {
+      const ROOT = process.cwd();
+      const readSafe = (p) => {
+        try { return fs.readFileSync(path.resolve(ROOT, p), 'utf8'); } catch { return ''; }
+      };
+      extraCriticalCss = files
+        .map((relPath) => prefixCss(readSafe(relPath)))
+        .filter(Boolean)
+        .join('\n/* --- separator --- */\n');
+    }
+  }
+
+  // 9) HTML
   const htmlOpen = buildHtmlOpen({
     IS_DEV,
     routePath: req.path,
@@ -125,11 +136,12 @@ app.get('/*', async (req, res) => {
     extractorLinkTags: extractor.getLinkTags(),
     extractorStyleTags: extractor.getStyleTags(),
     emotionStyleTags,
+    extraCriticalCss,
   });
 
   const htmlClose = buildHtmlClose(ssrPayload, extractor.getScriptTags());
 
-  // 10) Stream the app (with proper lifecycle)
+  // 10) stream
   let didError = false;
   const ABORT_MS = IS_DEV ? 30000 : 10000;
 
@@ -138,7 +150,6 @@ app.get('/*', async (req, res) => {
       res.statusCode = didError ? 500 : 200;
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.write(htmlOpen);
-      // IMPORTANT: don't auto-end; we'll write htmlClose ourselves
       stream.pipe(res, { end: false });
     },
     onAllReady() {
