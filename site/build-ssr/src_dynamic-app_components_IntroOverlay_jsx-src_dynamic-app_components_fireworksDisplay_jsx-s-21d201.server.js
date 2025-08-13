@@ -1872,42 +1872,6 @@ const useStyleInjection = (css, id) => {
 
 /***/ }),
 
-/***/ "./src/utils/media-providers/image-builder.ts":
-/*!****************************************************!*\
-  !*** ./src/utils/media-providers/image-builder.ts ***!
-  \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getHighQualityImageUrl: () => (/* binding */ getHighQualityImageUrl),
-/* harmony export */   getLowResImageUrl: () => (/* binding */ getLowResImageUrl),
-/* harmony export */   getMediumImageUrl: () => (/* binding */ getMediumImageUrl),
-/* harmony export */   urlFor: () => (/* binding */ urlFor)
-/* harmony export */ });
-/* harmony import */ var _sanity_image_url__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @sanity/image-url */ "../../../node_modules/@sanity/image-url/lib/node/index.js");
-/* harmony import */ var _sanity_image_url__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_sanity_image_url__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _sanity__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../sanity */ "./src/utils/sanity.ts");
-// src/utils/image-builder.ts
-
-
-const builder = _sanity_image_url__WEBPACK_IMPORTED_MODULE_0___default()(_sanity__WEBPACK_IMPORTED_MODULE_1__["default"]);
-
-// Base builder
-const urlFor = source => builder.image(source);
-
-// Ultra-low-res (LQIP)
-const getLowResImageUrl = source => urlFor(source).ignoreImageParams().width(128).height(128).quality(30).auto('format').url();
-
-// Medium
-const getMediumImageUrl = source => urlFor(source).ignoreImageParams().width(640).height(360).quality(60).auto('format').url();
-
-// High
-const getHighQualityImageUrl = (source, width = 1920, height = 1080, quality = 100) => urlFor(source).ignoreImageParams().width(width).height(height).quality(quality).auto('format').url();
-
-/***/ }),
-
 /***/ "./src/utils/media-providers/image-upgrade-manager.ts":
 /*!************************************************************!*\
   !*** ./src/utils/media-providers/image-upgrade-manager.ts ***!

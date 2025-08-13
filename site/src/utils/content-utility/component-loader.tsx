@@ -1,6 +1,7 @@
 // src/utils/content-utility/component-loader.tsx
-import type { ComponentType } from 'react';
+import React, { type ComponentType } from 'react';
 import { useSsrData } from '../context-providers/ssr-data-context';
+import { ssrRegistry } from '../../ssr/registry';
 
 export const componentMap = {
   rotary: () => import('../../components/rotary-lamp'),
@@ -25,51 +26,49 @@ export interface Project extends ProjectMeta {
 const toComponent = <T extends ComponentType<any>>(p: Promise<{ default: T }>) =>
   p as unknown as Promise<{ default: ComponentType<any> }>;
 
-export const projects: Project[] = [
-  {
-    key: 'scoop' as const,
-    title: 'Ice Cream Scoop',
-    lazyImport: () => toComponent(import('../../components/ice-cream-scoop')),
-  },
-  {
-    key: 'rotary' as const,
-    title: 'Rotary Lamp',
-    lazyImport: () => toComponent(import('../../components/rotary-lamp')),
-  },
-  {
-    key: 'dataviz' as const,
-    title: 'Data Visualization',
-    lazyImport: () => toComponent(import('../../components/data-visualization')),
-  },
-  {
-    key: 'game' as const,
-    title: 'Evade the Rock',
-    lazyImport: () => toComponent(import('../../components/rock-escapade/evade-the-rock.jsx')),
-  },
-  {
-    key: 'dynamic' as const,
-    title: 'Dynamic App',
-    isLink: true,
-    lazyImport: () => toComponent(import('../../components/dynamic-app')),
-  },
-].sort(() => Math.random() - 0.5);
-
+// stable base list
+export const baseProjects: Project[] = [
+  { key: 'scoop',   title: 'Ice Cream Scoop',   lazyImport: () => toComponent(import('../../components/ice-cream-scoop')) },
+  { key: 'rotary',  title: 'Rotary Lamp',       lazyImport: () => toComponent(import('../../components/rotary-lamp')) },
+  { key: 'dataviz', title: 'Data Visualization',lazyImport: () => toComponent(import('../../components/data-visualization')) },
+  { key: 'game',    title: 'Evade the Rock',    lazyImport: () => toComponent(import('../../components/rock-escapade/evade-the-rock.jsx')) },
+  { key: 'dynamic', title: 'Dynamic App', isLink: true, lazyImport: () => toComponent(import('../../components/dynamic-app')) },
+];
 
 export function useProjectLoader(key: ProjectKey) {
-  const ssrData = useSsrData();
-  const project = projects.find(p => p.key === key);
+  const ssr = useSsrData();
+  const project = baseProjects.find(p => p.key === key);
   if (!project) throw new Error(`Unknown project key: ${key}`);
 
-  // If SSR has preloaded content for this project
-  if (ssrData?.preloaded?.[key]) {
+  const payload = ssr?.preloaded?.[key];
+  const desc = ssrRegistry[key];
+
+  // inside useProjectLoader
+  if (payload && desc?.render) {
+    const data = payload.data ?? payload;
+
+    // rotary gets the enhancer
+    if (key === 'rotary') {
+      return async () => {
+        const Enhancer = (await import('../../ssr/projects/rotary.enhancer')).default;
+        return {
+          default: () => (
+            <>
+              {/* SSR markup already contains #rotary-enhancer-mount */}
+              {desc.render!(data)}
+              <Enhancer />
+            </>
+          ),
+        };
+      };
+    }
+
+    // all other SSR components render normally
     return async () => ({
-      default: () => {
-        // Replace with the actual component renderer
-        return <div dangerouslySetInnerHTML={{ __html: ssrData.preloaded[key] }} />;
-      }
+      default: () => <>{desc.render!(data)}</>,
     });
   }
 
-  // Fallback to lazyImport if no SSR data
+  // Fallback: lazy load real component on the client
   return project.lazyImport;
 }

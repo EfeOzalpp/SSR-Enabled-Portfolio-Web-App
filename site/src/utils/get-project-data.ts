@@ -10,8 +10,8 @@ const queries: Record<string, string> = {
     mediaTwo{ alt,image,video{ "webmUrl": webm.asset->url, "mp4Url": mp4.asset->url, poster } }
   }`,
   'rotary-lamp': `*[_type=="mediaBlock" && title match "Rotary Lamp"][0]{
-    mediaOne{ alt,image,video{ asset->{url} } },
-    mediaTwo{ alt,image,video{ asset->{url} } }
+    mediaOne{ alt, image{asset->{url}}, video{ asset->{url} } },
+    mediaTwo{ alt, image{asset->{url}}, video{ asset->{url} } }
   }`,
   // add others as I go
 };

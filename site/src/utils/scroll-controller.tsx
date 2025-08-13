@@ -4,11 +4,17 @@ import { useProjectVisibility } from './context-providers/project-context';
 
 import { attachOpacityObserver } from './content-utility/opacity-observer';
 
-import { projects } from './content-utility/component-loader'; 
-import { ProjectPane } from './project-pane'; 
+import { baseProjects } from './content-utility/component-loader';
+import { ProjectPane } from './project-pane';
+import { useSsrData } from './context-providers/ssr-data-context';
+import { seededShuffle } from './seed'; // seed utils live in src/utils/seed/index.ts
 
 const ScrollController = () => {
   const { scrollContainerRef, focusedProjectKey, currentIndex } = useProjectVisibility();
+
+  // 🔑 derive deterministic “random” order from SSR seed
+  const { seed = 12345 } = useSsrData() || {};
+  const projects = useMemo(() => seededShuffle(baseProjects, seed), [seed]);
 
   const [justExitedFocusKey, setJustExitedFocusKey] = useState<string | null>(null);
   const [invisibleKeys, setInvisibleKeys] = useState<Set<string>>(new Set());
@@ -35,7 +41,7 @@ const ScrollController = () => {
     container.classList.add('no-snap');
     const timeout = setTimeout(() => container.classList.remove('no-snap'), 800);
     return () => clearTimeout(timeout);
-  }, [currentIndex]);
+  }, [currentIndex, scrollContainerRef]);
 
   useEffect(() => {
     if (focusedProjectKey) {
@@ -45,7 +51,7 @@ const ScrollController = () => {
       const timeout = setTimeout(() => setInvisibleKeys(new Set()), 400);
       return () => clearTimeout(timeout);
     }
-  }, [focusedProjectKey]);
+  }, [focusedProjectKey, projects]);
 
   useEffect(() => {
     if (focusedProjectKey) setJustExitedFocusKey(focusedProjectKey);
@@ -61,7 +67,7 @@ const ScrollController = () => {
         });
       }
     }
-  }, [focusedProjectKey, justExitedFocusKey]);
+  }, [focusedProjectKey, justExitedFocusKey, scrollContainerRef]);
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -120,10 +126,11 @@ const ScrollController = () => {
       observer.disconnect();
       cleanupFns.forEach(fn => fn());
     };
-  }, []);
+  }, [scrollContainerRef]);
 
-  // Build block ids once (micro-optimization)
-  const blockIds = useMemo(() => projects.map(p => `#block-${p.key}`), []);
+  // Build block ids based on the seeded order
+  const blockIds = useMemo(() => projects.map(p => `#block-${p.key}`), [projects]);
+
   useEffect(() => {
     const cleanup = attachOpacityObserver(blockIds, focusedProjectKey);
     return cleanup;
@@ -145,7 +152,7 @@ const ScrollController = () => {
     >
       <style>{`.SnappyScrollThingy::-webkit-scrollbar { display: none; }`}</style>
 
-      {projects.map((item) => {
+      {projects.map((item, idx) => {
         const isFocused = focusedProjectKey === item.key;
         const isHidden = invisibleKeys.has(item.key);
         return (
@@ -155,6 +162,7 @@ const ScrollController = () => {
             viewportHeight={viewportStyle.height}
             isFocused={isFocused}
             isHidden={isHidden}
+            isFirst={idx === 0} 
             setRef={(el) => { projectRefs.current[item.key] = el; }}
           />
         );

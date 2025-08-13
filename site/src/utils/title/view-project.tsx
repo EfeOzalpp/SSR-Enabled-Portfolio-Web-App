@@ -1,18 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
-import lottie from 'lottie-web';
-import type { AnimationItem } from 'lottie-web';
+// src/utils/title/view-project.tsx
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import lottie, { type AnimationItem } from 'lottie-web';
 import arrowData from '../../svg/arrow.json';
 import linkData from '../../svg/link.json';
 
 import { useActiveTitle } from './title-context';
 
-import { projects } from '../content-utility/component-loader';
-import { projectColors } from '../content-utility/color-map'; 
+import { baseProjects } from '../content-utility/component-loader';
+import { projectColors } from '../content-utility/color-map';
+import { useSsrData } from '../context-providers/ssr-data-context';
+import { seededShuffle } from '../seed';
 
 import TitleObserver from './title-observer';
 
 const ViewProject = () => {
   const { activeTitle } = useActiveTitle();
+  const { seed = 12345 } = useSsrData() || {};
+  const projects = useMemo(() => seededShuffle(baseProjects, seed), [seed]);
 
   const arrowContainer = useRef<HTMLDivElement>(null);
   const arrowAnimRef = useRef<AnimationItem | null>(null);
@@ -22,31 +26,27 @@ const ViewProject = () => {
   const [showBackground, setShowBackground] = useState(true);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const currentProject = projects.find(p => p.title === activeTitle);
+  const currentProject = useMemo(
+    () => projects.find((p) => p.title === activeTitle),
+    [projects, activeTitle]
+  );
   const isLink = currentProject?.isLink;
 
-  // Return computed background RGBA string
   const getBackgroundColor = () => {
     const colorInfo = projectColors[activeTitle];
     if (!colorInfo) return 'rgba(240, 240, 240, 0.7)';
-    
     const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.6);
     return `rgba(${colorInfo.rgb}, ${alpha})`;
   };
 
-  // Fade logic — show background and hide after 2s
   const triggerBackgroundFade = () => {
     setShowBackground(true);
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    hideTimeoutRef.current = setTimeout(() => {
-      setShowBackground(false);
-    }, 2000);
+    hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 2000);
   };
 
-  // Setup Lottie animation when title changes
   useEffect(() => {
     const animationData = activeTitle === 'Dynamic App' ? linkData : arrowData;
-
     const anim = lottie.loadAnimation({
       container: arrowContainer.current!,
       renderer: 'svg',
@@ -54,19 +54,21 @@ const ViewProject = () => {
       autoplay: false,
       animationData,
     });
-
     arrowAnimRef.current = anim;
-    anim.goToAndStop(40, true); // Hold at frame 40
+    anim.goToAndStop(40, true);
 
-    anim.addEventListener('DOMLoaded', () => {
+    const onDomLoaded = () => {
       const svg = arrowContainer.current?.querySelector('svg');
       if (svg) svg.classList.add('arrow-svg');
-    });
+    };
+    anim.addEventListener('DOMLoaded', onDomLoaded);
 
-    return () => anim.destroy();
+    return () => {
+      anim.removeEventListener('DOMLoaded', onDomLoaded);
+      anim.destroy();
+    };
   }, [activeTitle]);
 
-  // Play wiggle when project changes + trigger background fade
   useEffect(() => {
     if (lastTitleRef.current !== activeTitle) {
       arrowAnimRef.current?.playSegments([40, 90], true);
@@ -75,18 +77,14 @@ const ViewProject = () => {
     }
   }, [activeTitle]);
 
-  // Detect mouse move near bottom → trigger background + idle fade
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (e.clientY > window.innerHeight * 0.66) {
         setShowBackground(true);
         if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-        hideTimeoutRef.current = setTimeout(() => {
-          setShowBackground(false);
-        }, 2000);
+        hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 2000);
       }
     };
-
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
@@ -94,7 +92,6 @@ const ViewProject = () => {
     };
   }, []);
 
-  // Dynamic component (link or button)
   const Element: any = isLink ? 'a' : 'button';
   const sharedProps = {
     className: `view-project-btn ${!showBackground ? 'no-bg' : ''}`,
@@ -110,16 +107,16 @@ const ViewProject = () => {
       <TitleObserver />
 
       <Element {...sharedProps}>
-          <div
-            className={`view-project-background ${!showBackground ? 'no-bg' : ''}`}
-            style={{
-              backgroundColor: getBackgroundColor(),
-              position: 'absolute',
-              inset: 0,
-              borderRadius: 'inherit',
-              zIndex: 0,
-            }}
-          />
+        <div
+          className={`view-project-background ${!showBackground ? 'no-bg' : ''}`}
+          style={{
+            backgroundColor: getBackgroundColor(),
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 'inherit',
+            zIndex: 0,
+          }}
+        />
         <h2 className="project-view" style={{ position: 'relative', zIndex: 1 }}>
           {activeTitle}
         </h2>

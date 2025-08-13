@@ -9,6 +9,7 @@
   -moz-user-select: none !important;      /* Firefox */
   -o-user-select: none !important;        /* Opera */
   pointer-events: none !important;        /* Still allow click events */ 
+  padding-bottom: 12px;
   display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; padding-bottom: 16px; z-index: 2000; }
 .nav-left { width: 50%; display: flex; justify-content: flex-start; padding-left: 16px; }
 .nav-right { padding: 24px; gap: 24px; display: flex; justify-content: flex-end;  width: fit-content; pointer-events: all;}
@@ -30,6 +31,7 @@
   flex-wrap: wrap;
   justify-content: center;
   pointer-events: none;
+  bottom: 2dvh;
 }
 
 .view-project-btn {
@@ -44,6 +46,7 @@
   cursor: pointer;
   pointer-events: all;
   transition: gap 0.3s ease;
+  padding: 4px 32px 0px 32px;
 }
 
 .view-project-btn > * {
@@ -146,14 +149,14 @@
 }
 
 @media (max-width: 1024px) and (min-width: 768px) {
-  .view-project-wrapper {bottom: 8dvh;}
+  .view-project-wrapper {bottom: 8dvh !important;}
   .view-project-btn {padding: 13px 40px 8px 40px;}
   .nav-menu { padding-bottom: 8px; }
   .arrow-svg { filter: drop-shadow(0 0px 14px rgba(0,0,0,0.6)); }
 }
 
 @media (min-width: 1025px) {
-  .view-project-wrapper {bottom: 4dvh;}
+  .view-project-wrapper {bottom: 4dvh !important;}
   .view-project-btn {padding: 4px 32px 0px 40px; }
   .nav-menu { padding-bottom: 4px; }
   .nav-right { padding-right: 28px; gap: 24px; }

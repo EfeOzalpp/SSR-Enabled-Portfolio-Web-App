@@ -305,7 +305,7 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document) => {
       } else {
         imageContainer2Transform = 'translate(0em, -28.4em)';
       }
-    } else if (width <= 1023) {
+    } else if (width <= 1024) {
       if (percentage > 0.55) {
         imageContainerTransform = 'translate(1em, 2em)';
         imageContainer2Transform = 'translate(-1em, -27em)';
@@ -318,7 +318,7 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document) => {
         imageContainerTransform = 'translate(-1em, 0em)';
         imageContainer2Transform = 'translate(0em, -29em)';
       }
-    } else if (width >= 1024) {
+    } else if (width > 1025) {
       if (percentage > 0.4) {
         imageContainerTransform = 'translate(0em, 0em)';
         imageContainer2Transform = 'translate(1em, -27.5em)';

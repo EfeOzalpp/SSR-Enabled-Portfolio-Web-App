@@ -1,6 +1,613 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "../../../node_modules/@sanity/image-url/lib/node/builder.js":
+/*!*******************************************************************!*\
+  !*** ../../../node_modules/@sanity/image-url/lib/node/builder.js ***!
+  \*******************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageUrlBuilder = void 0;
+var urlForImage_1 = __importStar(__webpack_require__(/*! ./urlForImage */ "../../../node_modules/@sanity/image-url/lib/node/urlForImage.js"));
+var validFits = ['clip', 'crop', 'fill', 'fillmax', 'max', 'scale', 'min'];
+var validCrops = ['top', 'bottom', 'left', 'right', 'center', 'focalpoint', 'entropy'];
+var validAutoModes = ['format'];
+function isSanityModernClientLike(client) {
+    return client && 'config' in client ? typeof client.config === 'function' : false;
+}
+function isSanityClientLike(client) {
+    return client && 'clientConfig' in client ? typeof client.clientConfig === 'object' : false;
+}
+function rewriteSpecName(key) {
+    var specs = urlForImage_1.SPEC_NAME_TO_URL_NAME_MAPPINGS;
+    for (var _i = 0, specs_1 = specs; _i < specs_1.length; _i++) {
+        var entry = specs_1[_i];
+        var specName = entry[0], param = entry[1];
+        if (key === specName || key === param) {
+            return specName;
+        }
+    }
+    return key;
+}
+function urlBuilder(options) {
+    // Did we get a modernish client?
+    if (isSanityModernClientLike(options)) {
+        // Inherit config from client
+        var _a = options.config(), apiUrl = _a.apiHost, projectId = _a.projectId, dataset = _a.dataset;
+        var apiHost = apiUrl || 'https://api.sanity.io';
+        return new ImageUrlBuilder(null, {
+            baseUrl: apiHost.replace(/^https:\/\/api\./, 'https://cdn.'),
+            projectId: projectId,
+            dataset: dataset,
+        });
+    }
+    // Did we get a SanityClient?
+    if (isSanityClientLike(options)) {
+        // Inherit config from client
+        var _b = options.clientConfig, apiUrl = _b.apiHost, projectId = _b.projectId, dataset = _b.dataset;
+        var apiHost = apiUrl || 'https://api.sanity.io';
+        return new ImageUrlBuilder(null, {
+            baseUrl: apiHost.replace(/^https:\/\/api\./, 'https://cdn.'),
+            projectId: projectId,
+            dataset: dataset,
+        });
+    }
+    // Or just accept the options as given
+    return new ImageUrlBuilder(null, options || {});
+}
+exports["default"] = urlBuilder;
+var ImageUrlBuilder = /** @class */ (function () {
+    function ImageUrlBuilder(parent, options) {
+        this.options = parent
+            ? __assign(__assign({}, (parent.options || {})), (options || {})) : __assign({}, (options || {})); // Copy options
+    }
+    ImageUrlBuilder.prototype.withOptions = function (options) {
+        var baseUrl = options.baseUrl || this.options.baseUrl;
+        var newOptions = { baseUrl: baseUrl };
+        for (var key in options) {
+            if (options.hasOwnProperty(key)) {
+                var specKey = rewriteSpecName(key);
+                newOptions[specKey] = options[key];
+            }
+        }
+        return new ImageUrlBuilder(this, __assign({ baseUrl: baseUrl }, newOptions));
+    };
+    // The image to be represented. Accepts a Sanity 'image'-document, 'asset'-document or
+    // _id of asset. To get the benefit of automatic hot-spot/crop integration with the content
+    // studio, the 'image'-document must be provided.
+    ImageUrlBuilder.prototype.image = function (source) {
+        return this.withOptions({ source: source });
+    };
+    // Specify the dataset
+    ImageUrlBuilder.prototype.dataset = function (dataset) {
+        return this.withOptions({ dataset: dataset });
+    };
+    // Specify the projectId
+    ImageUrlBuilder.prototype.projectId = function (projectId) {
+        return this.withOptions({ projectId: projectId });
+    };
+    // Specify background color
+    ImageUrlBuilder.prototype.bg = function (bg) {
+        return this.withOptions({ bg: bg });
+    };
+    // Set DPR scaling factor
+    ImageUrlBuilder.prototype.dpr = function (dpr) {
+        // A DPR of 1 is the default - so only include it if we have a different value
+        return this.withOptions(dpr && dpr !== 1 ? { dpr: dpr } : {});
+    };
+    // Specify the width of the image in pixels
+    ImageUrlBuilder.prototype.width = function (width) {
+        return this.withOptions({ width: width });
+    };
+    // Specify the height of the image in pixels
+    ImageUrlBuilder.prototype.height = function (height) {
+        return this.withOptions({ height: height });
+    };
+    // Specify focal point in fraction of image dimensions. Each component 0.0-1.0
+    ImageUrlBuilder.prototype.focalPoint = function (x, y) {
+        return this.withOptions({ focalPoint: { x: x, y: y } });
+    };
+    ImageUrlBuilder.prototype.maxWidth = function (maxWidth) {
+        return this.withOptions({ maxWidth: maxWidth });
+    };
+    ImageUrlBuilder.prototype.minWidth = function (minWidth) {
+        return this.withOptions({ minWidth: minWidth });
+    };
+    ImageUrlBuilder.prototype.maxHeight = function (maxHeight) {
+        return this.withOptions({ maxHeight: maxHeight });
+    };
+    ImageUrlBuilder.prototype.minHeight = function (minHeight) {
+        return this.withOptions({ minHeight: minHeight });
+    };
+    // Specify width and height in pixels
+    ImageUrlBuilder.prototype.size = function (width, height) {
+        return this.withOptions({ width: width, height: height });
+    };
+    // Specify blur between 0 and 100
+    ImageUrlBuilder.prototype.blur = function (blur) {
+        return this.withOptions({ blur: blur });
+    };
+    ImageUrlBuilder.prototype.sharpen = function (sharpen) {
+        return this.withOptions({ sharpen: sharpen });
+    };
+    // Specify the desired rectangle of the image
+    ImageUrlBuilder.prototype.rect = function (left, top, width, height) {
+        return this.withOptions({ rect: { left: left, top: top, width: width, height: height } });
+    };
+    // Specify the image format of the image. 'jpg', 'pjpg', 'png', 'webp'
+    ImageUrlBuilder.prototype.format = function (format) {
+        return this.withOptions({ format: format });
+    };
+    ImageUrlBuilder.prototype.invert = function (invert) {
+        return this.withOptions({ invert: invert });
+    };
+    // Rotation in degrees 0, 90, 180, 270
+    ImageUrlBuilder.prototype.orientation = function (orientation) {
+        return this.withOptions({ orientation: orientation });
+    };
+    // Compression quality 0-100
+    ImageUrlBuilder.prototype.quality = function (quality) {
+        return this.withOptions({ quality: quality });
+    };
+    // Make it a download link. Parameter is default filename.
+    ImageUrlBuilder.prototype.forceDownload = function (download) {
+        return this.withOptions({ download: download });
+    };
+    // Flip image horizontally
+    ImageUrlBuilder.prototype.flipHorizontal = function () {
+        return this.withOptions({ flipHorizontal: true });
+    };
+    // Flip image vertically
+    ImageUrlBuilder.prototype.flipVertical = function () {
+        return this.withOptions({ flipVertical: true });
+    };
+    // Ignore crop/hotspot from image record, even when present
+    ImageUrlBuilder.prototype.ignoreImageParams = function () {
+        return this.withOptions({ ignoreImageParams: true });
+    };
+    ImageUrlBuilder.prototype.fit = function (value) {
+        if (validFits.indexOf(value) === -1) {
+            throw new Error("Invalid fit mode \"".concat(value, "\""));
+        }
+        return this.withOptions({ fit: value });
+    };
+    ImageUrlBuilder.prototype.crop = function (value) {
+        if (validCrops.indexOf(value) === -1) {
+            throw new Error("Invalid crop mode \"".concat(value, "\""));
+        }
+        return this.withOptions({ crop: value });
+    };
+    // Saturation
+    ImageUrlBuilder.prototype.saturation = function (saturation) {
+        return this.withOptions({ saturation: saturation });
+    };
+    ImageUrlBuilder.prototype.auto = function (value) {
+        if (validAutoModes.indexOf(value) === -1) {
+            throw new Error("Invalid auto mode \"".concat(value, "\""));
+        }
+        return this.withOptions({ auto: value });
+    };
+    // Specify the number of pixels to pad the image
+    ImageUrlBuilder.prototype.pad = function (pad) {
+        return this.withOptions({ pad: pad });
+    };
+    // Vanity URL for more SEO friendly URLs
+    ImageUrlBuilder.prototype.vanityName = function (value) {
+        return this.withOptions({ vanityName: value });
+    };
+    ImageUrlBuilder.prototype.frame = function (frame) {
+        if (frame !== 1) {
+            throw new Error("Invalid frame value \"".concat(frame, "\""));
+        }
+        return this.withOptions({ frame: frame });
+    };
+    // Gets the url based on the submitted parameters
+    ImageUrlBuilder.prototype.url = function () {
+        return (0, urlForImage_1.default)(this.options);
+    };
+    // Alias for url()
+    ImageUrlBuilder.prototype.toString = function () {
+        return this.url();
+    };
+    return ImageUrlBuilder;
+}());
+exports.ImageUrlBuilder = ImageUrlBuilder;
+//# sourceMappingURL=builder.js.map
+
+/***/ }),
+
+/***/ "../../../node_modules/@sanity/image-url/lib/node/index.js":
+/*!*****************************************************************!*\
+  !*** ../../../node_modules/@sanity/image-url/lib/node/index.js ***!
+  \*****************************************************************/
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var builder_1 = __importDefault(__webpack_require__(/*! ./builder */ "../../../node_modules/@sanity/image-url/lib/node/builder.js"));
+module.exports = builder_1.default;
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "../../../node_modules/@sanity/image-url/lib/node/parseAssetId.js":
+/*!************************************************************************!*\
+  !*** ../../../node_modules/@sanity/image-url/lib/node/parseAssetId.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var example = 'image-Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000-jpg';
+function parseAssetId(ref) {
+    var _a = ref.split('-'), id = _a[1], dimensionString = _a[2], format = _a[3];
+    if (!id || !dimensionString || !format) {
+        throw new Error("Malformed asset _ref '".concat(ref, "'. Expected an id like \"").concat(example, "\"."));
+    }
+    var _b = dimensionString.split('x'), imgWidthStr = _b[0], imgHeightStr = _b[1];
+    var width = +imgWidthStr;
+    var height = +imgHeightStr;
+    var isValidAssetId = isFinite(width) && isFinite(height);
+    if (!isValidAssetId) {
+        throw new Error("Malformed asset _ref '".concat(ref, "'. Expected an id like \"").concat(example, "\"."));
+    }
+    return { id: id, width: width, height: height, format: format };
+}
+exports["default"] = parseAssetId;
+//# sourceMappingURL=parseAssetId.js.map
+
+/***/ }),
+
+/***/ "../../../node_modules/@sanity/image-url/lib/node/parseSource.js":
+/*!***********************************************************************!*\
+  !*** ../../../node_modules/@sanity/image-url/lib/node/parseSource.js ***!
+  \***********************************************************************/
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var isRef = function (src) {
+    var source = src;
+    return source ? typeof source._ref === 'string' : false;
+};
+var isAsset = function (src) {
+    var source = src;
+    return source ? typeof source._id === 'string' : false;
+};
+var isAssetStub = function (src) {
+    var source = src;
+    return source && source.asset ? typeof source.asset.url === 'string' : false;
+};
+// Convert an asset-id, asset or image to an image record suitable for processing
+// eslint-disable-next-line complexity
+function parseSource(source) {
+    if (!source) {
+        return null;
+    }
+    var image;
+    if (typeof source === 'string' && isUrl(source)) {
+        // Someone passed an existing image url?
+        image = {
+            asset: { _ref: urlToId(source) },
+        };
+    }
+    else if (typeof source === 'string') {
+        // Just an asset id
+        image = {
+            asset: { _ref: source },
+        };
+    }
+    else if (isRef(source)) {
+        // We just got passed an asset directly
+        image = {
+            asset: source,
+        };
+    }
+    else if (isAsset(source)) {
+        // If we were passed an image asset document
+        image = {
+            asset: {
+                _ref: source._id || '',
+            },
+        };
+    }
+    else if (isAssetStub(source)) {
+        // If we were passed a partial asset (`url`, but no `_id`)
+        image = {
+            asset: {
+                _ref: urlToId(source.asset.url),
+            },
+        };
+    }
+    else if (typeof source.asset === 'object') {
+        // Probably an actual image with materialized asset
+        image = __assign({}, source);
+    }
+    else {
+        // We got something that does not look like an image, or it is an image
+        // that currently isn't sporting an asset.
+        return null;
+    }
+    var img = source;
+    if (img.crop) {
+        image.crop = img.crop;
+    }
+    if (img.hotspot) {
+        image.hotspot = img.hotspot;
+    }
+    return applyDefaults(image);
+}
+exports["default"] = parseSource;
+function isUrl(url) {
+    return /^https?:\/\//.test("".concat(url));
+}
+function urlToId(url) {
+    var parts = url.split('/').slice(-1);
+    return "image-".concat(parts[0]).replace(/\.([a-z]+)$/, '-$1');
+}
+// Mock crop and hotspot if image lacks it
+function applyDefaults(image) {
+    if (image.crop && image.hotspot) {
+        return image;
+    }
+    // We need to pad in default values for crop or hotspot
+    var result = __assign({}, image);
+    if (!result.crop) {
+        result.crop = {
+            left: 0,
+            top: 0,
+            bottom: 0,
+            right: 0,
+        };
+    }
+    if (!result.hotspot) {
+        result.hotspot = {
+            x: 0.5,
+            y: 0.5,
+            height: 1.0,
+            width: 1.0,
+        };
+    }
+    return result;
+}
+//# sourceMappingURL=parseSource.js.map
+
+/***/ }),
+
+/***/ "../../../node_modules/@sanity/image-url/lib/node/urlForImage.js":
+/*!***********************************************************************!*\
+  !*** ../../../node_modules/@sanity/image-url/lib/node/urlForImage.js ***!
+  \***********************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseSource = exports.SPEC_NAME_TO_URL_NAME_MAPPINGS = void 0;
+var parseAssetId_1 = __importDefault(__webpack_require__(/*! ./parseAssetId */ "../../../node_modules/@sanity/image-url/lib/node/parseAssetId.js"));
+var parseSource_1 = __importDefault(__webpack_require__(/*! ./parseSource */ "../../../node_modules/@sanity/image-url/lib/node/parseSource.js"));
+exports.parseSource = parseSource_1.default;
+exports.SPEC_NAME_TO_URL_NAME_MAPPINGS = [
+    ['width', 'w'],
+    ['height', 'h'],
+    ['format', 'fm'],
+    ['download', 'dl'],
+    ['blur', 'blur'],
+    ['sharpen', 'sharp'],
+    ['invert', 'invert'],
+    ['orientation', 'or'],
+    ['minHeight', 'min-h'],
+    ['maxHeight', 'max-h'],
+    ['minWidth', 'min-w'],
+    ['maxWidth', 'max-w'],
+    ['quality', 'q'],
+    ['fit', 'fit'],
+    ['crop', 'crop'],
+    ['saturation', 'sat'],
+    ['auto', 'auto'],
+    ['dpr', 'dpr'],
+    ['pad', 'pad'],
+    ['frame', 'frame']
+];
+function urlForImage(options) {
+    var spec = __assign({}, (options || {}));
+    var source = spec.source;
+    delete spec.source;
+    var image = (0, parseSource_1.default)(source);
+    if (!image) {
+        throw new Error("Unable to resolve image URL from source (".concat(JSON.stringify(source), ")"));
+    }
+    var id = image.asset._ref || image.asset._id || '';
+    var asset = (0, parseAssetId_1.default)(id);
+    // Compute crop rect in terms of pixel coordinates in the raw source image
+    var cropLeft = Math.round(image.crop.left * asset.width);
+    var cropTop = Math.round(image.crop.top * asset.height);
+    var crop = {
+        left: cropLeft,
+        top: cropTop,
+        width: Math.round(asset.width - image.crop.right * asset.width - cropLeft),
+        height: Math.round(asset.height - image.crop.bottom * asset.height - cropTop),
+    };
+    // Compute hot spot rect in terms of pixel coordinates
+    var hotSpotVerticalRadius = (image.hotspot.height * asset.height) / 2;
+    var hotSpotHorizontalRadius = (image.hotspot.width * asset.width) / 2;
+    var hotSpotCenterX = image.hotspot.x * asset.width;
+    var hotSpotCenterY = image.hotspot.y * asset.height;
+    var hotspot = {
+        left: hotSpotCenterX - hotSpotHorizontalRadius,
+        top: hotSpotCenterY - hotSpotVerticalRadius,
+        right: hotSpotCenterX + hotSpotHorizontalRadius,
+        bottom: hotSpotCenterY + hotSpotVerticalRadius,
+    };
+    // If irrelevant, or if we are requested to: don't perform crop/fit based on
+    // the crop/hotspot.
+    if (!(spec.rect || spec.focalPoint || spec.ignoreImageParams || spec.crop)) {
+        spec = __assign(__assign({}, spec), fit({ crop: crop, hotspot: hotspot }, spec));
+    }
+    return specToImageUrl(__assign(__assign({}, spec), { asset: asset }));
+}
+exports["default"] = urlForImage;
+// eslint-disable-next-line complexity
+function specToImageUrl(spec) {
+    var cdnUrl = (spec.baseUrl || 'https://cdn.sanity.io').replace(/\/+$/, '');
+    var vanityStub = spec.vanityName ? "/".concat(spec.vanityName) : '';
+    var filename = "".concat(spec.asset.id, "-").concat(spec.asset.width, "x").concat(spec.asset.height, ".").concat(spec.asset.format).concat(vanityStub);
+    var baseUrl = "".concat(cdnUrl, "/images/").concat(spec.projectId, "/").concat(spec.dataset, "/").concat(filename);
+    var params = [];
+    if (spec.rect) {
+        // Only bother url with a crop if it actually crops anything
+        var _a = spec.rect, left = _a.left, top_1 = _a.top, width = _a.width, height = _a.height;
+        var isEffectiveCrop = left !== 0 || top_1 !== 0 || height !== spec.asset.height || width !== spec.asset.width;
+        if (isEffectiveCrop) {
+            params.push("rect=".concat(left, ",").concat(top_1, ",").concat(width, ",").concat(height));
+        }
+    }
+    if (spec.bg) {
+        params.push("bg=".concat(spec.bg));
+    }
+    if (spec.focalPoint) {
+        params.push("fp-x=".concat(spec.focalPoint.x));
+        params.push("fp-y=".concat(spec.focalPoint.y));
+    }
+    var flip = [spec.flipHorizontal && 'h', spec.flipVertical && 'v'].filter(Boolean).join('');
+    if (flip) {
+        params.push("flip=".concat(flip));
+    }
+    // Map from spec name to url param name, and allow using the actual param name as an alternative
+    exports.SPEC_NAME_TO_URL_NAME_MAPPINGS.forEach(function (mapping) {
+        var specName = mapping[0], param = mapping[1];
+        if (typeof spec[specName] !== 'undefined') {
+            params.push("".concat(param, "=").concat(encodeURIComponent(spec[specName])));
+        }
+        else if (typeof spec[param] !== 'undefined') {
+            params.push("".concat(param, "=").concat(encodeURIComponent(spec[param])));
+        }
+    });
+    if (params.length === 0) {
+        return baseUrl;
+    }
+    return "".concat(baseUrl, "?").concat(params.join('&'));
+}
+function fit(source, spec) {
+    var cropRect;
+    var imgWidth = spec.width;
+    var imgHeight = spec.height;
+    // If we are not constraining the aspect ratio, we'll just use the whole crop
+    if (!(imgWidth && imgHeight)) {
+        return { width: imgWidth, height: imgHeight, rect: source.crop };
+    }
+    var crop = source.crop;
+    var hotspot = source.hotspot;
+    // If we are here, that means aspect ratio is locked and fitting will be a bit harder
+    var desiredAspectRatio = imgWidth / imgHeight;
+    var cropAspectRatio = crop.width / crop.height;
+    if (cropAspectRatio > desiredAspectRatio) {
+        // The crop is wider than the desired aspect ratio. That means we are cutting from the sides
+        var height = Math.round(crop.height);
+        var width = Math.round(height * desiredAspectRatio);
+        var top_2 = Math.max(0, Math.round(crop.top));
+        // Center output horizontally over hotspot
+        var hotspotXCenter = Math.round((hotspot.right - hotspot.left) / 2 + hotspot.left);
+        var left = Math.max(0, Math.round(hotspotXCenter - width / 2));
+        // Keep output within crop
+        if (left < crop.left) {
+            left = crop.left;
+        }
+        else if (left + width > crop.left + crop.width) {
+            left = crop.left + crop.width - width;
+        }
+        cropRect = { left: left, top: top_2, width: width, height: height };
+    }
+    else {
+        // The crop is taller than the desired ratio, we are cutting from top and bottom
+        var width = crop.width;
+        var height = Math.round(width / desiredAspectRatio);
+        var left = Math.max(0, Math.round(crop.left));
+        // Center output vertically over hotspot
+        var hotspotYCenter = Math.round((hotspot.bottom - hotspot.top) / 2 + hotspot.top);
+        var top_3 = Math.max(0, Math.round(hotspotYCenter - height / 2));
+        // Keep output rect within crop
+        if (top_3 < crop.top) {
+            top_3 = crop.top;
+        }
+        else if (top_3 + height > crop.top + crop.height) {
+            top_3 = crop.top + crop.height - height;
+        }
+        cropRect = { left: left, top: top_3, width: width, height: height };
+    }
+    return {
+        width: imgWidth,
+        height: imgHeight,
+        rect: cropRect,
+    };
+}
+//# sourceMappingURL=urlForImage.js.map
+
+/***/ }),
+
 /***/ "./node_modules/@emotion/cache/dist/emotion-cache.cjs.js":
 /*!***************************************************************!*\
   !*** ./node_modules/@emotion/cache/dist/emotion-cache.cjs.js ***!
@@ -16829,7 +17436,7 @@ const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["defaul
     // removed by dead control flow
 {}
   },
-  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
+  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -16900,6 +17507,204 @@ function ScopedShell({
 
 /***/ }),
 
+/***/ "./src/server/assets.ts":
+/*!******************************!*\
+  !*** ./src/server/assets.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   buildPreloadLinks: () => (/* binding */ buildPreloadLinks),
+/* harmony export */   loadManifestIfAny: () => (/* binding */ loadManifestIfAny),
+/* harmony export */   readFontCss: () => (/* binding */ readFontCss),
+/* harmony export */   resolveStatsFile: () => (/* binding */ resolveStatsFile)
+/* harmony export */ });
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
+// src/server/assets.ts
+
+
+function resolveStatsFile() {
+  const BUILD_DIR = path__WEBPACK_IMPORTED_MODULE_1___default().resolve(process.cwd(), 'build');
+  const PROD_STATS_FILE = path__WEBPACK_IMPORTED_MODULE_1___default().resolve(BUILD_DIR, 'loadable-stats.json');
+  const DEV_STATS_FILE = path__WEBPACK_IMPORTED_MODULE_1___default().resolve(process.cwd(), 'loadable-stats.json');
+  const statsFile = fs__WEBPACK_IMPORTED_MODULE_0___default().existsSync(PROD_STATS_FILE) ? PROD_STATS_FILE : DEV_STATS_FILE;
+  return {
+    BUILD_DIR,
+    STATS_FILE: statsFile,
+    ASSET_MANIFEST: path__WEBPACK_IMPORTED_MODULE_1___default().resolve(BUILD_DIR, 'asset-manifest.json')
+  };
+}
+function loadManifestIfAny(IS_DEV, manifestPath) {
+  if (IS_DEV) return null;
+  try {
+    return JSON.parse(fs__WEBPACK_IMPORTED_MODULE_0___default().readFileSync(manifestPath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+function readFontCss() {
+  const safeRead = file => fs__WEBPACK_IMPORTED_MODULE_0___default().existsSync(file) ? fs__WEBPACK_IMPORTED_MODULE_0___default().readFileSync(file, 'utf8') : '';
+  const root = process.cwd();
+  return {
+    rubikCss: safeRead(path__WEBPACK_IMPORTED_MODULE_1___default().resolve(root, 'public/fonts/rubik.css')),
+    orbitronCss: safeRead(path__WEBPACK_IMPORTED_MODULE_1___default().resolve(root, 'public/fonts/orbitron.css')),
+    poppinsCss: safeRead(path__WEBPACK_IMPORTED_MODULE_1___default().resolve(root, 'public/fonts2/poppins.css')),
+    epilogueCss: safeRead(path__WEBPACK_IMPORTED_MODULE_1___default().resolve(root, 'public/fonts2/epilogue.css'))
+  };
+}
+
+// Build <link rel="preload"> set based on your normalized media shape
+function buildPreloadLinks(firstData) {
+  const links = [];
+  if (!firstData?.media) return links;
+  const arr = Array.isArray(firstData.media) ? firstData.media : [firstData.media];
+  for (const m of arr) {
+    if (m?.imageUrl) links.push(`<link rel="preload" as="image" href="${m.imageUrl}">`);
+    if (m?.video?.posterUrl) links.push(`<link rel="preload" as="image" href="${m.video.posterUrl}">`);
+    if (m?.video?.mp4Url) links.push(`<link rel="preload" as="video" href="${m.video.mp4Url}">`);
+    if (m?.video?.webmUrl) links.push(`<link rel="preload" as="video" href="${m.video.webmUrl}">`);
+  }
+  return links;
+}
+
+/***/ }),
+
+/***/ "./src/server/emotion.ts":
+/*!*******************************!*\
+  !*** ./src/server/emotion.ts ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createEmotion: () => (/* binding */ createEmotion)
+/* harmony export */ });
+/* harmony import */ var _emotion_cache__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @emotion/cache */ "./node_modules/@emotion/cache/dist/emotion-cache.cjs.js");
+/* harmony import */ var _emotion_server_create_instance__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/server/create-instance */ "./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.cjs.js");
+// src/server/emotion.ts
+
+
+function createEmotion() {
+  const cache = (0,_emotion_cache__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    key: 'css',
+    prepend: true
+  });
+  const {
+    extractCriticalToChunks,
+    constructStyleTagsFromChunks
+  } = (0,_emotion_server_create_instance__WEBPACK_IMPORTED_MODULE_1__["default"])(cache);
+  return {
+    cache,
+    extractCriticalToChunks,
+    constructStyleTagsFromChunks
+  };
+}
+
+/***/ }),
+
+/***/ "./src/server/html.ts":
+/*!****************************!*\
+  !*** ./src/server/html.ts ***!
+  \****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   buildHtmlClose: () => (/* binding */ buildHtmlClose),
+/* harmony export */   buildHtmlOpen: () => (/* binding */ buildHtmlOpen)
+/* harmony export */ });
+/* harmony import */ var node_fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:fs */ "node:fs");
+/* harmony import */ var node_fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_fs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! node:path */ "node:path");
+/* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(node_path__WEBPACK_IMPORTED_MODULE_1__);
+// src/server/html.ts
+
+
+function readTextSafe(p) {
+  try {
+    return node_fs__WEBPACK_IMPORTED_MODULE_0___default().readFileSync(p, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+// Minimal prefixer to mimic your PostCSS rule
+function prefixCss(css, prefix = '#efe-portfolio') {
+  return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
+    selector = selector.trim();
+    if (selector.startsWith('html') || selector.startsWith('body') || selector.startsWith(':root') || selector.includes('#dynamic-theme') || selector.includes('#shadow-dynamic-app') || selector.includes('::slotted')) return `${brace} ${selector}`;
+    return `${brace} ${prefix} ${selector}`;
+  });
+}
+function buildHtmlOpen(opts) {
+  const {
+    IS_DEV,
+    routePath,
+    iconSvg,
+    iconIco,
+    preloadLinks,
+    fontsCss,
+    extractorLinkTags,
+    extractorStyleTags,
+    emotionStyleTags
+  } = opts;
+  const ROOT = process.cwd();
+  const cssTheme = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/font+theme.css'));
+  const cssBlocks = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/general-block.css'));
+
+  // Inline prefixed CSS only for landing routes
+  let appCriticalCss = '';
+  if (routePath === '/' || routePath === '/home') {
+    appCriticalCss = prefixCss(cssTheme) + '\n/* --- separator --- */\n' + prefixCss(cssBlocks);
+  }
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charSet="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Efe Ozalp - Portfolio</title>
+<meta name="description" content="web engineering, 3D modeling, visual design portfolio of Efe Ozalp" />
+${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)+":3000"</script>` : ''}
+<link rel="icon" href="${iconSvg}" type="image/svg+xml" />
+<link rel="icon" href="${iconIco}" sizes="any" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.sanity.io">
+${(preloadLinks || []).join('\n')}
+
+${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
+
+<style>
+${fontsCss.rubikCss}
+${fontsCss.orbitronCss}
+${fontsCss.poppinsCss}
+${fontsCss.epilogueCss}
+</style>
+
+${extractorLinkTags}
+${extractorStyleTags}
+${emotionStyleTags}
+</head>
+<body id="efe-portfolio">
+<div id="root">`;
+}
+function buildHtmlClose(ssrPayload, scriptTags) {
+  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
+  return `</div>${ssrJson}
+${scriptTags}
+</body></html>`;
+}
+
+/***/ }),
+
 /***/ "./src/server/index.jsx":
 /*!******************************!*\
   !*** ./src/server/index.jsx ***!
@@ -16914,19 +17719,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-router */ "./node_modules/react-router/dist/development/index.js");
-/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react-dom/server */ "react-dom/server");
-/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_dom_server__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _App__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../App */ "./src/App.jsx");
-/* harmony import */ var _loadable_server__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @loadable/server */ "./node_modules/@loadable/server/dist/cjs/loadable-server.cjs.js");
-/* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.cjs.js");
-/* harmony import */ var _emotion_cache__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @emotion/cache */ "./node_modules/@emotion/cache/dist/emotion-cache.cjs.js");
-/* harmony import */ var _emotion_server_create_instance__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @emotion/server/create-instance */ "./node_modules/@emotion/server/create-instance/dist/emotion-server-create-instance.cjs.js");
+/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! express */ "express");
+/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(express__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react-router */ "./node_modules/react-router/dist/development/index.js");
+/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-dom/server */ "react-dom/server");
+/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_dom_server__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _App__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../App */ "./src/App.jsx");
+/* harmony import */ var _loadable_server__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @loadable/server */ "./node_modules/@loadable/server/dist/cjs/loadable-server.cjs.js");
+/* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.cjs.js");
+/* harmony import */ var _emotion__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./emotion */ "./src/server/emotion.ts");
 /* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! http-proxy-middleware */ "http-proxy-middleware");
 /* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__);
 /* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.js");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
+/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
+/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
+/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/server/index.jsx
 
 
@@ -16942,43 +17751,36 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const express = __webpack_require__(/*! express */ "express");
-const app = express();
+// helpers
+ // fresh seed per request
+
+
+
+const app = express__WEBPACK_IMPORTED_MODULE_3___default()();
 const IS_DEV = "development" !== 'production';
-const HOST = '192.168.1.143';
-const DEV_HOST_FOR_ASSETS = '192.168.1.143';
+const HOST = '172.20.10.13';
+const DEV_HOST_FOR_ASSETS = '172.20.10.13';
 const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
+const {
+  BUILD_DIR,
+  STATS_FILE,
+  ASSET_MANIFEST
+} = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.resolveStatsFile)();
 
-// Paths for prod build
-const BUILD_DIR = path__WEBPACK_IMPORTED_MODULE_0___default().resolve(process.cwd(), 'build');
-const PROD_STATS_FILE = path__WEBPACK_IMPORTED_MODULE_0___default().resolve(BUILD_DIR, 'loadable-stats.json');
-const DEV_STATS_FILE = path__WEBPACK_IMPORTED_MODULE_0___default().resolve(process.cwd(), 'loadable-stats.json');
-const STATS_FILE = fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(PROD_STATS_FILE) ? PROD_STATS_FILE : DEV_STATS_FILE;
-const ASSET_MANIFEST = path__WEBPACK_IMPORTED_MODULE_0___default().resolve(BUILD_DIR, 'asset-manifest.json');
-
-// --- Static assets (available in both dev & prod) ---
-app.use('/fonts', express.static(path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public', 'fonts'), {
-  maxAge: '1y'
-}));
-app.use('/fonts2', express.static(path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public', 'fonts2'), {
-  maxAge: '1y'
-}));
-
-// Serve icons & PWA files explicitly (both dev & prod)
-app.use('/favicon.ico', express.static(path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public', 'favicon.ico'), {
-  maxAge: '1y'
-}));
-app.use('/favicon.svg', express.static(path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public', 'favicon.svg'), {
-  maxAge: '1y'
-}));
-app.use('/apple-touch-icon.png', express.static(path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public', 'apple-touch-icon.png'), {
-  maxAge: '1y'
-}));
-app.use('/site.webmanifest', express.static(path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public', 'site.webmanifest'), {
-  maxAge: '1y'
+/** -----------------------------
+ * Static assets (dev & prod)
+ * Serve the entire public/ directory BEFORE SSR catch-all.
+ * ----------------------------- */
+app.use(express__WEBPACK_IMPORTED_MODULE_3___default()["static"](path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public'), {
+  maxAge: '1y',
+  index: false // never serve a public/index.html; SSR handles HTML
 }));
 
-// Proxy dev assets from CRA dev server
+// (Optional) keep these if you want stricter headers, but public/ already covers them
+// app.use('/fonts', express.static(path.join(process.cwd(), 'public', 'fonts'), { maxAge: '1y' }));
+// app.use('/fonts2', express.static(path.join(process.cwd(), 'public', 'fonts2'), { maxAge: '1y' }));
+
+/** Dev asset proxy for CRA */
 if (IS_DEV) {
   app.use('/static', (0,http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__.createProxyMiddleware)({
     target: DEV_ASSETS_ORIGIN,
@@ -16992,146 +17794,125 @@ if (IS_DEV) {
   }));
 }
 
-// Static asset serving (prod only)
+/** Prod build file serving */
 if (!IS_DEV) {
-  app.use('/static', express.static(path__WEBPACK_IMPORTED_MODULE_0___default().join(BUILD_DIR, 'static'), {
+  app.use('/static', express__WEBPACK_IMPORTED_MODULE_3___default()["static"](path__WEBPACK_IMPORTED_MODULE_0___default().join(BUILD_DIR, 'static'), {
     maxAge: '1y',
     index: false
   }));
-  app.use(express.static(BUILD_DIR, {
+  app.use(express__WEBPACK_IMPORTED_MODULE_3___default()["static"](BUILD_DIR, {
     index: false
   }));
 }
-function createEmotion() {
-  const cache = (0,_emotion_cache__WEBPACK_IMPORTED_MODULE_8__["default"])({
-    key: 'css',
-    prepend: true
-  });
-  const {
-    extractCriticalToChunks,
-    constructStyleTagsFromChunks
-  } = (0,_emotion_server_create_instance__WEBPACK_IMPORTED_MODULE_9__["default"])(cache);
-  return {
-    cache,
-    extractCriticalToChunks,
-    constructStyleTagsFromChunks
-  };
-}
+
+/** -----------------------------
+ * SSR catch-all
+ * ----------------------------- */
 app.get('/*', async (req, res) => {
-  // 1. Prepare SSR payload
-  const ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_12__.prepareSsrData)();
+  // 0) seed for deterministic randomness (fresh every request)
+  const {
+    seed
+  } = (0,_seed__WEBPACK_IMPORTED_MODULE_13__.getEphemeralSeed)();
+
+  // 1) Prepare SSR payload (seed + preloaded first project data)
+  const ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_12__.prepareSsrData)(seed);
   if (!fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(STATS_FILE)) {
     res.status(500).send('<pre>Missing build artifacts. Run `npm run build` (prod) or `npm run dev:ssr` (dev) to generate loadable-stats.json.</pre>');
     return;
   }
 
-  // 2. Setup loadable extractor
-  const extractor = new _loadable_server__WEBPACK_IMPORTED_MODULE_6__.ChunkExtractor({
+  // 2) Setup loadable extractor
+  const extractor = new _loadable_server__WEBPACK_IMPORTED_MODULE_7__.ChunkExtractor({
     statsFile: STATS_FILE,
     publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/'
   });
 
-  // 3. Setup Emotion cache
+  // 3) Emotion setup
   const {
     cache,
     extractCriticalToChunks,
     constructStyleTagsFromChunks
-  } = createEmotion();
+  } = (0,_emotion__WEBPACK_IMPORTED_MODULE_9__.createEmotion)();
 
-  // 4. Wrap in providers
-  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_7__.CacheProvider, {
+  // 4) Wrap in providers
+  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_8__.CacheProvider, {
     value: cache,
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__.SsrDataProvider, {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__.SsrDataProvider, {
       value: ssrPayload,
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_3__.StaticRouter, {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_4__.StaticRouter, {
         location: req.url,
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx)(_App__WEBPACK_IMPORTED_MODULE_5__["default"], {})
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_App__WEBPACK_IMPORTED_MODULE_6__["default"], {})
       })
     })
   }));
 
-  // 5. Pre-render for Emotion critical CSS
-  const prerender = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_4__.renderToString)(jsx);
+  // 5) Pre-render for Emotion critical CSS
+  const prerender = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_5__.renderToString)(jsx);
   const emotionChunks = extractCriticalToChunks(prerender);
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks);
 
-  // 6. Manifest (prod only)
-  let manifest = null;
-  if (!IS_DEV) {
-    try {
-      manifest = JSON.parse(fs__WEBPACK_IMPORTED_MODULE_1___default().readFileSync(ASSET_MANIFEST, 'utf8'));
-    } catch {
-      manifest = null;
-    }
-  }
-
-  // 7. Icons
+  // 6) Manifest (prod only) + icons
+  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
   const iconSvg = '/favicon.svg';
 
-  // 8. Fonts
-  const safeRead = file => fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(file) ? fs__WEBPACK_IMPORTED_MODULE_1___default().readFileSync(file, 'utf8') : '';
-  const rubikCss = safeRead(path__WEBPACK_IMPORTED_MODULE_0___default().resolve(process.cwd(), 'public/fonts/rubik.css'));
-  const orbitronCss = safeRead(path__WEBPACK_IMPORTED_MODULE_0___default().resolve(process.cwd(), 'public/fonts/orbitron.css'));
-  const poppinsCss = safeRead(path__WEBPACK_IMPORTED_MODULE_0___default().resolve(process.cwd(), 'public/fonts2/poppins.css'));
-  const epilogueCss = safeRead(path__WEBPACK_IMPORTED_MODULE_0___default().resolve(process.cwd(), 'public/fonts2/epilogue.css'));
+  // 7) Fonts
+  const fontsCss = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.readFontCss)();
 
-  // 9. HTML open
-  const htmlOpen = `<!doctype html>
-<html lang="en">
-<head>
-<meta charSet="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)+":3000"</script>` : ''}
-<link rel="icon" href="${iconSvg}" type="image/svg+xml" />
-<link rel="icon" href="${iconIco}" sizes="any" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-<link rel="manifest" href="/site.webmanifest" />
-<link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
-<link rel="dns-prefetch" href="https://cdn.sanity.io">
-<style>
-${rubikCss}
-${orbitronCss}
-${poppinsCss}
-${epilogueCss}
-</style>
-${extractor.getLinkTags()}
-${extractor.getStyleTags()}
-${emotionStyleTags}
-</head>
-<body id="efe-portfolio">
-<div id="root">`;
+  // 8) Preload first media (optional)
+  const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
+  const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
+  const preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_14__.buildPreloadLinks)(firstData);
 
-  // 10. Serialize SSR payload
-  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
+  // 9) Build HTML parts
+  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlOpen)({
+    IS_DEV,
+    routePath: req.path,
+    iconSvg,
+    iconIco,
+    preloadLinks,
+    fontsCss,
+    extractorLinkTags: extractor.getLinkTags(),
+    extractorStyleTags: extractor.getStyleTags(),
+    emotionStyleTags
+  });
+  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlClose)(ssrPayload, extractor.getScriptTags());
 
-  // 11. HTML close
-  const htmlClose = `</div>${ssrJson}
-${extractor.getScriptTags()}
-</body></html>`;
-
-  // 12. Streaming render
+  // 10) Stream the app (with proper lifecycle)
   let didError = false;
-  const ABORT_MS = 10000;
-  const stream = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_4__.renderToPipeableStream)(jsx, {
+  const ABORT_MS = IS_DEV ? 30000 : 10000;
+  const stream = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_5__.renderToPipeableStream)(jsx, {
     onShellReady() {
       res.statusCode = didError ? 500 : 200;
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.write(htmlOpen);
-      stream.pipe(res);
+      // IMPORTANT: don't auto-end; we'll write htmlClose ourselves
+      stream.pipe(res, {
+        end: false
+      });
     },
     onAllReady() {
+      clearTimeout(abortTimer);
       res.write(htmlClose);
       res.end();
+    },
+    onShellError(err) {
+      clearTimeout(abortTimer);
+      console.error('[SSR] Shell error:', err);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.end('An error occurred while loading the app.');
     },
     onError(err) {
       didError = true;
       console.error('[SSR] Error:', err);
     }
   });
-  setTimeout(() => {
-    console.warn('[SSR] Aborting stream after timeout');
-    stream.abort();
+  const abortTimer = setTimeout(() => {
+    if (!res.writableEnded) {
+      console.warn('[SSR] Aborting stream after timeout');
+      stream.abort();
+    }
   }, ABORT_MS);
 });
 const PORT = process.env.PORT || 3001;
@@ -17141,9 +17922,9 @@ app.listen(PORT, HOST, () => {
 
 /***/ }),
 
-/***/ "./src/server/prepareSsrData.js":
+/***/ "./src/server/prepareSsrData.ts":
 /*!**************************************!*\
-  !*** ./src/server/prepareSsrData.js ***!
+  !*** ./src/server/prepareSsrData.ts ***!
   \**************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -17153,25 +17934,363 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   prepareSsrData: () => (/* binding */ prepareSsrData)
 /* harmony export */ });
 /* harmony import */ var _utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
-/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var _utils_seed__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/seed */ "./src/utils/seed/index.ts");
+/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
 // src/server/prepareSsrData.ts
 
 
-async function prepareSsrData() {
-  // (A) Decide order on the server
-  const projects = [..._utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_0__.projects].sort(() => Math.random() - 0.5);
 
-  // (B) Prefetch ONLY what you need for first paint
-  const firstKey = projects[0].key;
-  const firstData = await (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_1__.getProjectData)(firstKey);
+async function prepareSsrData(seed) {
+  const order = (0,_utils_seed__WEBPACK_IMPORTED_MODULE_1__.seededShuffle)(_utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_0__.baseProjects, seed);
+  const first = order[0];
+  const preloaded = {};
+  let preloadLinks = [];
+  const desc = first ? _ssr_registry__WEBPACK_IMPORTED_MODULE_2__.ssrRegistry[first.key] : undefined;
+  if (desc?.fetch) {
+    const data = await desc.fetch(); // 👈 server fetch
+    preloaded[first.key] = {
+      kind: first.key,
+      data
+    }; // tiny discriminator is handy
+    if (desc.buildPreloads) preloadLinks = desc.buildPreloads(data);
+  }
   return {
-    projects,
-    // send order to client to avoid mismatch
-    preloaded: {
-      [firstKey]: firstData ?? null
-    }
+    seed,
+    preloaded,
+    preloadLinks
   };
 }
+
+/***/ }),
+
+/***/ "./src/server/seed.ts":
+/*!****************************!*\
+  !*** ./src/server/seed.ts ***!
+  \****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getEphemeralSeed: () => (/* binding */ getEphemeralSeed)
+/* harmony export */ });
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:crypto */ "node:crypto");
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils_seed__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/seed */ "./src/utils/seed/index.ts");
+// src/server/seed.ts
+
+
+
+// New seed each request; no cookies, nothing persisted.
+function getEphemeralSeed() {
+  const seedStr = node_crypto__WEBPACK_IMPORTED_MODULE_0__.randomUUID();
+  const seed = (0,_utils_seed__WEBPACK_IMPORTED_MODULE_1__.stringToSeed)(seedStr);
+  return {
+    seed,
+    seedStr
+  };
+}
+
+/***/ }),
+
+/***/ "./src/ssr/blocks/type-1.tsx":
+/*!***********************************!*\
+  !*** ./src/ssr/blocks/type-1.tsx ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   SsrMediaBlock: () => (/* binding */ SsrMediaBlock)
+/* harmony export */ });
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+// src/ssr/blocks/SsrMediaBlock.tsx
+function SsrMediaBlock({
+  data
+}) {
+  const toItems = d => {
+    if (!d) return [];
+    if (d.media) return Array.isArray(d.media) ? d.media : [d.media];
+    const arr = [];
+    if (d.mediaOne) arr.push(d.mediaOne);
+    if (d.mediaTwo) arr.push(d.mediaTwo);
+    return arr;
+  };
+  const items = toItems(data);
+  if (!items.length) return null;
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("div", {
+    className: "ssr-media",
+    style: {
+      width: '100%',
+      height: '100%'
+    },
+    children: items.map((m, i) => {
+      const img = m?.image?.asset?.url || m?.imageUrl;
+      const poster = m?.video?.poster?.asset?.url || m?.video?.posterUrl;
+      const asset = m?.video?.asset?.url || m?.video?.assetUrl; // 👈 generic
+
+      const webm = m?.video?.webmUrl || (asset?.endsWith?.('.webm') ? asset : null);
+      const mp4 = m?.video?.mp4Url || (asset?.endsWith?.('.mp4') ? asset : null);
+      if (webm || mp4) {
+        return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("video", {
+          autoPlay: true,
+          muted: true,
+          loop: true,
+          playsInline: true,
+          preload: "metadata",
+          poster: poster || undefined,
+          style: {
+            width: '100%',
+            height: '100%',
+            display: 'block'
+          },
+          children: [webm && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("source", {
+            src: webm,
+            type: "video/webm"
+          }), mp4 && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("source", {
+            src: mp4,
+            type: "video/mp4"
+          })]
+        }, i);
+      }
+
+      // fallback: asset url with unknown extension — let browser figure it out
+      if (asset) {
+        return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("video", {
+          autoPlay: true,
+          muted: true,
+          loop: true,
+          playsInline: true,
+          preload: "metadata",
+          poster: poster || undefined,
+          style: {
+            width: '100%',
+            height: '100%',
+            display: 'block'
+          },
+          src: asset
+        }, i);
+      }
+      if (img) {
+        return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("img", {
+          src: img,
+          alt: m?.alt ?? '',
+          loading: "eager",
+          decoding: "sync",
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block'
+          }
+        }, i);
+      }
+      return null;
+    })
+  });
+}
+
+/***/ }),
+
+/***/ "./src/ssr/projects/dataviz.ssr.tsx":
+/*!******************************************!*\
+  !*** ./src/ssr/projects/dataviz.ssr.tsx ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   datavizSSR: () => (/* binding */ datavizSSR)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _blocks_type_1__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../blocks/type-1 */ "./src/ssr/blocks/type-1.tsx");
+/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/projects/dataviz.ssr.tsx
+
+
+
+
+const datavizSSR = {
+  fetch: () => (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__.getProjectData)('data-viz'),
+  render: data => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_blocks_type_1__WEBPACK_IMPORTED_MODULE_1__.SsrMediaBlock, {
+    data: data
+  })
+};
+
+/***/ }),
+
+/***/ "./src/ssr/projects/rotary.ssr.tsx":
+/*!*****************************************!*\
+  !*** ./src/ssr/projects/rotary.ssr.tsx ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   rotarySSR: () => (/* binding */ rotarySSR)
+/* harmony export */ });
+/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
+/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../styles/block-type-1.css */ "./src/styles/block-type-1.css");
+/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/projects/rotary.ssr.tsx
+
+
+
+
+
+const rotarySSR = {
+  fetch: () => (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__.getProjectData)('rotary-lamp'),
+  render: data => {
+    const m1 = data?.mediaOne || {};
+    const m2 = data?.mediaTwo || {};
+    const img1 = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m1.image, 1920, 1080, 90) : m1?.imageUrl;
+    const img2 = m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.image, 1920, 1080, 90) : m2?.imageUrl;
+
+    // match the SplitDragHandler expectations:
+    // - section is relative, children are absolutely positioned containers
+    // - default split ~50%
+    const initialSplit = 50;
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+      id: "rotary-ssr",
+      className: "block-type-1",
+      style: {
+        position: 'relative',
+        width: '100%',
+        // Give the section a height so absolute children can size against it.
+        // Your CSS may already set this; if so, you can remove the line below.
+        minHeight: '60vh',
+        overflow: 'hidden'
+      },
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        id: "rotary-media-1-container",
+        className: "media-content-1",
+        style: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: `${initialSplit}%`,
+          height: '100%'
+        },
+        children: img1 && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+          id: "rotary-media-1",
+          className: "media-item-1 tooltip-rotary-lamp",
+          src: img1,
+          alt: m1?.alt ?? 'Rotary Lamp media',
+          draggable: false,
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block'
+          }
+        })
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        id: "rotary-enhancer-mount"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        id: "rotary-media-2-container",
+        className: "media-content-2",
+        style: {
+          position: 'absolute',
+          top: 0,
+          left: `${initialSplit}%`,
+          width: `${100 - initialSplit}%`,
+          height: '100%'
+        },
+        children: img2 && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+          id: "rotary-media-2",
+          className: "media-item-2 tooltip-rotary-lamp",
+          src: img2,
+          alt: m2?.alt ?? 'Rotary Lamp media',
+          draggable: false,
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block'
+          }
+        })
+      })]
+    });
+  }
+};
+
+/***/ }),
+
+/***/ "./src/ssr/projects/scoop.ssr.tsx":
+/*!****************************************!*\
+  !*** ./src/ssr/projects/scoop.ssr.tsx ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   scoopSSR: () => (/* binding */ scoopSSR)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _blocks_type_1__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../blocks/type-1 */ "./src/ssr/blocks/type-1.tsx");
+/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/projects/scoop.ssr.tsx
+
+
+
+
+const scoopSSR = {
+  fetch: () => (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__.getProjectData)('ice-scoop'),
+  render: data => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_blocks_type_1__WEBPACK_IMPORTED_MODULE_1__.SsrMediaBlock, {
+    data: data
+  })
+  // buildPreloads: (data) => [...optional <link> tags from data],
+};
+
+/***/ }),
+
+/***/ "./src/ssr/registry.ts":
+/*!*****************************!*\
+  !*** ./src/ssr/registry.ts ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ssrRegistry: () => (/* binding */ ssrRegistry)
+/* harmony export */ });
+/* harmony import */ var _projects_scoop_ssr__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./projects/scoop.ssr */ "./src/ssr/projects/scoop.ssr.tsx");
+/* harmony import */ var _projects_rotary_ssr__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./projects/rotary.ssr */ "./src/ssr/projects/rotary.ssr.tsx");
+/* harmony import */ var _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./projects/dataviz.ssr */ "./src/ssr/projects/dataviz.ssr.tsx");
+// src/ssr/registry.ts
+
+
+
+
+const ssrRegistry = {
+  scoop: _projects_scoop_ssr__WEBPACK_IMPORTED_MODULE_0__.scoopSSR,
+  rotary: _projects_rotary_ssr__WEBPACK_IMPORTED_MODULE_1__.rotarySSR,
+  dataviz: _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__.datavizSSR
+  // game: undefined,
+  // dynamic: undefined,
+};
+
+/***/ }),
+
+/***/ "./src/styles/block-type-1.css":
+/*!*************************************!*\
+  !*** ./src/styles/block-type-1.css ***!
+  \*************************************/
+/***/ (() => {
+
+
 
 /***/ }),
 
@@ -17184,36 +18303,42 @@ async function prepareSsrData() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   baseProjects: () => (/* binding */ baseProjects),
 /* harmony export */   componentMap: () => (/* binding */ componentMap),
-/* harmony export */   projects: () => (/* binding */ projects),
 /* harmony export */   useProjectLoader: () => (/* binding */ useProjectLoader)
 /* harmony export */ });
-/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../ssr/registry */ "./src/ssr/registry.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/utils/content-utility/component-loader.tsx
 
 
 
+
 const componentMap = {
-  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx-src_utils_tooltip_tooltipInit_ts-src_styles_block--ed7988"), __webpack_require__.e("src_utils_split-controller_tsx"), __webpack_require__.e("src_components_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rotary-lamp */ "./src/components/rotary-lamp.tsx")),
-  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx-src_utils_tooltip_tooltipInit_ts-src_styles_block--ed7988"), __webpack_require__.e("src_utils_split-controller_tsx"), __webpack_require__.e("src_components_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/ice-cream-scoop */ "./src/components/ice-cream-scoop.tsx")),
-  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx-src_utils_tooltip_tooltipInit_ts-src_styles_block--ed7988"), __webpack_require__.e("src_components_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/data-visualization */ "./src/components/data-visualization.tsx")),
+  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rotary-lamp */ "./src/components/rotary-lamp.tsx")),
+  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/ice-cream-scoop */ "./src/components/ice-cream-scoop.tsx")),
+  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/data-visualization */ "./src/components/data-visualization.tsx")),
   game: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_evade-the-rock_jsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/evade-the-rock.jsx */ "./src/components/rock-escapade/evade-the-rock.jsx")),
-  dynamic: () => Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx"))
+  dynamic: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx"))
 };
 const toComponent = p => p;
-const projects = [{
+
+// stable base list
+const baseProjects = [{
   key: 'scoop',
   title: 'Ice Cream Scoop',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx-src_utils_tooltip_tooltipInit_ts-src_styles_block--ed7988"), __webpack_require__.e("src_utils_split-controller_tsx"), __webpack_require__.e("src_components_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/ice-cream-scoop */ "./src/components/ice-cream-scoop.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/ice-cream-scoop */ "./src/components/ice-cream-scoop.tsx")))
 }, {
   key: 'rotary',
   title: 'Rotary Lamp',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx-src_utils_tooltip_tooltipInit_ts-src_styles_block--ed7988"), __webpack_require__.e("src_utils_split-controller_tsx"), __webpack_require__.e("src_components_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rotary-lamp */ "./src/components/rotary-lamp.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rotary-lamp */ "./src/components/rotary-lamp.tsx")))
 }, {
   key: 'dataviz',
   title: 'Data Visualization',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx-src_utils_tooltip_tooltipInit_ts-src_styles_block--ed7988"), __webpack_require__.e("src_components_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/data-visualization */ "./src/components/data-visualization.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/data-visualization */ "./src/components/data-visualization.tsx")))
 }, {
   key: 'game',
   title: 'Evade the Rock',
@@ -17222,28 +18347,40 @@ const projects = [{
   key: 'dynamic',
   title: 'Dynamic App',
   isLink: true,
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("vendors-node_modules_sanity_image-url_lib_node_index_js"), __webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx")))
-}].sort(() => Math.random() - 0.5);
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx")))
+}];
 function useProjectLoader(key) {
-  const ssrData = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_0__.useSsrData)();
-  const project = projects.find(p => p.key === key);
+  const ssr = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_1__.useSsrData)();
+  const project = baseProjects.find(p => p.key === key);
   if (!project) throw new Error(`Unknown project key: ${key}`);
+  const payload = ssr?.preloaded?.[key];
+  const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_2__.ssrRegistry[key];
 
-  // If SSR has preloaded content for this project
-  if (ssrData?.preloaded?.[key]) {
+  // inside useProjectLoader
+  if (payload && desc?.render) {
+    const data = payload.data ?? payload;
+
+    // rotary gets the enhancer
+    if (key === 'rotary') {
+      return async () => {
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
+        return {
+          default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+            children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
+          })
+        };
+      };
+    }
+
+    // all other SSR components render normally
     return async () => ({
-      default: () => {
-        // Replace with the actual component renderer
-        return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-          dangerouslySetInnerHTML: {
-            __html: ssrData.preloaded[key]
-          }
-        });
-      }
+      default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+        children: desc.render(data)
+      })
     });
   }
 
-  // Fallback to lazyImport if no SSR data
+  // Fallback: lazy load real component on the client
   return project.lazyImport;
 }
 
@@ -17264,8 +18401,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/utils/ssr-data-context.tsx
 
+
+// Keep this aligned with what the server injects into window.__SSR_DATA__
 
 const SsrDataContext = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)(null);
 const useSsrData = () => (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(SsrDataContext);
@@ -17304,8 +18442,8 @@ const queries = {
     mediaTwo{ alt,image,video{ "webmUrl": webm.asset->url, "mp4Url": mp4.asset->url, poster } }
   }`,
   'rotary-lamp': `*[_type=="mediaBlock" && title match "Rotary Lamp"][0]{
-    mediaOne{ alt,image,video{ asset->{url} } },
-    mediaTwo{ alt,image,video{ asset->{url} } }
+    mediaOne{ alt, image{asset->{url}}, video{ asset->{url} } },
+    mediaTwo{ alt, image{asset->{url}}, video{ asset->{url} } }
   }`
   // add others as I go
 };
@@ -17319,6 +18457,42 @@ async function getProjectData(key) {
     return null;
   }
 }
+
+/***/ }),
+
+/***/ "./src/utils/media-providers/image-builder.ts":
+/*!****************************************************!*\
+  !*** ./src/utils/media-providers/image-builder.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getHighQualityImageUrl: () => (/* binding */ getHighQualityImageUrl),
+/* harmony export */   getLowResImageUrl: () => (/* binding */ getLowResImageUrl),
+/* harmony export */   getMediumImageUrl: () => (/* binding */ getMediumImageUrl),
+/* harmony export */   urlFor: () => (/* binding */ urlFor)
+/* harmony export */ });
+/* harmony import */ var _sanity_image_url__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @sanity/image-url */ "../../../node_modules/@sanity/image-url/lib/node/index.js");
+/* harmony import */ var _sanity_image_url__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_sanity_image_url__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _sanity__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../sanity */ "./src/utils/sanity.ts");
+// src/utils/image-builder.ts
+
+
+const builder = _sanity_image_url__WEBPACK_IMPORTED_MODULE_0___default()(_sanity__WEBPACK_IMPORTED_MODULE_1__["default"]);
+
+// Base builder
+const urlFor = source => builder.image(source);
+
+// Ultra-low-res (LQIP)
+const getLowResImageUrl = source => urlFor(source).ignoreImageParams().width(128).height(128).quality(30).auto('format').url();
+
+// Medium
+const getMediumImageUrl = source => urlFor(source).ignoreImageParams().width(640).height(360).quality(60).auto('format').url();
+
+// High
+const getHighQualityImageUrl = (source, width = 1920, height = 1080, quality = 100) => urlFor(source).ignoreImageParams().width(width).height(height).quality(quality).auto('format').url();
 
 /***/ }),
 
@@ -17345,6 +18519,58 @@ const client = (0,_sanity_client__WEBPACK_IMPORTED_MODULE_0__.createClient)({
   useCdn: false
 });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (client);
+
+/***/ }),
+
+/***/ "./src/utils/seed/index.ts":
+/*!*********************************!*\
+  !*** ./src/utils/seed/index.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   seededShuffle: () => (/* binding */ seededShuffle),
+/* harmony export */   splitmix32: () => (/* binding */ splitmix32),
+/* harmony export */   stringToSeed: () => (/* binding */ stringToSeed)
+/* harmony export */ });
+// src/utils/seed/index.ts
+
+// --- PRNG (splitmix32) ---
+function splitmix32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = a + 0x9e3779b9 >>> 0;
+    let t = a ^ a >>> 16;
+    t = Math.imul(t, 0x85ebca6b) >>> 0;
+    t ^= t >>> 13;
+    t = Math.imul(t, 0xc2b2ae35) >>> 0;
+    t ^= t >>> 16;
+    return (t >>> 0) / 4294967296;
+  };
+}
+
+// --- seed from string (FNV-1a-ish) ---
+function stringToSeed(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+// --- deterministic Fisher–Yates ---
+function seededShuffle(arr, seed) {
+  const rand = splitmix32(seed);
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 /***/ }),
 
@@ -17532,6 +18758,39 @@ module.exports = require("lottie-web");
 
 "use strict";
 module.exports = require("multipipe");
+
+/***/ }),
+
+/***/ "node:crypto":
+/*!******************************!*\
+  !*** external "node:crypto" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:crypto");
+
+/***/ }),
+
+/***/ "node:fs":
+/*!**************************!*\
+  !*** external "node:fs" ***!
+  \**************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:fs");
+
+/***/ }),
+
+/***/ "node:path":
+/*!****************************!*\
+  !*** external "node:path" ***!
+  \****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:path");
 
 /***/ }),
 

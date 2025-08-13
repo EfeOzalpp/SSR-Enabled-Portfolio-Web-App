@@ -1,69 +1,34 @@
-/* Drag handler for block type 1 */
+/* Drag handler for SSR Rotary (pure DOM updates) */
 import React, { useRef, useEffect, useState } from 'react';
 import lottie from 'lottie-web';
 import { useProjectVisibility } from './context-providers/project-context';
 import arrowData2 from '../svg/arrow2.json';
 
-const SplitDragHandler = ({ split, setSplit }) => {
-  const containerRef = useRef(null);
+type SplitDragHandlerProps = {
+  split: number;
+  setSplit: React.Dispatch<React.SetStateAction<number>>;
+};
+
+const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const { setIsDragging } = useProjectVisibility();
+
+  const splitRef = useRef(split); // track % split without causing re-renders
   const isDraggingRef = useRef(false);
   const isHoveringRef = useRef(false);
-  const arrowContainer = useRef(null);
-  const arrowAnimRef = useRef(null);
+  const arrowContainer = useRef<HTMLDivElement | null>(null);
+  const arrowAnimRef = useRef<any>(null);
 
-  const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
+  const [isPortrait, setIsPortrait] = useState(
+    typeof window !== 'undefined' ? window.innerHeight > window.innerWidth : false
+  );
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-  const initialPinchDistance = useRef(null);
+  const initialPinchDistance = useRef<number | null>(null);
   const pinchTriggeredRef = useRef(false);
   const pinchThreshold = 10;
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsPortrait(window.innerHeight > window.innerWidth);
-    };
-    window.addEventListener('resize', handleResize);
-    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-const playSegment = (() => {
-  let lastCompleteHandler = null;
-  let currentSegment = null;
-
-  return (segment, holdFrame) => {
-    const arrowAnim = arrowAnimRef.current;
-    if (!arrowAnim) return;
-
-    // Remove any existing handler
-    if (lastCompleteHandler) {
-      arrowAnim.removeEventListener('complete', lastCompleteHandler);
-      lastCompleteHandler = null;
-    }
-
-    currentSegment = segment;
-
-    const onComplete = () => {
-      arrowAnim.removeEventListener('complete', onComplete);
-      lastCompleteHandler = null;
-
-      const currentFrame = arrowAnim.currentFrame;
-
-      // Only hold if animation stopped on expected range
-      if (currentSegment?.[1] !== undefined && Math.abs(currentFrame - currentSegment[1]) <= 2) {
-        arrowAnim.goToAndStop(holdFrame, true);
-      } else {
-      }
-    };
-
-    lastCompleteHandler = onComplete;
-    arrowAnim.addEventListener('complete', onComplete);
-    arrowAnim.playSegments(segment, true);
-  };
-})();
-
+  /** Maintain same container height ratio logic */
   const getContainerHeightRatio = () => {
     const width = window.innerWidth;
     if (width < 768) return 0.98;
@@ -71,31 +36,68 @@ const playSegment = (() => {
     return 0.96;
   };
 
-  const handlePointerMove = (clientX, clientY) => {
-    if (!isDraggingRef.current) return;
-    if (typeof clientX !== 'number' || typeof clientY !== 'number') return;
+  /** Helper: update media container sizes directly */
+  const updateMediaSizes = (newSplit: number, isPortraitLayout: boolean) => {
+    const media1 = document.getElementById('rotary-media-1-container');
+    const media2 = document.getElementById('rotary-media-2-container');
+    if (!media1 || !media2) return;
 
-    const viewportWidth = window.innerWidth;
-    const containerHeight = window.innerHeight * getContainerHeightRatio();
-    const isNowPortrait = containerHeight  > viewportWidth;
+    const containerRatio = getContainerHeightRatio();
+    const adjustedSplit = Math.min(100, Math.max(0, newSplit));
 
-    let newSplit = isNowPortrait
-      ? (clientY / containerHeight ) * 100
-      : (clientX / viewportWidth) * 100;
-
-    newSplit = isNowPortrait
-      ? Math.max(20, Math.min(100, newSplit))
-      : Math.max(0, Math.min(100, newSplit));
-
-    setSplit(newSplit);
+    if (isPortraitLayout) {
+      media1.style.height = `${adjustedSplit * containerRatio}%`;
+      media2.style.height = `${(100 - adjustedSplit) * containerRatio}%`;
+      media2.style.top = `${adjustedSplit * containerRatio}%`;
+    } else {
+      media1.style.width = `${adjustedSplit}%`;
+      media2.style.width = `${100 - adjustedSplit}%`;
+      media2.style.left = `${adjustedSplit}%`;
+    }
   };
 
-  const handleMouseMove = (e) => {
-    console.log('[MouseMove] X:', e.clientX, 'Y:', e.clientY);
+  /** Resize handler for orientation changes */
+  useEffect(() => {
+    const handleResize = () => {
+      const portraitNow = window.innerHeight > window.innerWidth;
+      setIsPortrait(portraitNow);
+      updateMediaSizes(splitRef.current, portraitNow);
+    };
+    window.addEventListener('resize', handleResize);
+    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  /** Sync internal ref with prop changes */
+  useEffect(() => {
+    splitRef.current = split;
+    updateMediaSizes(split, isPortrait);
+  }, [split, isPortrait]);
+
+  /** Calculate split from pointer position */
+  const handlePointerMove = (clientX: number, clientY: number) => {
+    if (!isDraggingRef.current) return;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const isNowPortrait = viewportHeight > viewportWidth;
+
+    let newSplit = isNowPortrait
+      ? (clientY / viewportHeight) * 100
+      : (clientX / viewportWidth) * 100;
+
+    newSplit = Math.max(0, Math.min(100, newSplit));
+
+    splitRef.current = newSplit;
+    setSplit(newSplit); // tell parent to re-render
+    updateMediaSizes(newSplit, isNowPortrait);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
     handlePointerMove(e.clientX, e.clientY);
   };
 
-  const handleTouchMove = (e) => {
+  const handleTouchMove = (e: TouchEvent) => {
     if (e.touches.length === 1 && isDraggingRef.current && !pinchTriggeredRef.current) {
       e.preventDefault();
       handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
@@ -112,25 +114,24 @@ const playSegment = (() => {
           pinchTriggeredRef.current = true;
           isDraggingRef.current = false;
           setIsDragging(false);
+          splitRef.current = 50;
           setSplit(50);
+          updateMediaSizes(50, isPortrait);
           initialPinchDistance.current = null;
         }
       }
     }
   };
 
-  const startDragging = (e) => {
+  const startDragging = (e: Event) => {
     e.preventDefault();
     isDraggingRef.current = true;
     setIsDragging(true);
 
     const arrowAnim = arrowAnimRef.current;
     if (arrowAnim) {
-      if (isTouchDevice) {
-        arrowAnim.playSegments([0, 25], true);
-      } else {
-        arrowAnim.goToAndStop(25, true);
-      }
+      if (isTouchDevice) arrowAnim.playSegments([0, 25], true);
+      else arrowAnim.goToAndStop(25, true);
     }
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -145,13 +146,9 @@ const playSegment = (() => {
 
     const arrowAnim = arrowAnimRef.current;
     if (arrowAnim) {
-      if (isTouchDevice) {
-        arrowAnim.playSegments([25, 75], true);
-      } else if (isHoveringRef.current) {
-        arrowAnim.goToAndStop(25, true);
-      } else {
-        arrowAnim.playSegments([25, 75], true);
-      }
+      if (isTouchDevice) arrowAnim.playSegments([25, 75], true);
+      else if (isHoveringRef.current) arrowAnim.goToAndStop(25, true);
+      else arrowAnim.playSegments([25, 75], true);
     }
 
     window.removeEventListener('mousemove', handleMouseMove);
@@ -160,78 +157,10 @@ const playSegment = (() => {
     window.removeEventListener('touchend', stopDragging);
   };
 
-  const handleMouseEnter = () => {
-    isHoveringRef.current = true;
-
-    const arrowAnim = arrowAnimRef.current;
-    if (isDraggingRef.current) {
-      if (arrowAnim) arrowAnim.goToAndStop(25, true);
-      return;
-    }
-
-    playSegment([0, 25], 25);
-  };
-
-  const handleMouseLeave = () => {
-    isHoveringRef.current = false;
-
-    const arrowAnim = arrowAnimRef.current;
-    if (isDraggingRef.current) {
-      if (arrowAnim) arrowAnim.goToAndStop(25, true);
-      return;
-    }
-    playSegment([25, 75], 75);
-  };
-
-  const handleTouchStart = (e) => {
-    e.preventDefault();
-    startDragging(e);
-  };
-
-  const handleTouchEnd = async (e) => {
-    let endSplit = split;
-
-    if (e.changedTouches && e.changedTouches.length === 1) {
-      const touch = e.changedTouches[0];
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const isNowPortrait = viewportHeight > viewportWidth;
-
-      endSplit = isNowPortrait
-        ? (touch.clientY / viewportHeight) * 100
-        : (touch.clientX / viewportWidth) * 100;
-
-      endSplit = isNowPortrait
-        ? Math.max(15, Math.min(100, endSplit))
-        : Math.max(0, Math.min(100, endSplit));
-    }
-
-    stopDragging();
-
-    if (endSplit <= 15.5) {
-      const container = containerRef.current;
-      if (!container) return;
-
-      for (let i = 0; i < 3; i++) {
-        container.style.opacity = '0.4';
-        await new Promise(res => setTimeout(res, 100));
-        container.style.opacity = '1';
-        await new Promise(res => setTimeout(res, 100));
-      }
-
-      const arrowAnim = arrowAnimRef.current;
-      if (arrowAnim) {
-        arrowAnim.playSegments([25, 75], true);
-      }
-    }
-
-    initialPinchDistance.current = null;
-    pinchTriggeredRef.current = false;
-  };
-
+  /** Arrow animation init */
   useEffect(() => {
     const arrowAnim = lottie.loadAnimation({
-      container: arrowContainer.current,
+      container: arrowContainer.current!,
       renderer: 'svg',
       loop: false,
       autoplay: false,
@@ -240,90 +169,43 @@ const playSegment = (() => {
     arrowAnimRef.current = arrowAnim;
 
     const container = containerRef.current;
-    if (container) {
-      container.style.opacity = '0';
-    }
+    if (container) container.style.opacity = '0';
 
     const playInitial = () => {
       arrowAnim.goToAndStop(0, true);
-
       setTimeout(() => {
         arrowAnim.playSegments([0, 75], true);
       }, 1200);
-
       if (container) {
         setTimeout(() => {
           container.style.opacity = '1';
         }, 1200);
       }
-
       const svg = arrowContainer.current?.querySelector('svg');
       if (svg) svg.classList.add('drag-arrow');
     };
 
     arrowAnim.addEventListener('DOMLoaded', playInitial);
-
-    const fallback = setTimeout(() => {
-      if (!arrowAnim.isLoaded) {
-        playInitial();
-      }
-    }, 2000);
-
     return () => {
-      clearTimeout(fallback);
       arrowAnim.removeEventListener('DOMLoaded', playInitial);
       arrowAnim.destroy();
     };
   }, []);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !arrowAnimRef.current) return;
-
-    let viewCount = 0;
-    const arrowAnim = arrowAnimRef.current;
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && viewCount < 3) {
-          viewCount += 1;
-
-          arrowAnim.goToAndStop(0, true);
-          setTimeout(() => {
-            arrowAnim.playSegments([0, 75], true);
-          }, 200);
-        }
-      });
-    }, {
-      threshold: 0.6,
-    });
-
-    observer.observe(container);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
+  /** Attach drag listeners */
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    container.addEventListener('mouseenter', handleMouseEnter);
-    container.addEventListener('mouseleave', handleMouseLeave);
     container.addEventListener('mousedown', startDragging);
-    container.addEventListener('touchstart', handleTouchStart, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    container.addEventListener('touchstart', startDragging as any, { passive: false });
 
     return () => {
-      container.removeEventListener('mouseenter', handleMouseEnter);
-      container.removeEventListener('mouseleave', handleMouseLeave);
       container.removeEventListener('mousedown', startDragging);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchstart', startDragging as any);
       stopDragging();
     };
-  }, [setSplit, setIsDragging, isTouchDevice]);
+  }, []);
 
   return (
     <div
@@ -347,10 +229,8 @@ const playSegment = (() => {
               width: '6.4rem',
               cursor: 'ew-resize',
               transform: 'translateX(-50%)',
-              height: 'calc(100% - 6em)',
             }),
         zIndex: 3000,
-        transition: isPortrait ? 'top 0s' : 'left 0s',
         pointerEvents: 'all',
         touchAction: isDraggingRef.current ? 'none' : 'auto',
       }}

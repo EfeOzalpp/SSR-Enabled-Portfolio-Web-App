@@ -1,0 +1,92 @@
+// src/server/html.ts
+import fs from 'node:fs';
+import path from 'node:path';
+
+function readTextSafe(p: string) {
+  try { return fs.readFileSync(p, 'utf8'); } catch { return ''; }
+}
+
+// Minimal prefixer to mimic your PostCSS rule
+function prefixCss(css: string, prefix = '#efe-portfolio') {
+  return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
+    selector = selector.trim();
+    if (
+      selector.startsWith('html') ||
+      selector.startsWith('body') ||
+      selector.startsWith(':root') ||
+      selector.includes('#dynamic-theme') ||
+      selector.includes('#shadow-dynamic-app') ||
+      selector.includes('::slotted')
+    ) return `${brace} ${selector}`;
+    return `${brace} ${prefix} ${selector}`;
+  });
+}
+
+export function buildHtmlOpen(opts: {
+  IS_DEV: boolean;
+  routePath: string;
+  iconSvg: string;
+  iconIco: string;
+  preloadLinks: string[];
+  fontsCss: { rubikCss: string; orbitronCss: string; poppinsCss: string; epilogueCss: string };
+  extractorLinkTags: string;
+  extractorStyleTags: string;
+  emotionStyleTags: string;
+}) {
+  const {
+    IS_DEV, routePath, iconSvg, iconIco, preloadLinks,
+    fontsCss, extractorLinkTags, extractorStyleTags, emotionStyleTags,
+  } = opts;
+
+  const ROOT = process.cwd();
+  const cssTheme = readTextSafe(path.resolve(ROOT, 'src/styles/font+theme.css'));
+  const cssBlocks = readTextSafe(path.resolve(ROOT, 'src/styles/general-block.css'));
+
+  // Inline prefixed CSS only for landing routes
+  let appCriticalCss = '';
+  if (routePath === '/' || routePath === '/home') {
+    appCriticalCss =
+      prefixCss(cssTheme) +
+      '\n/* --- separator --- */\n' +
+      prefixCss(cssBlocks);
+  }
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charSet="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Efe Ozalp - Portfolio</title>
+<meta name="description" content="web engineering, 3D modeling, visual design portfolio of Efe Ozalp" />
+${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)+":3000"</script>` : ''}
+<link rel="icon" href="${iconSvg}" type="image/svg+xml" />
+<link rel="icon" href="${iconIco}" sizes="any" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.sanity.io">
+${(preloadLinks || []).join('\n')}
+
+${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
+
+<style>
+${fontsCss.rubikCss}
+${fontsCss.orbitronCss}
+${fontsCss.poppinsCss}
+${fontsCss.epilogueCss}
+</style>
+
+${extractorLinkTags}
+${extractorStyleTags}
+${emotionStyleTags}
+</head>
+<body id="efe-portfolio">
+<div id="root">`;
+}
+
+export function buildHtmlClose(ssrPayload: any, scriptTags: string) {
+  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
+  return `</div>${ssrJson}
+${scriptTags}
+</body></html>`;
+}
