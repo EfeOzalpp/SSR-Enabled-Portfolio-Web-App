@@ -1,4 +1,4 @@
-// src/ssr/projects/scoop.ssr.tsx
+// scoop.ssr.tsx
 import type { SsrDescriptor } from '../types';
 import { getProjectData } from '../../utils/get-project-data';
 import {
@@ -12,31 +12,24 @@ export const scoopSSR: SsrDescriptor = {
     const m1 = data?.mediaOne || {};
     const m2 = data?.mediaTwo || {};
 
-    // Detect if mediaTwo is video
-    const isVideo2 = Boolean(m2?.video?.webmUrl || m2?.video?.mp4Url);
-
-    // LEFT / TOP media
+    // LEFT / TOP media (image only)
     const m1Medium =
-      m1?.image ? getMediumImageUrl(m1.image) : (m1?.imageUrl as string | undefined);
+      m1?.image
+        ? getMediumImageUrl(m1.image)
+        : (m1?.imageUrl as string | undefined);
     const m1High =
-      m1?.image ? getHighQualityImageUrl(m1.image, 1920, 1080, 90) : (m1?.imageUrl as string | undefined);
+      m1?.image
+        ? getHighQualityImageUrl(m1.image, 1920, 1080, 90)
+        : (m1?.imageUrl as string | undefined);
 
-    // RIGHT / BOTTOM media
-    const m2Medium = !isVideo2
-      ? m2?.image
-        ? getMediumImageUrl(m2.image)
-        : (m2?.imageUrl as string | undefined)
-      : m2?.video?.poster
-        ? getMediumImageUrl(m2.video.poster)
-        : undefined;
+    // RIGHT / BOTTOM media (video always)
+    const m2PosterMedium = m2?.video?.poster
+      ? getMediumImageUrl(m2.video.poster)
+      : undefined;
 
-    const m2High = !isVideo2
-      ? m2?.image
-        ? getHighQualityImageUrl(m2.image, 1920, 1080, 90)
-        : (m2?.imageUrl as string | undefined)
-      : m2?.video?.poster
-        ? getHighQualityImageUrl(m2.video.poster, 1920, 1080, 90)
-        : undefined;
+    const m2PosterHigh = m2?.video?.poster
+      ? getHighQualityImageUrl(m2.video.poster, 1920, 1080, 90)
+      : undefined;
 
     return (
       <section
@@ -50,10 +43,14 @@ export const scoopSSR: SsrDescriptor = {
         }}
       >
         {/* LEFT / TOP container */}
-        <div id="scoop-media-1-container" className="media-content-1" style={{ position: 'absolute' }}>
+        <div
+          id="scoop-media-1-container"
+          className="media-content-1"
+          style={{ position: 'absolute' }}
+        >
           {m1Medium && (
             <img
-              id="scoop-media-1"
+              id="icecream-media-1"
               className="media-item-1 tooltip-ice-scoop"
               src={m1Medium}
               {...(m1High ? { 'data-src-full': m1High } : {})}
@@ -61,7 +58,12 @@ export const scoopSSR: SsrDescriptor = {
               draggable={false}
               decoding="async"
               fetchPriority="high"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
             />
           )}
         </div>
@@ -69,33 +71,35 @@ export const scoopSSR: SsrDescriptor = {
         {/* SPLITTER mount point */}
         <div id="scoop-enhancer-mount" />
 
-        {/* RIGHT / BOTTOM container */}
-        <div id="scoop-media-2-container" className="media-content-2" style={{ position: 'absolute' }}>
-          {!isVideo2 && m2Medium && (
-            <img
-              id="scoop-media-2"
-              className="media-item-2 tooltip-ice-scoop"
-              src={m2Medium}
-              {...(m2High ? { 'data-src-full': m2High } : {})}
-              alt={m2?.alt ?? 'Ice Cream Scoop media'}
-              draggable={false}
-              decoding="async"
-              fetchPriority="high"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-          )}
-          {isVideo2 && m2Medium && (
+        {/* RIGHT / BOTTOM container (video always) */}
+        <div
+          id="scoop-media-2-container"
+          className="media-content-2"
+          style={{ position: 'absolute' }}
+        >
+          {m2PosterMedium && (
             <video
-              id="scoop-media-2-video"
+              id="icecream-media-2"
               className="media-item-2 tooltip-ice-scoop"
-              poster={m2Medium}
-              preload="none"
+              poster={m2PosterMedium}
+              {...(m2PosterHigh ? { 'data-src-full': m2PosterHigh } : {})}
               muted
               playsInline
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              loop
+              preload="auto"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
             >
-              {m2?.video?.webmUrl && <source src={m2.video.webmUrl} type="video/webm" />}
-              {m2?.video?.mp4Url && <source src={m2.video.mp4Url} type="video/mp4" />}
+              {m2?.video?.webmUrl && (
+                <source src={m2.video.webmUrl} type="video/webm" />
+              )}
+              {m2?.video?.mp4Url && (
+                <source src={m2.video.mp4Url} type="video/mp4" />
+              )}
             </video>
           )}
         </div>

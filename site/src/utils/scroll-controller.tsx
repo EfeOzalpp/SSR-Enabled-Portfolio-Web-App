@@ -1,18 +1,13 @@
-// src/utils/scroll-controller.tsx
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useProjectVisibility } from './context-providers/project-context';
-
 import { attachOpacityObserver } from './content-utility/opacity-observer';
-
 import { baseProjects } from './content-utility/component-loader';
 import { ProjectPane } from './project-pane';
 import { useSsrData } from './context-providers/ssr-data-context';
-import { seededShuffle } from './seed'; // seed utils live in src/utils/seed/index.ts
+import { seededShuffle } from './seed';
 
 const ScrollController = () => {
   const { scrollContainerRef, focusedProjectKey, currentIndex } = useProjectVisibility();
-
-  // 🔑 derive deterministic “random” order from SSR seed
   const { seed = 12345 } = useSsrData() || {};
   const projects = useMemo(() => seededShuffle(baseProjects, seed), [seed]);
 
@@ -56,18 +51,6 @@ const ScrollController = () => {
   useEffect(() => {
     if (focusedProjectKey) setJustExitedFocusKey(focusedProjectKey);
   }, [focusedProjectKey]);
-
-  useEffect(() => {
-    if (!focusedProjectKey && justExitedFocusKey && scrollContainerRef.current) {
-      const el = projectRefs.current[justExitedFocusKey];
-      if (el) {
-        requestAnimationFrame(() => {
-          el.scrollIntoView({ behavior: 'auto' });
-          setJustExitedFocusKey(null);
-        });
-      }
-    }
-  }, [focusedProjectKey, justExitedFocusKey, scrollContainerRef]);
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -128,7 +111,6 @@ const ScrollController = () => {
     };
   }, [scrollContainerRef]);
 
-  // Build block ids based on the seeded order
   const blockIds = useMemo(() => projects.map(p => `#block-${p.key}`), [projects]);
 
   useEffect(() => {
@@ -162,7 +144,7 @@ const ScrollController = () => {
             viewportHeight={viewportStyle.height}
             isFocused={isFocused}
             isHidden={isHidden}
-            isFirst={idx === 0} 
+            isFirst={idx === 0}
             setRef={(el) => { projectRefs.current[item.key] = el; }}
           />
         );

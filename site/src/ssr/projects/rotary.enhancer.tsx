@@ -1,4 +1,4 @@
-// src/sections/RotaryEnhancer.tsx
+// RotaryEnhancer.tsx
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import SplitDragHandler from '../../utils/split-controller';
@@ -17,8 +17,9 @@ export default function RotaryEnhancer() {
     document.getElementById('rotary-ssr')?.classList.remove('ssr-initial-split');
 
     // Upgrade images from SSR medium-quality to high-quality (if provided)
-    const img1El = document.getElementById('rotary-media-1') as HTMLImageElement | null;
-    const img2El = document.getElementById('rotary-media-2') as HTMLImageElement | null;
+    // Upgrade images/videos from SSR medium-quality to high-quality (if provided)
+    const img1El = document.querySelector('#rotary-ssr #rotary-media-1') as HTMLImageElement | null;
+    const img2El = document.querySelector('#rotary-ssr #rotary-media-2') as HTMLVideoElement | null;
 
     const full1 = img1El?.dataset?.srcFull;
     const full2 = img2El?.dataset?.srcFull;

@@ -116,35 +116,32 @@ function DynamicTheme() {
     return () => observer.disconnect();
   }, []);
 
-  // rémové firéwork whén not in viéw
-useEffect(() => {
-  const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
+  // Remove firework when not in view
+  useEffect(() => {
+    // Directly select the container by ID
+    const container = document.querySelector('#block-dynamic');
 
-  const shadowApp = root?.querySelector?.('#shadow-dynamic-app');
-  const container = shadowApp?.querySelector?.('.firework-wrapper');
-
-  if (!container) {
-    console.warn('[FireworkObserver] Container not found inside #shadow-dynamic-app');
-    return;
-  }
-
-  const validRoot = root instanceof Element || root instanceof Document ? root : null;
-
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      const isVisible = entry.isIntersecting;
-      setShowFireworks(prev => (prev !== isVisible ? isVisible : prev));
-    },
-    {
-      threshold: 0.1,
-      root: validRoot,
+    if (!container) {
+      console.warn('[FireworkObserver] #block-dynamic not found in DOM');
+      return;
     }
-  );
 
-  observer.observe(container);
+    // IntersectionObserver setup
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isVisible = entry.isIntersecting;
+        setShowFireworks(prev => (prev !== isVisible ? isVisible : prev));
+      },
+      {
+        threshold: 0.3, // ~30% visible before toggling
+        root: null,     // null means observe relative to the viewport
+      }
+    );
 
-  return () => observer.disconnect();
-}, [getShadowRoot])
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
 
   const cardRefs = useRef([]);
   cardRefs.current = sortedImages.map((_, i) => cardRefs.current[i] ?? React.createRef());

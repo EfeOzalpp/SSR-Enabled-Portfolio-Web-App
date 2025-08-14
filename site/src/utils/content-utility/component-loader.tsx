@@ -1,4 +1,3 @@
-// src/utils/content-utility/component-loader.tsx
 import React, { type ComponentType } from 'react';
 import { useSsrData } from '../context-providers/ssr-data-context';
 import { ssrRegistry } from '../../ssr/registry';
@@ -47,7 +46,18 @@ export function useProjectLoader(key: ProjectKey) {
   if (payload && desc?.render) {
     const data = payload.data ?? payload;
 
-    // Rotary with enhancer
+    const withEnhancer = async (enhancerPath: string) => {
+      const Enhancer = (await import(enhancerPath)).default;
+      return {
+        default: () => (
+          <>
+            {desc.render!(data)}
+            <Enhancer />
+          </>
+        ),
+      };
+    };
+
     if (key === 'rotary') {
       return async () => {
         const Enhancer = (await import('../../ssr/projects/rotary.enhancer')).default;
@@ -62,7 +72,6 @@ export function useProjectLoader(key: ProjectKey) {
       };
     }
 
-    // Scoop with enhancer
     if (key === 'scoop') {
       return async () => {
         const Enhancer = (await import('../../ssr/projects/scoop.enhancer')).default;
@@ -77,10 +86,21 @@ export function useProjectLoader(key: ProjectKey) {
       };
     }
 
-    // All other SSR components
-    return async () => ({
-      default: () => <>{desc.render!(data)}</>,
-    });
+    if (key === 'dataviz') {
+      return async () => {
+        const Enhancer = (await import('../../ssr/projects/dataviz.enhancer')).default;
+        return {
+          default: () => (
+            <>
+              {desc.render!(data)}
+              <Enhancer />
+            </>
+          ),
+        };
+      };
+    }
+
+    return async () => ({ default: () => <>{desc.render!(data)}</> });
   }
 
   // Fallback: client lazy load

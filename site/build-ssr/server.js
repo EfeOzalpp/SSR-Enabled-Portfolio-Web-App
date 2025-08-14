@@ -17436,7 +17436,7 @@ const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["defaul
     // removed by dead control flow
 {}
   },
-  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
+  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -17645,7 +17645,7 @@ function prefixCss(css, prefix = '#efe-portfolio') {
   return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
     const sel = selector.trim();
 
-    // ⛔ don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
+    // don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
     if (sel.startsWith('@')) return `${brace} ${sel}`;
 
     // allowlisted selectors that should remain global
@@ -17797,8 +17797,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const app = express__WEBPACK_IMPORTED_MODULE_3___default()();
 const IS_DEV = "development" !== 'production';
-const HOST = '192.168.1.119';
-const DEV_HOST_FOR_ASSETS = '192.168.1.119';
+const HOST = '172.20.10.13';
+const DEV_HOST_FOR_ASSETS = '172.20.10.13';
 const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
 const {
   BUILD_DIR,
@@ -18041,107 +18041,6 @@ function getEphemeralSeed() {
 
 /***/ }),
 
-/***/ "./src/ssr/blocks/type-1.tsx":
-/*!***********************************!*\
-  !*** ./src/ssr/blocks/type-1.tsx ***!
-  \***********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   SsrMediaBlock: () => (/* binding */ SsrMediaBlock)
-/* harmony export */ });
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-
-// src/ssr/blocks/SsrMediaBlock.tsx
-function SsrMediaBlock({
-  data
-}) {
-  const toItems = d => {
-    if (!d) return [];
-    if (d.media) return Array.isArray(d.media) ? d.media : [d.media];
-    const arr = [];
-    if (d.mediaOne) arr.push(d.mediaOne);
-    if (d.mediaTwo) arr.push(d.mediaTwo);
-    return arr;
-  };
-  const items = toItems(data);
-  if (!items.length) return null;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("div", {
-    className: "ssr-media",
-    style: {
-      width: '100%',
-      height: '100%'
-    },
-    children: items.map((m, i) => {
-      const img = m?.image?.asset?.url || m?.imageUrl;
-      const poster = m?.video?.poster?.asset?.url || m?.video?.posterUrl;
-      const asset = m?.video?.asset?.url || m?.video?.assetUrl; // 👈 generic
-
-      const webm = m?.video?.webmUrl || (asset?.endsWith?.('.webm') ? asset : null);
-      const mp4 = m?.video?.mp4Url || (asset?.endsWith?.('.mp4') ? asset : null);
-      if (webm || mp4) {
-        return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("video", {
-          autoPlay: true,
-          muted: true,
-          loop: true,
-          playsInline: true,
-          preload: "metadata",
-          poster: poster || undefined,
-          style: {
-            width: '100%',
-            height: '100%',
-            display: 'block'
-          },
-          children: [webm && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("source", {
-            src: webm,
-            type: "video/webm"
-          }), mp4 && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("source", {
-            src: mp4,
-            type: "video/mp4"
-          })]
-        }, i);
-      }
-
-      // fallback: asset url with unknown extension — let browser figure it out
-      if (asset) {
-        return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("video", {
-          autoPlay: true,
-          muted: true,
-          loop: true,
-          playsInline: true,
-          preload: "metadata",
-          poster: poster || undefined,
-          style: {
-            width: '100%',
-            height: '100%',
-            display: 'block'
-          },
-          src: asset
-        }, i);
-      }
-      if (img) {
-        return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("img", {
-          src: img,
-          alt: m?.alt ?? '',
-          loading: "eager",
-          decoding: "sync",
-          style: {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          }
-        }, i);
-      }
-      return null;
-    })
-  });
-}
-
-/***/ }),
-
 /***/ "./src/ssr/projects/dataviz.ssr.tsx":
 /*!******************************************!*\
   !*** ./src/ssr/projects/dataviz.ssr.tsx ***!
@@ -18153,21 +18052,67 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   datavizSSR: () => (/* binding */ datavizSSR)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _blocks_type_1__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../blocks/type-1 */ "./src/ssr/blocks/type-1.tsx");
-/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/ssr/projects/dataviz.ssr.tsx
+/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/dataviz.ssr.tsx
 
 
 
 
 const datavizSSR = {
-  fetch: () => (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_2__.getProjectData)('data-viz'),
-  render: data => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_blocks_type_1__WEBPACK_IMPORTED_MODULE_1__.SsrMediaBlock, {
-    data: data
-  })
+  fetch: () => (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__.getProjectData)('data-viz'),
+  render: data => {
+    const m1 = data?.mediaOne || {};
+    const video = m1.video || {};
+    const posterMedium = video.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(video.poster) : undefined;
+    const posterHigh = video.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(video.poster, 1920, 1080, 90) : undefined;
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("section", {
+      id: "dataviz-ssr",
+      className: "block-type-1",
+      style: {
+        position: 'relative',
+        width: '100%',
+        height: '100dvh',
+        overflow: 'hidden'
+      },
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        id: "dataviz-media-container",
+        className: "media-content",
+        style: {
+          position: 'absolute',
+          width: '100%',
+          height: '100%'
+        },
+        children: posterMedium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("video", {
+          id: "dataviz-media-video",
+          className: "tooltip-data-viz",
+          poster: posterMedium,
+          ...(posterHigh ? {
+            'data-src-full': posterHigh
+          } : {}),
+          muted: true,
+          playsInline: true,
+          loop: true,
+          preload: "auto",
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block'
+          },
+          children: [video.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
+            src: video.webmUrl,
+            type: "video/webm"
+          }), video.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
+            src: video.mp4Url,
+            type: "video/mp4"
+          })]
+        })
+      })
+    });
+  },
+  criticalCssFiles: ['src/styles/block-type-1.css']
 };
 
 /***/ }),
@@ -18186,7 +18131,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
 /* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/ssr/projects/rotary.ssr.tsx
+// rotary.ssr.tsx
 
 
 
@@ -18286,7 +18231,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
 /* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/ssr/projects/scoop.ssr.tsx
+// scoop.ssr.tsx
 
 
 
@@ -18297,16 +18242,13 @@ const scoopSSR = {
     const m1 = data?.mediaOne || {};
     const m2 = data?.mediaTwo || {};
 
-    // Detect if mediaTwo is video
-    const isVideo2 = Boolean(m2?.video?.webmUrl || m2?.video?.mp4Url);
-
-    // LEFT / TOP media
+    // LEFT / TOP media (image only)
     const m1Medium = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m1.image) : m1?.imageUrl;
     const m1High = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m1.image, 1920, 1080, 90) : m1?.imageUrl;
 
-    // RIGHT / BOTTOM media
-    const m2Medium = !isVideo2 ? m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.image) : m2?.imageUrl : m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.video.poster) : undefined;
-    const m2High = !isVideo2 ? m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.image, 1920, 1080, 90) : m2?.imageUrl : m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.video.poster, 1920, 1080, 90) : undefined;
+    // RIGHT / BOTTOM media (video always)
+    const m2PosterMedium = m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.video.poster) : undefined;
+    const m2PosterHigh = m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.video.poster, 1920, 1080, 90) : undefined;
     return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
       id: "scoop-ssr",
       className: "block-type-1 ssr-initial-split",
@@ -18323,7 +18265,7 @@ const scoopSSR = {
           position: 'absolute'
         },
         children: m1Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
-          id: "scoop-media-1",
+          id: "icecream-media-1",
           className: "media-item-1 tooltip-ice-scoop",
           src: m1Medium,
           ...(m1High ? {
@@ -18342,36 +18284,23 @@ const scoopSSR = {
         })
       }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
         id: "scoop-enhancer-mount"
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
         id: "scoop-media-2-container",
         className: "media-content-2",
         style: {
           position: 'absolute'
         },
-        children: [!isVideo2 && m2Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
-          id: "scoop-media-2",
+        children: m2PosterMedium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("video", {
+          id: "icecream-media-2",
           className: "media-item-2 tooltip-ice-scoop",
-          src: m2Medium,
-          ...(m2High ? {
-            'data-src-full': m2High
+          poster: m2PosterMedium,
+          ...(m2PosterHigh ? {
+            'data-src-full': m2PosterHigh
           } : {}),
-          alt: m2?.alt ?? 'Ice Cream Scoop media',
-          draggable: false,
-          decoding: "async",
-          fetchPriority: "high",
-          style: {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          }
-        }), isVideo2 && m2Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("video", {
-          id: "scoop-media-2-video",
-          className: "media-item-2 tooltip-ice-scoop",
-          poster: m2Medium,
-          preload: "none",
           muted: true,
           playsInline: true,
+          loop: true,
+          preload: "auto",
           style: {
             width: '100%',
             height: '100%',
@@ -18385,7 +18314,7 @@ const scoopSSR = {
             src: m2.video.mp4Url,
             type: "video/mp4"
           })]
-        })]
+        })
       })]
     });
   },
@@ -18423,6 +18352,28 @@ const ssrRegistry = {
 
 /***/ }),
 
+/***/ "./src/utils/content-utility lazy recursive":
+/*!**********************************************************!*\
+  !*** ./src/utils/content-utility/ lazy namespace object ***!
+  \**********************************************************/
+/***/ ((module) => {
+
+function webpackEmptyAsyncContext(req) {
+	// Here Promise.resolve().then() is used instead of new Promise() to prevent
+	// uncaught exception popping up in devtools
+	return Promise.resolve().then(() => {
+		var e = new Error("Cannot find module '" + req + "'");
+		e.code = 'MODULE_NOT_FOUND';
+		throw e;
+	});
+}
+webpackEmptyAsyncContext.keys = () => ([]);
+webpackEmptyAsyncContext.resolve = webpackEmptyAsyncContext;
+webpackEmptyAsyncContext.id = "./src/utils/content-utility lazy recursive";
+module.exports = webpackEmptyAsyncContext;
+
+/***/ }),
+
 /***/ "./src/utils/content-utility/component-loader.tsx":
 /*!********************************************************!*\
   !*** ./src/utils/content-utility/component-loader.tsx ***!
@@ -18441,17 +18392,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../ssr/registry */ "./src/ssr/registry.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/utils/content-utility/component-loader.tsx
 
 
 
 
 const componentMap = {
-  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
-  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
-  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")),
+  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
+  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
+  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")),
   game: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_evade-the-rock_jsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/evade-the-rock.jsx */ "./src/components/rock-escapade/evade-the-rock.jsx")),
-  dynamic: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx"))
+  dynamic: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx"))
 };
 const toComponent = p => p;
 
@@ -18459,15 +18409,15 @@ const toComponent = p => p;
 const baseProjects = [{
   key: 'scoop',
   title: 'Ice Cream Scoop',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
 }, {
   key: 'rotary',
   title: 'Rotary Lamp',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
 }, {
   key: 'dataviz',
   title: 'Data Visualization',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
 }, {
   key: 'game',
   title: 'Evade the Rock',
@@ -18476,7 +18426,7 @@ const baseProjects = [{
   key: 'dynamic',
   title: 'Dynamic App',
   isLink: true,
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx")))
 }];
 function useProjectLoader(key) {
   const ssr = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_1__.useSsrData)();
@@ -18488,11 +18438,17 @@ function useProjectLoader(key) {
   // SSR path
   if (payload && desc?.render) {
     const data = payload.data ?? payload;
-
-    // Rotary with enhancer
+    const withEnhancer = async enhancerPath => {
+      const Enhancer = (await __webpack_require__("./src/utils/content-utility lazy recursive")(enhancerPath)).default;
+      return {
+        default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+          children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
+        })
+      };
+    };
     if (key === 'rotary') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx-src_utils_content-utility_real-mobile_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
@@ -18500,11 +18456,9 @@ function useProjectLoader(key) {
         };
       };
     }
-
-    // Scoop with enhancer
     if (key === 'scoop') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_scoop_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/scoop.enhancer */ "./src/ssr/projects/scoop.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_scoop_enhancer_tsx-src_utils_content-utility_real-mobile_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/scoop.enhancer */ "./src/ssr/projects/scoop.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
@@ -18512,8 +18466,16 @@ function useProjectLoader(key) {
         };
       };
     }
-
-    // All other SSR components
+    if (key === 'dataviz') {
+      return async () => {
+        const Enhancer = (await __webpack_require__.e(/*! import() */ "src_ssr_projects_dataviz_enhancer_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/dataviz.enhancer */ "./src/ssr/projects/dataviz.enhancer.tsx"))).default;
+        return {
+          default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+            children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
+          })
+        };
+      };
+    }
     return async () => ({
       default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
         children: desc.render(data)

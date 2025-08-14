@@ -125,50 +125,6 @@ const projectColors = {
 
 /***/ }),
 
-/***/ "./src/utils/content-utility/real-mobile.ts":
-/*!**************************************************!*\
-  !*** ./src/utils/content-utility/real-mobile.ts ***!
-  \**************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   useRealMobileViewport: () => (/* binding */ useRealMobileViewport)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-// utils/useRealMobileViewport.ts
-
-function useRealMobileViewport() {
-  const [isRealMobile, setIsRealMobile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-    const touch = navigator.maxTouchPoints > 0;
-
-    // detect address-bar/viewport shrink behavior
-    const vv = window.visualViewport;
-    let shrinks = false;
-    const check = () => {
-      if (!vv) return;
-      // if visual viewport is meaningfully smaller than layout viewport, assume mobile browser chrome
-      const gap = window.innerHeight - vv.height;
-      if (gap > 48) shrinks = true; // ~top/bottom bars size
-      setIsRealMobile(coarse && touch && (shrinks || gap > 48));
-    };
-    check();
-    vv?.addEventListener?.('resize', check);
-    window.addEventListener('orientationchange', check);
-    return () => {
-      vv?.removeEventListener?.('resize', check);
-      window.removeEventListener('orientationchange', check);
-    };
-  }, []);
-  return isRealMobile;
-}
-
-/***/ }),
-
 /***/ "./src/utils/context-providers/project-context.tsx":
 /*!*********************************************************!*\
   !*** ./src/utils/context-providers/project-context.tsx ***!
@@ -661,7 +617,7 @@ const showTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 99_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;

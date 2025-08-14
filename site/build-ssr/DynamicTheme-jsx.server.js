@@ -306,35 +306,38 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document) => {
         imageContainer2Transform = 'translate(0em, -28.4em)';
       }
     } else if (width <= 1024) {
-      if (percentage > 0.55) {
-        imageContainerTransform = 'translate(1em, 2em)';
-        imageContainer2Transform = 'translate(-1em, -27em)';
+      if (percentage > 0.3) {
+        imageContainerTransform = 'translate(-1em, 0em)';
+        imageContainer2Transform = 'translate(0em, -29em)';
         imageContainerZIndex = '1';
         imageContainer2ZIndex = '5';
       } else if (percentage > 0.15) {
         imageContainerTransform = 'translate(0em, 1em)';
-        imageContainer2Transform = 'translate(-0.5em, -28em)';
-      } else {
+        imageContainer2Transform = 'translate(-1em, -28em)';
+        imageContainerZIndex = '5';
+        imageContainer2ZIndex = '1';
+      } else if (percentage <= 0.15) {
         imageContainerTransform = 'translate(-1em, 0em)';
         imageContainer2Transform = 'translate(0em, -29em)';
+        imageContainerZIndex = '5';
+        imageContainer2ZIndex = '1';
       }
     } else if (width > 1025) {
-      if (percentage > 0.4) {
+      if (percentage > 0.5) {
         imageContainerTransform = 'translate(0em, 0em)';
-        imageContainer2Transform = 'translate(1em, -27.5em)';
+        imageContainer2Transform = 'translate(1em, -27.2em)';
         imageContainerZIndex = '1';
         imageContainer2ZIndex = '5';
-      } else if (percentage > 0.33) {
-        imageContainerTransform = 'translate(2.5em, 0.7em)';
-        imageContainer2Transform = 'translate(1.4em, -26em)';
-      }
-    } else {
-      if (percentage > 0.4) {
-        imageContainer2Transform = 'translate(2em, -42em)';
-        imageContainerZIndex = '1';
-        imageContainer2ZIndex = '5';
-      } else {
-        imageContainer2Transform = 'translate(2em, -42em)';
+      } else if (percentage > 0.25) {
+        imageContainerTransform = 'translate(1em, 1em)';
+        imageContainer2Transform = 'translate(0em, -26em)';
+        imageContainerZIndex = '5';
+        imageContainer2ZIndex = '1';
+      } else if (percentage >= 0) {
+        imageContainerTransform = 'translate(0em, 0em)';
+        imageContainer2Transform = 'translate(1em, -27em)';
+        imageContainerZIndex = '5';
+        imageContainer2ZIndex = '1';
       }
     }
     imageContainer.style.transform = imageContainerTransform;
@@ -349,7 +352,7 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document) => {
       const imageContainer2 = element.querySelector('.image-container2');
       const rect = element.getBoundingClientRect();
       const vh = window.innerHeight;
-      const vc = vh / 2;
+      const vc = vh / 1.6;
       const percentage = Math.max(0, Math.min(rect.height, vc - rect.top)) / rect.height;
       applyTransform(percentage, imageContainer, imageContainer2);
     });

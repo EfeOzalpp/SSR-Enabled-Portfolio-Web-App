@@ -17,16 +17,47 @@ export default function ScoopEnhancer() {
     document.getElementById('scoop-ssr')?.classList.remove('ssr-initial-split');
 
     // Upgrade images/videos from SSR medium-quality to high-quality (if provided)
-    const img1El = document.getElementById('scoop-media-1') as HTMLImageElement | null;
-    const img2ImgEl = document.getElementById('scoop-media-2') as HTMLImageElement | null;
-    const img2VidEl = document.getElementById('scoop-media-2-video') as HTMLVideoElement | null;
+    const img1El = document.querySelector('#scoop-ssr #icecream-media-1') as HTMLImageElement | null;
+    const vid2El = document.querySelector('#scoop-ssr #icecream-media-2') as HTMLVideoElement | null;
 
     const full1 = img1El?.dataset?.srcFull;
-    const full2 = img2ImgEl?.dataset?.srcFull || img2VidEl?.dataset?.srcFull;
+    const full2 = vid2El?.dataset?.srcFull;
 
-    if (img1El && full1 && img1El.src !== full1) img1El.src = full1;
-    if (img2ImgEl && full2 && img2ImgEl.src !== full2) img2ImgEl.src = full2;
-    if (img2VidEl && full2 && img2VidEl.poster !== full2) img2VidEl.poster = full2;
+    // Upgrade LEFT media (image)
+    if (img1El && full1 && img1El.src !== full1) {
+      img1El.src = full1;
+    }
+
+    // Upgrade RIGHT media (video)
+    if (vid2El) {
+      // If high-quality poster exists, upgrade it before load
+      if (full2 && vid2El.poster !== full2) {
+        vid2El.poster = full2;
+      }
+
+      // When video has enough data to play, remove poster & play
+      const handleLoaded = () => {
+        vid2El.removeAttribute('poster');
+        setTimeout(() => {
+          vid2El.play().catch((err) => {
+            console.warn('Autoplay failed:', err);
+          });
+        }, 150); // delay for smoother visual transition
+      };
+      vid2El.addEventListener('loadeddata', handleLoaded, { once: true });
+
+      // Trigger video fetching only if not already loaded/playing
+      if (vid2El.readyState === 0) {
+        vid2El.preload = 'auto';
+        try {
+          vid2El.load();
+        } catch {
+          /* ignore */
+        }
+      } else {
+        vid2El.preload = 'auto';
+      }
+    }
 
     // Set mount host
     setHost(document.getElementById('scoop-enhancer-mount'));
@@ -59,12 +90,12 @@ export default function ScoopEnhancer() {
   }, [split, isPortrait]);
 
   if (!host) return null;
-    return createPortal(
-      <SplitDragHandler
-        split={split}
-        setSplit={setSplit}
-        ids={{ m1: 'scoop-media-1-container', m2: 'scoop-media-2-container' }}
-      />,
-      host
+  return createPortal(
+    <SplitDragHandler
+      split={split}
+      setSplit={setSplit}
+      ids={{ m1: 'scoop-media-1-container', m2: 'scoop-media-2-container' }}
+    />,
+    host
   );
 }

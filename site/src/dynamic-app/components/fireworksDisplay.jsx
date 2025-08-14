@@ -1,15 +1,7 @@
 // Firework Animation Code
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import q5 from 'q5';
-
 import { useRealMobileViewport } from '../../utils/content-utility/real-mobile.ts';
-import { isMobile } from 'react-device-detect';
-
-  export function useRealOrDetectedMobile() {
-    const isRealMobile = useRealMobileViewport();
-    const combined = isRealMobile || isMobile;
-    return combined;
-  }
 
 const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onToggleFireworks }) => {
   const canvasRef = useRef(null);
@@ -21,7 +13,7 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
   const hiddenStartTimeRef = useRef(0);
   const hiddenDurationRef = useRef(0);
 
-  const isRealMobile = useRealOrDetectedMobile();
+  const isRealMobile = useRealMobileViewport();
   const isRealMobileRef = useRef(isRealMobile);
 
   useEffect(() => {
@@ -308,12 +300,12 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
               this.targetY = p.random(p.height * 0.1, p.height * 0.3);  
               } else if (p.windowWidth >= 768 && p.windowWidth <= 1024) {
               // For screens between 768px and 1024px, make the explosion in the middle
-              this.targetX = p.random(p.width * 0.5, p.width * 0.8);  
+              this.targetX = p.random(p.width * 0.65, p.width * 0.9);  
               this.targetY = p.random(p.height * 0.05, p.height * 0.3);  
               } else {
               // For screens larger than 1024px, make the explosion lower on the screen
               this.targetX = p.random(p.width * 0.4, p.width * 0.6);  
-              this.targetY = p.random(p.height * 0.1, p.height * 0.6);  
+              this.targetY = p.random(p.height * 0.05, p.height * 0.5);  
             }
         
             this.col = col;
@@ -587,7 +579,7 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
 
   const toggleFireworks = useCallback((isEnabled) => {
     setFireworksEnabled(isEnabled);
-    fireworksEnabledRef.current = isEnabled; // ✅ update live value for p5
+    fireworksEnabledRef.current = isEnabled; // update live value for q5
   }, []);
 
   useEffect(() => {

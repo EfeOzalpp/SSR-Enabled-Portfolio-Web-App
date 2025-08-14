@@ -1,6 +1,6 @@
 "use strict";
-exports.id = "src_ssr_projects_scoop_enhancer_tsx";
-exports.ids = ["src_ssr_projects_scoop_enhancer_tsx"];
+exports.id = "src_ssr_projects_scoop_enhancer_tsx-src_utils_content-utility_real-mobile_ts";
+exports.ids = ["src_ssr_projects_scoop_enhancer_tsx-src_utils_content-utility_real-mobile_ts"];
 exports.modules = {
 
 /***/ "./src/ssr/projects/scoop.enhancer.tsx":
@@ -38,14 +38,48 @@ function ScoopEnhancer() {
     document.getElementById('scoop-ssr')?.classList.remove('ssr-initial-split');
 
     // Upgrade images/videos from SSR medium-quality to high-quality (if provided)
-    const img1El = document.getElementById('scoop-media-1');
-    const img2ImgEl = document.getElementById('scoop-media-2');
-    const img2VidEl = document.getElementById('scoop-media-2-video');
+    const img1El = document.querySelector('#scoop-ssr #icecream-media-1');
+    const vid2El = document.querySelector('#scoop-ssr #icecream-media-2');
     const full1 = img1El?.dataset?.srcFull;
-    const full2 = img2ImgEl?.dataset?.srcFull || img2VidEl?.dataset?.srcFull;
-    if (img1El && full1 && img1El.src !== full1) img1El.src = full1;
-    if (img2ImgEl && full2 && img2ImgEl.src !== full2) img2ImgEl.src = full2;
-    if (img2VidEl && full2 && img2VidEl.poster !== full2) img2VidEl.poster = full2;
+    const full2 = vid2El?.dataset?.srcFull;
+
+    // Upgrade LEFT media (image)
+    if (img1El && full1 && img1El.src !== full1) {
+      img1El.src = full1;
+    }
+
+    // Upgrade RIGHT media (video)
+    if (vid2El) {
+      // If high-quality poster exists, upgrade it before load
+      if (full2 && vid2El.poster !== full2) {
+        vid2El.poster = full2;
+      }
+
+      // When video has enough data to play, remove poster & play
+      const handleLoaded = () => {
+        vid2El.removeAttribute('poster');
+        setTimeout(() => {
+          vid2El.play().catch(err => {
+            console.warn('Autoplay failed:', err);
+          });
+        }, 150); // delay for smoother visual transition
+      };
+      vid2El.addEventListener('loadeddata', handleLoaded, {
+        once: true
+      });
+
+      // Trigger video fetching only if not already loaded/playing
+      if (vid2El.readyState === 0) {
+        vid2El.preload = 'auto';
+        try {
+          vid2El.load();
+        } catch {
+          /* ignore */
+        }
+      } else {
+        vid2El.preload = 'auto';
+      }
+    }
 
     // Set mount host
     setHost(document.getElementById('scoop-enhancer-mount'));
@@ -89,8 +123,56 @@ function ScoopEnhancer() {
   }), host);
 }
 
+/***/ }),
+
+/***/ "./src/utils/content-utility/real-mobile.ts":
+/*!**************************************************!*\
+  !*** ./src/utils/content-utility/real-mobile.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   useRealMobileViewport: () => (/* binding */ useRealMobileViewport)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+// useRealMobileViewport.ts
+
+function useRealMobileViewport() {
+  const [isRealMobile, setIsRealMobile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const checkMobile = () => {
+      const touch = navigator.maxTouchPoints > 0;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const width = window.innerWidth;
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+      // iOS detection (iPhone / iPad)
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || navigator.platform === 'MacIntel' && touch; // iPadOS pretends to be Mac
+
+      // Android detection
+      const isAndroid = /Android/.test(ua);
+
+      // Consider it real mobile if:
+      // - Touch exists, and viewport is small, or
+      // - Known mobile UA
+      const realMobile = touch && width <= 1024 || isIOS || isAndroid || coarse;
+      setIsRealMobile(realMobile);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
+  }, []);
+  return isRealMobile;
+}
+
 /***/ })
 
 };
 ;
-//# sourceMappingURL=src_ssr_projects_scoop_enhancer_tsx.server.js.map
+//# sourceMappingURL=src_ssr_projects_scoop_enhancer_tsx-src_utils_content-utility_real-mobile_ts.server.js.map

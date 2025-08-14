@@ -15,10 +15,13 @@ export default function IceCreamScoop() {
   const [split, setSplit] = useState(() => (window.innerWidth < 1024 ? 45 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
+  // Track poster removal state so React VDOM also removes it
+  const [posterRemoved, setPosterRemoved] = useState(false);
+
   useTooltipInit();
 
   useEffect(() => {
-   getProjectData<IceData>('ice-scoop').then((d) => setData(d));
+    getProjectData<IceData>('ice-scoop').then((d) => setData(d));
   }, []);
 
   useEffect(() => {
@@ -31,6 +34,11 @@ export default function IceCreamScoop() {
 
   const media2IsVideo = Boolean(data.mediaTwo?.video?.webmUrl || data.mediaTwo?.video?.mp4Url);
 
+  // When video first loads, remove poster from React's VDOM state
+  const handleVideoLoaded = () => {
+    setPosterRemoved(true);
+  };
+
   return (
     <section className="block-type-1" id="no-ssr" style={{ position: 'relative' }}>
       {/* LEFT / TOP */}
@@ -38,8 +46,13 @@ export default function IceCreamScoop() {
         className="media-content-1"
         style={
           isPortrait
-            ? { height: split <= 20 ? '0%' : `${split}%`, width: '100%', position: 'absolute', top: 0,
-                transition: split <= 20 ? 'height 0.1s ease' : 'none' }
+            ? {
+                height: split <= 20 ? '0%' : `${split}%`,
+                width: '100%',
+                position: 'absolute',
+                top: 0,
+                transition: split <= 20 ? 'height 0.1s ease' : 'none',
+              }
             : { width: `${split}%`, height: '100%', position: 'absolute', left: 0 }
         }
       >
@@ -61,20 +74,39 @@ export default function IceCreamScoop() {
         className="media-content-2"
         style={
           isPortrait
-            ? { height: split <= 20 ? '100%' : `${100 - split}%`, width: '100%', position: 'absolute',
+            ? {
+                height: split <= 20 ? '100%' : `${100 - split}%`,
+                width: '100%',
+                position: 'absolute',
                 top: split <= 20 ? '0%' : `${split}%`,
-                transition: split <= 20 ? 'height 0.1s ease, top 0.1s ease' : 'none' }
-            : { width: `${100 - split}%`, height: '100%', position: 'absolute', left: `${split}%` }
+                transition: split <= 20 ? 'height 0.1s ease, top 0.1s ease' : 'none',
+              }
+            : {
+                width: `${100 - split}%`,
+                height: '100%',
+                position: 'absolute',
+                left: `${split}%`,
+              }
         }
       >
         <MediaLoader
           type={media2IsVideo ? 'video' : 'image'}
-          src={media2IsVideo ? data.mediaTwo.video! : data.mediaTwo.image!}
+          src={
+            media2IsVideo
+              ? {
+                  ...data.mediaTwo.video!,
+                  // Only pass poster if not removed
+                  poster: posterRemoved ? undefined : data.mediaTwo.video?.poster,
+                }
+              : data.mediaTwo.image!
+          }
           alt={data.mediaTwo.alt || 'Ice Cream Scoop media'}
           id="icecream-media-2"
           className="media-item-2 tooltip-ice-scoop"
           objectPosition="center bottom"
           style={{ width: '100%', height: '100%' }}
+          // Pass onLoadedData handler only if video
+          {...(media2IsVideo && { onLoadedData: handleVideoLoaded })}
         />
       </div>
     </section>

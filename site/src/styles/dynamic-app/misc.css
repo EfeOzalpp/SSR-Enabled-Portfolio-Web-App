@@ -21,16 +21,16 @@ width: 100%; z-index: 1; pointer-events: none;}
 }
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 .firework-divider {margin-top: -6.8em;}  
-.firework-divider-shadow {height: 60vw;}
+#shadow-dynamic-app .firework-divider {height: 16em;}
 }
 @media screen and (min-width: 1025px) {
 .firework-divider {margin-top: -6.8em;} 
-#shadow-dynamic-app .firework-divider {transform: scale(0.95); height: 8em;} 
+#shadow-dynamic-app .firework-divider {transform: scale(1.05); height: 8em;} 
 }
 @media screen and (min-width: 1225px) {
-.firework-divider {margin-top: -12.8em;}  
-#shadow-dynamic-app .firework-divider {transform: scale(1.15);
-height: 42vw;} 
+.firework-divider {margin-top: -6.8em;}  
+#shadow-dynamic-app .firework-divider {transform: scale(1.1);
+height: 16em;} 
 }
 @media screen and (min-width: 2025px) {
 #shadow-dynamic-app .firework-divider  {transform: scale(2);}

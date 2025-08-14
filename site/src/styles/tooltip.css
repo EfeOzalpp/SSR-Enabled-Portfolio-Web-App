@@ -17,7 +17,7 @@
 
 @media (max-width: 1024px) {
   #custom-global-tooltip {
-    transform: scale(0.9); 
+    transform: scale(0.64); 
     padding: 10px 15px 12px 10px;
   }
 }
@@ -32,6 +32,6 @@
 @media (min-width: 1025px) {
   #custom-global-tooltip {
     transform: scale(0.78); 
-    padding: 8px 10px 10px 6px !important;
+    padding: 4px 10px 6px 6px !important;
   }
 }

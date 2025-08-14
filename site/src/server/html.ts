@@ -15,7 +15,7 @@ export function prefixCss(css: string, prefix = '#efe-portfolio') {
   return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
     const sel = selector.trim();
 
-    // ⛔ don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
+    // don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
     if (sel.startsWith('@')) return `${brace} ${sel}`;
 
     // allowlisted selectors that should remain global

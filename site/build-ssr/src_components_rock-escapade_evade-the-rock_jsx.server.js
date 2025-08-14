@@ -1724,30 +1724,35 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-// utils/useRealMobileViewport.ts
+// useRealMobileViewport.ts
 
 function useRealMobileViewport() {
   const [isRealMobile, setIsRealMobile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-    const touch = navigator.maxTouchPoints > 0;
+    const checkMobile = () => {
+      const touch = navigator.maxTouchPoints > 0;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const width = window.innerWidth;
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
 
-    // detect address-bar/viewport shrink behavior
-    const vv = window.visualViewport;
-    let shrinks = false;
-    const check = () => {
-      if (!vv) return;
-      // if visual viewport is meaningfully smaller than layout viewport, assume mobile browser chrome
-      const gap = window.innerHeight - vv.height;
-      if (gap > 48) shrinks = true; // ~top/bottom bars size
-      setIsRealMobile(coarse && touch && (shrinks || gap > 48));
+      // iOS detection (iPhone / iPad)
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || navigator.platform === 'MacIntel' && touch; // iPadOS pretends to be Mac
+
+      // Android detection
+      const isAndroid = /Android/.test(ua);
+
+      // Consider it real mobile if:
+      // - Touch exists, and viewport is small, or
+      // - Known mobile UA
+      const realMobile = touch && width <= 1024 || isIOS || isAndroid || coarse;
+      setIsRealMobile(realMobile);
     };
-    check();
-    vv?.addEventListener?.('resize', check);
-    window.addEventListener('orientationchange', check);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
     return () => {
-      vv?.removeEventListener?.('resize', check);
-      window.removeEventListener('orientationchange', check);
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
     };
   }, []);
   return isRealMobile;
@@ -1905,7 +1910,7 @@ const showTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 99_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;

@@ -1,31 +1,42 @@
-// utils/useRealMobileViewport.ts
+// useRealMobileViewport.ts
 import { useEffect, useState } from 'react';
 
 export function useRealMobileViewport() {
   const [isRealMobile, setIsRealMobile] = useState(false);
 
   useEffect(() => {
-    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-    const touch = (navigator as any).maxTouchPoints > 0;
+    const checkMobile = () => {
+      const touch = navigator.maxTouchPoints > 0;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const width = window.innerWidth;
+      const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
 
-    // detect address-bar/viewport shrink behavior
-    const vv = (window as any).visualViewport;
-    let shrinks = false;
+      // iOS detection (iPhone / iPad)
+      const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+        (navigator.platform === 'MacIntel' && touch); // iPadOS pretends to be Mac
 
-    const check = () => {
-      if (!vv) return;
-      // if visual viewport is meaningfully smaller than layout viewport, assume mobile browser chrome
-      const gap = window.innerHeight - vv.height;
-      if (gap > 48) shrinks = true; // ~top/bottom bars size
-      setIsRealMobile(coarse && touch && (shrinks || gap > 48));
+      // Android detection
+      const isAndroid = /Android/.test(ua);
+
+      // Consider it real mobile if:
+      // - Touch exists, and viewport is small, or
+      // - Known mobile UA
+      const realMobile =
+        (touch && width <= 1024) ||
+        isIOS ||
+        isAndroid ||
+        coarse;
+
+      setIsRealMobile(realMobile);
     };
 
-    check();
-    vv?.addEventListener?.('resize', check);
-    window.addEventListener('orientationchange', check);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+
     return () => {
-      vv?.removeEventListener?.('resize', check);
-      window.removeEventListener('orientationchange', check);
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
     };
   }, []);
 

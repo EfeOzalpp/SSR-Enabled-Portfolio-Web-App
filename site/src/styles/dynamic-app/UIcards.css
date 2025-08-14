@@ -35,8 +35,8 @@ h-name, h-name a {flex-grow: 1; display: flex; justify-content: space-between; a
 @media screen and (min-width: 768px) and (max-width: 1024px) {
 .homePage-container {background-color: #1a1a1a;}
 .card-divider {padding-left: 0.8em; padding-right: 0.8em;}
-.UI-card-divider {top: 20em; position: relative; padding-top: 5.6em; z-index: 300; display: grid; grid-template-columns: repeat(2, 1fr); padding-left: 6%; padding-right: 6%;}   
-.card-container {margin-top: -22em; display: block; height: 100%; }
+.UI-card-divider {top: 24em; position: relative; padding-top: 5.6em; z-index: 300; display: grid; grid-template-columns: repeat(2, 1fr); padding-left: 6%; padding-right: 6%;}   
+.card-container {margin-top: -26em; display: block; height: 100%; }
  
 /* For profile photo */
 .image-container img {height: 30em; width: 80%; margin-left: 10%; object-fit: cover; border-radius: 2px; box-shadow: 0 4px 6px rgba(32, 32, 32, 0.08), 0 1px 3px rgba(33, 34, 32, 0.08);}
@@ -57,7 +57,7 @@ h-name, h-name a {padding-left: 6%; width: 84%; flex-grow: 1; display: flex; jus
 #shadow-dynamic-app .title-text {padding-left: 20px;}
 #shadow-dynamic-app .svg-icon {padding-right: 2%; transform: translateY(-3px); width: 1.1em; } 
 #shadow-dynamic-app .homePage-container {background-color: transparent;}
-#shadow-dynamic-app .UI-card-divider {top: 17em; padding-left: 2.6em; padding-right: 2.6em;}
+#shadow-dynamic-app .UI-card-divider {top: 18.6em; padding-left: 3.6em; padding-right: 3.6em;}
 #shadow-dynamic-app .image-container img,  #shadow-dynamic-app .image-container2 img, #shadow-dynamic-app .ui-link-3::after {height: 24em; width: 76%; margin-left: 12%;} 
 #shadow-dynamic-app .card-container {padding-bottom: 1.4em !important; margin-top: -20em;}
 }

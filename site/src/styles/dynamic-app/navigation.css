@@ -147,13 +147,13 @@ div.menu-item-2 {box-sizing: border-box; padding-left: 1.6em; padding-right: 2.2
 .image-container-g {padding-left: 12px; display: flex; flex-direction: column; flex-wrap: nowrap; align-items: center; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding-bottom: 25svh; height: 100%; border-radius: 2px 2px 0px 0px;}
 
 /* SVG icon styles */
-.arrow1 {width: 1.6em; height: 1.6em; padding-right: 25%; display: inline-block; margin-left: auto;}
-.arrow2 {width: 23px; height: 23px; transform: rotate(180deg); display: inline-block;}
-.arrow3 {width: 1.6em; height: 1.6em; padding-right: 16%; display: inline-block; margin-left: auto;}
-#shadow-dynamic-app .arrow3 {padding-right: 2%;}
+.arrow1 {width: 1.3em; height: 1.3em; padding-right: 25%; display: inline-block; margin-left: auto;}
+.arrow2 {width: 1em; height: 1em; transform: rotate(180deg); display: inline-block;}
+.arrow3 {width: 1.3em; height: 1.3em; padding-right: 16%; display: inline-block; margin-left: auto;}
+#shadow-dynamic-app .arrow3 {padding-right: 2%; width: 1..2em; height: 1.2em;}
 
 /* Full progress bar container */
-.scroll-indicator {position: relative; height: 100%; width: 6px; margin: 0; top: 0;
+.scroll-indicator {position: relative; height: 100%; width: 3px; margin: 0; top: 0;
 left: 0; background: var(--edgeColor, #444); border-radius: 0; flex-shrink: 0; border-radius: 2px; overflow: hidden;}
 .scroll-indicator::after {content: ''; position: absolute; left: 0; top: 0;
 width: 100%; height: var(--progress-dimension, 2%); background: #fff; transition: height 0.1s ease-in-out, top 0.1 ease-in-out;}

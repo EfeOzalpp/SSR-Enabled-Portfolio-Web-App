@@ -1,110 +1,67 @@
-exports.id = "src_components_block-type-1_data-visualization_tsx";
-exports.ids = ["src_components_block-type-1_data-visualization_tsx"];
+exports.id = "src_ssr_projects_dataviz_enhancer_tsx";
+exports.ids = ["src_ssr_projects_dataviz_enhancer_tsx"];
 exports.modules = {
 
-/***/ "./src/components/block-type-1/data-visualization.tsx":
-/*!************************************************************!*\
-  !*** ./src/components/block-type-1/data-visualization.tsx ***!
-  \************************************************************/
+/***/ "./src/ssr/projects/dataviz.enhancer.tsx":
+/*!***********************************************!*\
+  !*** ./src/ssr/projects/dataviz.enhancer.tsx ***!
+  \***********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ DataVisualizationBlock)
+/* harmony export */   "default": () => (/* binding */ DataVizEnhancer)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
-/* harmony import */ var _utils_media_providers_media_loader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/media-providers/media-loader */ "./src/utils/media-providers/media-loader.tsx");
-/* harmony import */ var _utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/tooltip/tooltipInit */ "./src/utils/tooltip/tooltipInit.ts");
-/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
-/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../styles/block-type-1.css */ "./src/styles/block-type-1.css");
-/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/tooltip/tooltipInit */ "./src/utils/tooltip/tooltipInit.ts");
+// DataVizEnhancer.tsx
 
 
-
-
-
-
-
-
-function DataVisualizationBlock() {
-  const ssrData = (0,_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__.useSsrData)();
-  const [data, setData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(ssrData?.preloaded?.dataviz || null);
-  (0,_utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__.useTooltipInit)();
+function DataVizEnhancer() {
+  (0,_utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_1__.useTooltipInit)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (data) return;
-    _utils_sanity__WEBPACK_IMPORTED_MODULE_1__["default"].fetch(`*[_type == "mediaBlock" && slug.current == $slug][0]{
-        mediaOne{
-          alt,
-          image,
-          video{
-            "webmUrl": webm.asset->url,
-            "mp4Url": mp4.asset->url,
-            poster
-          }
+    // Grab video element
+    const vidEl = document.getElementById('dataviz-media-video');
+    const fullSrc = vidEl?.dataset?.srcFull;
+    if (vidEl) {
+      // Upgrade poster if high quality exists
+      if (fullSrc && vidEl.poster !== fullSrc) {
+        vidEl.poster = fullSrc;
+      }
+
+      // Autoplay once loaded
+      const handleLoaded = () => {
+        vidEl.removeAttribute('poster');
+        setTimeout(() => {
+          vidEl.play().catch(err => {
+            console.warn('[DataVizEnhancer] Autoplay failed:', err);
+          });
+        }, 150);
+      };
+      vidEl.addEventListener('loadeddata', handleLoaded, {
+        once: true
+      });
+
+      // Preload and trigger fetch
+      if (vidEl.readyState === 0) {
+        vidEl.preload = 'auto';
+        try {
+          vidEl.load();
+        } catch {
+          /* ignore */
         }
-      }`, {
-      slug: 'data-viz'
-    }).then(setData).catch(err => {
-      console.warn('[DataVisualizationBlock] GROQ fetch failed:', err);
-      setData(null);
-    });
+      } else {
+        vidEl.preload = 'auto';
+      }
+      return () => {
+        vidEl.removeEventListener('loadeddata', handleLoaded);
+      };
+    }
   }, []);
-  if (!data?.mediaOne) return null;
-  const {
-    alt = 'Data Visualization',
-    image,
-    video
-  } = data.mediaOne;
-  const isVideo = Boolean(video?.webmUrl || video?.mp4Url);
-  const highPoster = video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_5__.getHighQualityImageUrl)(video.poster, 1920, 1080, 90) : undefined;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("section", {
-    className: "block-type-1",
-    style: {
-      position: 'relative',
-      width: '100%',
-      height: '100dvh',
-      overflow: 'hidden'
-    },
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-      className: "media-content",
-      style: {
-        width: '100%',
-        height: '100%',
-        position: 'absolute'
-      },
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_utils_media_providers_media_loader__WEBPACK_IMPORTED_MODULE_2__["default"], {
-        type: isVideo ? 'video' : 'image',
-        src: isVideo ? video : image,
-        alt: alt,
-        id: isVideo ? 'dataviz-media-video' : 'dataviz-media',
-        ...(highPoster ? {
-          'data-src-full': highPoster
-        } : {}),
-        className: "tooltip-data-viz",
-        objectPosition: "center center",
-        style: {
-          width: '100%',
-          height: '100%'
-        }
-      })
-    })
-  });
+  return null; // purely functional enhancer
 }
-
-/***/ }),
-
-/***/ "./src/styles/block-type-1.css":
-/*!*************************************!*\
-  !*** ./src/styles/block-type-1.css ***!
-  \*************************************/
-/***/ (() => {
-
-
 
 /***/ }),
 
@@ -163,6 +120,55 @@ const projectColors = {
     darkThemeTop: 'rgba(17, 17, 17, 1)'
   }
 };
+
+/***/ }),
+
+/***/ "./src/utils/content-utility/real-mobile.ts":
+/*!**************************************************!*\
+  !*** ./src/utils/content-utility/real-mobile.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   useRealMobileViewport: () => (/* binding */ useRealMobileViewport)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+// useRealMobileViewport.ts
+
+function useRealMobileViewport() {
+  const [isRealMobile, setIsRealMobile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const checkMobile = () => {
+      const touch = navigator.maxTouchPoints > 0;
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const width = window.innerWidth;
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+      // iOS detection (iPhone / iPad)
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || navigator.platform === 'MacIntel' && touch; // iPadOS pretends to be Mac
+
+      // Android detection
+      const isAndroid = /Android/.test(ua);
+
+      // Consider it real mobile if:
+      // - Touch exists, and viewport is small, or
+      // - Known mobile UA
+      const realMobile = touch && width <= 1024 || isIOS || isAndroid || coarse;
+      setIsRealMobile(realMobile);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
+  }, []);
+  return isRealMobile;
+}
 
 /***/ }),
 
@@ -410,4 +416,4 @@ const useTooltipInit = () => {
 
 };
 ;
-//# sourceMappingURL=src_components_block-type-1_data-visualization_tsx.server.js.map
+//# sourceMappingURL=src_ssr_projects_dataviz_enhancer_tsx.server.js.map

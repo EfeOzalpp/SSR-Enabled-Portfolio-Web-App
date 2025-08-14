@@ -151,7 +151,7 @@ button.view-project-btn {
   button.view-project-btn, a.view-project-btn {padding: 8px 32px 4px 32px;}
   .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6));}
   .view-project-arrow { width: 2.4em;}
-  .split-arrow {scale: 0.74;}
+  .split-arrow {scale: 0.7;}
   .title-lottie { width: 10.6em !important; pointer-events: all;}
 }
 
@@ -167,11 +167,11 @@ button.view-project-btn {
 
 @media (max-width: 1024px) and (min-width: 768px) {
   .view-project-wrapper {bottom: 8dvh !important;}
-  .view-project-btn { padding: 12px 36px 8px 36px !important;}
+  .view-project-btn { padding: 6px 36px 2px 36px !important;}
   .nav-menu { padding-bottom: 8px; }
   .arrow-svg { filter: drop-shadow(0 0px 14px rgba(0,0,0,0.6)); }
-  .github-lottie, .linkedin-lottie { width: 3.6em !important;}
-  .title-lottie { width: 14.6em !important;}
+  .github-lottie, .linkedin-lottie { width: 2.4em !important;}
+  .title-lottie { width: 11.2em !important;}
 }
 
 @media (min-width: 1025px) {

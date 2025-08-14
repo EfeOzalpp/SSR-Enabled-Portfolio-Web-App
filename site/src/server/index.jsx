@@ -27,8 +27,8 @@ import {
 const app = express();
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
-const HOST = '192.168.1.119';
-const DEV_HOST_FOR_ASSETS = '192.168.1.119';
+const HOST = '172.20.10.13';
+const DEV_HOST_FOR_ASSETS = '172.20.10.13';
 const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
 
 const { BUILD_DIR, STATS_FILE, ASSET_MANIFEST } = resolveStatsFile();

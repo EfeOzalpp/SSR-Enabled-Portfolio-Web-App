@@ -1,4 +1,4 @@
-// src/ssr/projects/rotary.ssr.tsx
+// rotary.ssr.tsx
 import type { SsrDescriptor } from '../types';
 import { getProjectData } from '../../utils/get-project-data';
 import {

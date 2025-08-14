@@ -201,7 +201,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/utils/content-utility/lazy-view.tsx
 
 
 const LazyInView = ({
@@ -211,45 +210,59 @@ const LazyInView = ({
   eager = false
 }) => {
   const isServer = typeof window === 'undefined';
-
-  // Hooks must always run — no early return.
-  // Visible on server so SSR HTML shows immediately; on client we can start invisible unless eager.
-  const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(isServer || eager);
+  const [hasLoaded, setHasLoaded] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [Component, setComponent] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const ref = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [visibility, setVisibility] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const delayTimer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // Client-only: observe visibility if not eager
+  // Observe element and track intersection ratio
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer || eager) return;
+    if (isServer || eager) {
+      setVisibility(1);
+      return;
+    }
     const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsVisible(true);
-        io.disconnect();
-      }
+      setVisibility(entry.intersectionRatio);
     }, {
-      threshold: 0.05
+      threshold: Array.from({
+        length: 11
+      }, (_, i) => i / 10)
     });
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, [isServer, eager]);
 
-  // Client-only: load component when visible
+  // Logic for two-phase loading
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer) return;
-    if (!isVisible || Component) return;
-    let cancelled = false;
-    load().then(mod => {
-      if (!cancelled) setComponent(() => mod.default);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isServer, isVisible, Component, load]);
+    if (isServer || hasLoaded) return;
 
-  // Render rule:
-  // - If component loaded, render it
-  // - Else, if SSR provided, keep showing SSR HTML (even after becoming visible) until component replaces it
-  // - Else fallback
+    // Phase 2 immediate load if visibility >= 0.3
+    if (visibility >= 0.3) {
+      load().then(mod => setComponent(() => mod.default));
+      setHasLoaded(true);
+      if (delayTimer.current) clearTimeout(delayTimer.current);
+      return;
+    }
+
+    // Phase 1 → preload after 3s if visibility >= 0.1
+    if (visibility >= 0.1 && !delayTimer.current) {
+      delayTimer.current = setTimeout(() => {
+        if (!hasLoaded && visibility >= 0.1) {
+          load().then(mod => setComponent(() => mod.default));
+          setHasLoaded(true);
+        }
+      }, 3000);
+    }
+
+    // Reset if element leaves viewport
+    if (visibility < 0.1 && delayTimer.current) {
+      clearTimeout(delayTimer.current);
+      delayTimer.current = null;
+    }
+  }, [visibility, hasLoaded, isServer, load]);
+
+  // Render rule
   const content = Component ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(react__WEBPACK_IMPORTED_MODULE_0__.Suspense, {
     fallback: fallback,
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Component, {})
@@ -277,17 +290,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   attachOpacityObserver: () => (/* binding */ attachOpacityObserver)
 /* harmony export */ });
-/* harmony import */ var react_device_detect__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react-device-detect */ "react-device-detect");
-/* harmony import */ var react_device_detect__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_device_detect__WEBPACK_IMPORTED_MODULE_0__);
-// utils/attach-opacity-observer.ts
-
+// opacity observer
 const attachOpacityObserver = (ids, focusedProjectKey) => {
+  const isRealMobile = (() => {
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const touch = navigator.maxTouchPoints > 0;
+    const vv = window.visualViewport;
+    let shrinks = false;
+    if (vv) {
+      const gap = window.innerHeight - vv.height;
+      if (gap > 48) shrinks = true;
+      return coarse && touch && (shrinks || gap > 48);
+    }
+    return coarse && touch;
+  })();
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       const target = entry.target;
       const ratio = entry.intersectionRatio;
       if (focusedProjectKey) return;
-      const baseMin = react_device_detect__WEBPACK_IMPORTED_MODULE_0__.isMobile ? 0.1 : 0.3;
+      const baseMin = isRealMobile ? 0.1 : 0.3;
       if (ratio >= 0.75) {
         target.style.opacity = '1';
       } else {
@@ -305,7 +327,6 @@ const attachOpacityObserver = (ids, focusedProjectKey) => {
     ids.forEach(id => {
       const el = document.querySelector(id);
       if (el && !el.dataset._opacity_observed) {
-        el.style.transition = 'opacity 0.3s ease 0.1s';
         el.dataset._opacity_observed = 'true';
         observer.observe(el);
         observedCount++;
@@ -484,14 +505,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./seed */ "./src/utils/seed/index.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/utils/scroll-controller.tsx
 
 
 
 
 
 
- // seed utils live in src/utils/seed/index.ts
+
 
 const ScrollController = () => {
   const {
@@ -499,8 +519,6 @@ const ScrollController = () => {
     focusedProjectKey,
     currentIndex
   } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_1__.useProjectVisibility)();
-
-  // 🔑 derive deterministic “random” order from SSR seed
   const {
     seed = 12345
   } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__.useSsrData)() || {};
@@ -549,19 +567,6 @@ const ScrollController = () => {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (focusedProjectKey) setJustExitedFocusKey(focusedProjectKey);
   }, [focusedProjectKey]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!focusedProjectKey && justExitedFocusKey && scrollContainerRef.current) {
-      const el = projectRefs.current[justExitedFocusKey];
-      if (el) {
-        requestAnimationFrame(() => {
-          el.scrollIntoView({
-            behavior: 'auto'
-          });
-          setJustExitedFocusKey(null);
-        });
-      }
-    }
-  }, [focusedProjectKey, justExitedFocusKey, scrollContainerRef]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
@@ -638,8 +643,6 @@ const ScrollController = () => {
       cleanupFns.forEach(fn => fn());
     };
   }, [scrollContainerRef]);
-
-  // Build block ids based on the seeded order
   const blockIds = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.map(p => `#block-${p.key}`), [projects]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const cleanup = (0,_content_utility_opacity_observer__WEBPACK_IMPORTED_MODULE_2__.attachOpacityObserver)(blockIds, focusedProjectKey);
@@ -864,16 +867,22 @@ const ViewProject = () => {
     }
   }, [activeTitle]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const handleMouseMove = e => {
-      if (e.clientY > window.innerHeight * 0.66) {
-        setShowBackground(true);
-        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-        hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 2000);
-      }
+    const handleInteraction = () => {
+      triggerBackgroundFade();
     };
-    window.addEventListener('mousemove', handleMouseMove);
+
+    // Any mouse move or touch triggers background
+    window.addEventListener('mousemove', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction, {
+      passive: true
+    });
+    window.addEventListener('touchmove', handleInteraction, {
+      passive: true
+    });
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('touchmove', handleInteraction);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, []);

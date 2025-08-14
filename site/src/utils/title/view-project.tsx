@@ -5,7 +5,6 @@ import arrowData from '../../svg/arrow.json';
 import linkData from '../../svg/link.json';
 
 import { useActiveTitle } from './title-context';
-
 import { baseProjects } from '../content-utility/component-loader';
 import { projectColors } from '../content-utility/color-map';
 import { useSsrData } from '../context-providers/ssr-data-context';
@@ -78,16 +77,19 @@ const ViewProject = () => {
   }, [activeTitle]);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY > window.innerHeight * 0.66) {
-        setShowBackground(true);
-        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-        hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 2000);
-      }
+    const handleInteraction = () => {
+      triggerBackgroundFade();
     };
-    window.addEventListener('mousemove', handleMouseMove);
+
+    // Any mouse move or touch triggers background
+    window.addEventListener('mousemove', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction, { passive: true });
+    window.addEventListener('touchmove', handleInteraction, { passive: true });
+
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('touchmove', handleInteraction);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, []);

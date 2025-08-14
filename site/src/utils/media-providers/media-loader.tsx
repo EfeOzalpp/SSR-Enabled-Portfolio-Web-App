@@ -1,4 +1,4 @@
-// MediaLoader
+// src/utils/media-providers/MediaLoader.tsx
 import { useRef, useState, useEffect } from 'react';
 import { useVideoVisibility } from './video-observer';
 import LoadingScreen from '../content-utility/loading';
@@ -76,26 +76,39 @@ const MediaLoader = ({
   priority = false,
   controls = false,
 }: MediaLoaderProps) => {
-  const [loaded, setLoaded] = useState(false);      // first frame/LQIP loaded
+  const isSSR = typeof window === 'undefined';
+
+  // Start as loaded in SSR to avoid fade-in on hydration
+  const [loaded, setLoaded] = useState(isSSR);
   const [showMedium, setShowMedium] = useState(false);
   const [showHigh, setShowHigh] = useState(false);
+  const [posterRemoved, setPosterRemoved] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isNear = useNearViewport(containerRef);
   const shouldStart = priority || isNear;
+
+  // If already cached, skip fade-in
+  useEffect(() => {
+    if (type === 'image' && imgRef.current?.complete) {
+      setLoaded(true);
+    }
+    if (type === 'video' && videoRef.current?.readyState >= 2) {
+      setLoaded(true);
+    }
+  }, [type]);
 
   // IMAGE upgrade flow
   useEffect(() => {
     if (type !== 'image') return;
     registerImage();
 
-    // start medium once near (or after 2s as a safety)
     const t1 = setTimeout(() => setShowMedium(true), shouldStart ? 0 : 2000);
     if (shouldStart) setShowMedium(true);
 
-    // upgrade to high when all low-res are in OR 5s safety
     const off = () => setTimeout(() => setShowHigh(true), 300);
     onAllLowResLoaded(off);
     const t2 = setTimeout(() => setShowHigh(true), 5000);
@@ -109,40 +122,59 @@ const MediaLoader = ({
   const onMediaLoaded = () => {
     setLoaded(true);
     if (type === 'image') notifyLowResLoaded();
-
     if (id) {
       const event = new CustomEvent('mediaReady', { detail: { id } });
       window.dispatchEvent(event);
     }
   };
 
-  // VIDEO visibility/autoplay + fetch control
+  // VIDEO visibility/autoplay
   useVideoVisibility(
     videoRef,
     containerRef,
     type === 'video' && enableVisibilityControl ? 0.4 : undefined
   );
 
-  // kick off video fetching when near (or fallback after 2s)
+  // Only load video once before playback starts
   useEffect(() => {
     if (type !== 'video' || !videoRef.current) return;
     const v = videoRef.current;
+    let loadedOnce = false;
+
     const start = () => {
-      // switch to metadata so the browser actually fetches
+      if (loadedOnce) return;
+      loadedOnce = true;
       if (v.preload !== 'metadata') v.preload = 'metadata';
-      // if sources are present, ensure load is called
       try { v.load(); } catch {}
     };
-    if (shouldStart) start();
-    const t = setTimeout(start, 2000);
-    return () => clearTimeout(t);
+
+    if (shouldStart) {
+      start();
+    } else {
+      const t = setTimeout(start, 2000);
+      return () => clearTimeout(t);
+    }
   }, [type, shouldStart]);
+
+  // Remove poster after first frame
+  useEffect(() => {
+    if (type !== 'video' || !videoRef.current) return;
+    const v = videoRef.current;
+    const handleLoaded = () => {
+      setPosterRemoved(true); // Remove in VDOM
+      v.removeAttribute('poster'); // Remove in DOM
+      v.play().catch(err => {
+        console.warn('Autoplay failed:', err);
+      });
+    };
+    v.addEventListener('loadeddata', handleLoaded, { once: true });
+    return () => v.removeEventListener('loadeddata', handleLoaded);
+  }, [type]);
 
   if (!src) return null;
 
-  // ============== IMAGE ==============
+  // ====== IMAGE ======
   if (type === 'image') {
-    // Always render LQIP immediately; upgrade sources via state
     const ultraLowSrc = typeof src === 'string' ? src : getLowResImageUrl(src);
     const mediumSrc   = typeof src === 'string' ? src : getMediumImageUrl(src);
     const highResSrc  = typeof src === 'string' ? src : getHighQualityImageUrl(src);
@@ -156,29 +188,29 @@ const MediaLoader = ({
             <LoadingScreen isFullScreen={false} />
           </div>
         )}
-
-          <img
-            loading={priority ? 'eager' : undefined} // undefined → default
-            fetchPriority={showHigh || priority ? 'high' : showMedium ? 'auto' : 'low'}
-            id={id}
-            src={resolvedSrc}
-            alt={alt}
-            onLoad={onMediaLoaded}
-            onError={(e) => console.warn('Image failed', (e.target as HTMLImageElement).src)}
-            className={className}
-            draggable={false}
-            style={{
-              ...style,
-              objectFit: 'cover',
-              opacity: loaded ? 1 : 0,
-              transition: 'filter 0.5s ease, opacity 0.3s ease',
-            }}
-          />
+        <img
+          ref={imgRef}
+          loading={priority ? 'eager' : undefined}
+          fetchPriority={showHigh || priority ? 'high' : showMedium ? 'auto' : 'low'}
+          id={id}
+          src={resolvedSrc}
+          alt={alt}
+          onLoad={onMediaLoaded}
+          onError={(e) => console.warn('Image failed', (e.target as HTMLImageElement).src)}
+          className={className}
+          draggable={false}
+          style={{
+            ...style,
+            objectFit: 'cover',
+            opacity: loaded ? 1 : 0,
+            transition: isSSR ? 'none' : 'filter 0.5s ease, opacity 0.3s ease',
+          }}
+        />
       </div>
     );
   }
 
-  // ============== VIDEO ==============
+  // ====== VIDEO ======
   const isVideoSetObj =
     typeof src === 'object' && !('asset' in (src as any)) &&
     (('webmUrl' in (src as any)) || ('mp4Url' in (src as any)));
@@ -200,7 +232,6 @@ const MediaLoader = ({
           <LoadingScreen isFullScreen={false} />
         </div>
       )}
-
       <video
         id={id}
         ref={videoRef}
@@ -212,21 +243,21 @@ const MediaLoader = ({
           objectFit: 'cover',
           objectPosition,
           opacity: loaded ? 1 : 0,
-          transition: 'opacity 0.3s ease',
+          transition: isSSR ? 'none' : 'opacity 0.3s ease',
           pointerEvents: 'all',
         }}
         loop={loop}
         muted={muted}
         playsInline={playsInline}
-        // start conservative; we'll bump to 'metadata' and call load() when near
         preload="none"
         controls={controls}
-        poster={posterUrl}
-        {...(muted ? { defaultmuted: true } : {})}
+        poster={posterRemoved ? undefined : posterUrl}
       >
         {vs?.webmUrl && <source src={vs.webmUrl} type="video/webm" />}
         {vs?.mp4Url  && <source src={vs.mp4Url}  type="video/mp4"  />}
-        {!vs?.webmUrl && !vs?.mp4Url && legacyVideoUrl && <source src={legacyVideoUrl} />}
+        {!vs?.webmUrl && !vs?.mp4Url && legacyVideoUrl && (
+          <source src={legacyVideoUrl} />
+        )}
       </video>
     </div>
   );

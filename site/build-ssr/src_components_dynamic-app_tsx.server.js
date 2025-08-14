@@ -274,26 +274,27 @@ function DynamicTheme() {
     return () => observer.disconnect();
   }, []);
 
-  // rémové firéwork whén not in viéw
+  // Remove firework when not in view
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
-    const shadowApp = root?.querySelector?.('#shadow-dynamic-app');
-    const container = shadowApp?.querySelector?.('.firework-wrapper');
+    // Directly select the container by ID
+    const container = document.querySelector('#block-dynamic');
     if (!container) {
-      console.warn('[FireworkObserver] Container not found inside #shadow-dynamic-app');
+      console.warn('[FireworkObserver] #block-dynamic not found in DOM');
       return;
     }
-    const validRoot = root instanceof Element || root instanceof Document ? root : null;
+
+    // IntersectionObserver setup
     const observer = new IntersectionObserver(([entry]) => {
       const isVisible = entry.isIntersecting;
       setShowFireworks(prev => prev !== isVisible ? isVisible : prev);
     }, {
-      threshold: 0.1,
-      root: validRoot
+      threshold: 0.3,
+      // ~30% visible before toggling
+      root: null // null means observe relative to the viewport
     });
     observer.observe(container);
     return () => observer.disconnect();
-  }, [getShadowRoot]);
+  }, []);
   const cardRefs = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)([]);
   cardRefs.current = sortedImages.map((_, i) => cardRefs.current[i] ?? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef());
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
@@ -593,19 +594,21 @@ function useIntersectionTransform(ref, getShadowRoot, pauseAnimation, getScrollR
           imageContainer2Transform = 'translate(0em, -33.5em)';
         }
       } else if (width <= 1024) {
-        if (percentage > 0.4 && percentage <= 1) {
-          imageContainerTransform = 'translate(-1em, 0em)';
+        if (percentage >= 0.3) {
+          imageContainerTransform = 'translate(0em, 0em)';
           imageContainer2Transform = 'translate(0em, -23.5em)';
           imageContainerZIndex = '1';
           imageContainer2ZIndex = '5';
-        } else if (percentage > 0.15 && percentage <= 0.4) {
-          imageContainerTransform = 'translate(0.5em, 0em)';
-          imageContainer2Transform = 'translate(-1em, -24em)';
+        } else if (percentage < 0.3) {
+          imageContainerTransform = 'translate(-0.5em, 0em)';
+          imageContainer2Transform = 'translate(1em, -23.5em)';
+          imageContainerZIndex = '1';
+          imageContainer2ZIndex = '5';
+        } else if (percentage < 0.1) {
+          imageContainerTransform = 'translate(-0.5em, 0em)';
+          imageContainer2Transform = 'translate(1em, -23.5em)';
           imageContainerZIndex = '5';
           imageContainer2ZIndex = '1';
-        } else if (percentage >= 0 && percentage <= 0.15) {
-          imageContainerTransform = 'translate(-1em, 0em)';
-          imageContainer2Transform = 'translate(0em, -23.5em)';
         }
       } else if (width > 1025) {
         if (percentage > 0.6 && percentage <= 1) {
@@ -666,7 +669,7 @@ function useIntersectionTransform(ref, getShadowRoot, pauseAnimation, getScrollR
     const rect = cardEl.getBoundingClientRect();
     const rootRect = containerEl ? containerEl.getBoundingClientRect() : document.documentElement.getBoundingClientRect();
     const rootHeight = containerEl instanceof Element ? containerEl.clientHeight : window.innerHeight;
-    const rootCenter = rootRect.top + rootHeight / 2;
+    const rootCenter = rootRect.top + rootHeight / 1.5;
     const initialPct = Math.max(0, Math.min(rect.height, rootCenter - rect.top)) / rect.height;
     applyTransform(initialPct);
     observer.observe(cardEl);
@@ -727,8 +730,8 @@ function useDynamicOverlay(frameRef) {
       const maxWidth = 320;
 
       // Height range set 1 (your current svh-based values)
-      const minHeightSet1 = 60;
-      const maxHeightSet1 = 88;
+      const minHeightSet1 = 63;
+      const maxHeightSet1 = 93;
 
       // Height range set 2 (original px-based)
       const minHeightSet2 = 280;
