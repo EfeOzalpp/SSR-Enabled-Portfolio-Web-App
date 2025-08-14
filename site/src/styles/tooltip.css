@@ -1,5 +1,6 @@
 #custom-global-tooltip {
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(12px);
   position: absolute;
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
@@ -7,7 +8,7 @@
 .tooltip-tag {
   white-space: nowrap;
   display: block;
-  padding: 2px 6px;
+  padding: 2px 3px;
   margin: 2px 0;
   color: white;
 }
@@ -16,20 +17,21 @@
 
 @media (max-width: 1024px) {
   #custom-global-tooltip {
-    transform: scale(0.75); /* slightly smaller on tablets/small laptops */
-    padding: 4px 6px 6px 6px;
+    transform: scale(0.9); 
+    padding: 10px 15px 12px 10px;
   }
 }
 
 @media (max-width: 768px) {
   #custom-global-tooltip {
-    transform: scale(0.7); /* even smaller on mobile */
+    transform: scale(0.8); 
+    padding: 6px 13px 6px 8px;
   }
 }
 
 @media (min-width: 1025px) {
   #custom-global-tooltip {
-    transform: scale(0.8); /* slightly larger on larger desktops */
-    padding: 4px 6px 6px 2px;
+    transform: scale(0.78); 
+    padding: 8px 10px 10px 6px !important;
   }
 }

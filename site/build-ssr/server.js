@@ -17636,13 +17636,43 @@ function readTextSafe(p) {
   }
 }
 
-// Minimal prefixer to mimic your PostCSS rule
+/**
+ * Minimal prefixer to mimic your PostCSS rule.
+ * - Skips at-rules like @keyframes / @font-face to avoid corrupting them.
+ * - Leaves html/body/:root, shadow hosts and ::slotted unchanged.
+ */
 function prefixCss(css, prefix = '#efe-portfolio') {
   return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
-    selector = selector.trim();
-    if (selector.startsWith('html') || selector.startsWith('body') || selector.startsWith(':root') || selector.includes('#dynamic-theme') || selector.includes('#shadow-dynamic-app') || selector.includes('::slotted')) return `${brace} ${selector}`;
-    return `${brace} ${prefix} ${selector}`;
+    const sel = selector.trim();
+
+    // ⛔ don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
+    if (sel.startsWith('@')) return `${brace} ${sel}`;
+
+    // allowlisted selectors that should remain global
+    if (sel.startsWith('html') || sel.startsWith('body') || sel.startsWith(':root') || sel.includes('#dynamic-theme') || sel.includes('#shadow-dynamic-app') || sel.includes('::slotted')) {
+      return `${brace} ${sel}`;
+    }
+    return `${brace} ${prefix} ${sel}`;
   });
+}
+
+/**
+ * Finds WOFF2 URLs in provided font CSS strings and returns <link rel="preload"> tags.
+ * This opts to preload a small set (first few, unique) to keep head lightweight.
+ */
+function buildFontPreloads(fontCssBlocks, limit = 4) {
+  const urlRegex = /url\((['"]?)([^)]+?\.woff2)\1\)/g;
+  const urls = [];
+  for (const block of fontCssBlocks) {
+    let m;
+    while ((m = urlRegex.exec(block)) !== null) {
+      const href = m[2];
+      if (!urls.includes(href)) urls.push(href);
+      if (urls.length >= limit) break;
+    }
+    if (urls.length >= limit) break;
+  }
+  return urls.map(href => `<link rel="preload" as="font" href="${href}" type="font/woff2" crossorigin>`);
 }
 function buildHtmlOpen(opts) {
   const {
@@ -17666,6 +17696,9 @@ function buildHtmlOpen(opts) {
   if (routePath === '/' || routePath === '/home') {
     appCriticalCss = prefixCss(cssTheme) + '\n/* --- separator --- */\n' + prefixCss(cssBlocks) + (extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '');
   }
+
+  // Build font preloads from inlined font CSS (limit to keep HEAD lean)
+  const fontPreloadLinks = buildFontPreloads([fontsCss.rubikCss, fontsCss.orbitronCss, fontsCss.poppinsCss, fontsCss.epilogueCss], 4).join('\n');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -17681,6 +17714,7 @@ ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)
 <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.sanity.io">
 ${(preloadLinks || []).join('\n')}
+${fontPreloadLinks}
 
 ${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
 
@@ -17763,8 +17797,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const app = express__WEBPACK_IMPORTED_MODULE_3___default()();
 const IS_DEV = "development" !== 'production';
-const HOST = '172.20.10.13';
-const DEV_HOST_FOR_ASSETS = '172.20.10.13';
+const HOST = '192.168.1.119';
+const DEV_HOST_FOR_ASSETS = '192.168.1.119';
 const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
 const {
   BUILD_DIR,

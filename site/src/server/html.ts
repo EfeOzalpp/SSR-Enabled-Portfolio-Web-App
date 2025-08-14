@@ -6,20 +6,54 @@ function readTextSafe(p: string) {
   try { return fs.readFileSync(p, 'utf8'); } catch { return ''; }
 }
 
-// Minimal prefixer to mimic your PostCSS rule
+/**
+ * Minimal prefixer to mimic your PostCSS rule.
+ * - Skips at-rules like @keyframes / @font-face to avoid corrupting them.
+ * - Leaves html/body/:root, shadow hosts and ::slotted unchanged.
+ */
 export function prefixCss(css: string, prefix = '#efe-portfolio') {
   return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
-    selector = selector.trim();
+    const sel = selector.trim();
+
+    // ⛔ don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
+    if (sel.startsWith('@')) return `${brace} ${sel}`;
+
+    // allowlisted selectors that should remain global
     if (
-      selector.startsWith('html') ||
-      selector.startsWith('body') ||
-      selector.startsWith(':root') ||
-      selector.includes('#dynamic-theme') ||
-      selector.includes('#shadow-dynamic-app') ||
-      selector.includes('::slotted')
-    ) return `${brace} ${selector}`;
-    return `${brace} ${prefix} ${selector}`;
+      sel.startsWith('html') ||
+      sel.startsWith('body') ||
+      sel.startsWith(':root') ||
+      sel.includes('#dynamic-theme') ||
+      sel.includes('#shadow-dynamic-app') ||
+      sel.includes('::slotted')
+    ) {
+      return `${brace} ${sel}`;
+    }
+
+    return `${brace} ${prefix} ${sel}`;
   });
+}
+
+/**
+ * Finds WOFF2 URLs in provided font CSS strings and returns <link rel="preload"> tags.
+ * This opts to preload a small set (first few, unique) to keep head lightweight.
+ */
+function buildFontPreloads(fontCssBlocks: string[], limit = 4): string[] {
+  const urlRegex = /url\((['"]?)([^)]+?\.woff2)\1\)/g;
+  const urls: string[] = [];
+  for (const block of fontCssBlocks) {
+    let m: RegExpExecArray | null;
+    while ((m = urlRegex.exec(block)) !== null) {
+      const href = m[2];
+      if (!urls.includes(href)) urls.push(href);
+      if (urls.length >= limit) break;
+    }
+    if (urls.length >= limit) break;
+  }
+  return urls.map(
+    (href) =>
+      `<link rel="preload" as="font" href="${href}" type="font/woff2" crossorigin>`
+  );
 }
 
 export function buildHtmlOpen(opts: {
@@ -55,6 +89,12 @@ export function buildHtmlOpen(opts: {
       (extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '');
   }
 
+  // Build font preloads from inlined font CSS (limit to keep HEAD lean)
+  const fontPreloadLinks = buildFontPreloads(
+    [fontsCss.rubikCss, fontsCss.orbitronCss, fontsCss.poppinsCss, fontsCss.epilogueCss],
+    4
+  ).join('\n');
+
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -70,6 +110,7 @@ ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)
 <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.sanity.io">
 ${(preloadLinks || []).join('\n')}
+${fontPreloadLinks}
 
 ${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
 
@@ -90,8 +131,7 @@ ${emotionStyleTags}
 
 export function buildHtmlClose(ssrPayload: any, scriptTags: string) {
   // write the SSR payload safely
-  const ssrJson =
-    `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
+  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
 ${scriptTags}
 </body></html>`;

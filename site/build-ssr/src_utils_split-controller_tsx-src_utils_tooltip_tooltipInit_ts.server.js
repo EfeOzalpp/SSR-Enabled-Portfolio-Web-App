@@ -661,7 +661,7 @@ const showTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 99_000);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;
@@ -682,20 +682,20 @@ function positionTooltip(x, y) {
   const nearLeft = x < rect.width + padding + 20;
   let left, top;
   if (nearBottom) {
-    top = y - rect.height - padding - 12;
-    left = x - rect.width * 0.15;
+    top = y - rect.height - padding - 8;
+    left = x - rect.width * 0;
   } else if (nearTop) {
-    top = y + padding + 6;
-    left = x - rect.width * 0.15;
+    top = y + padding - 14;
+    left = x - rect.width * 0;
   } else if (nearRight) {
     top = y - rect.height / 2;
-    left = x - rect.width - padding - 18;
+    left = x - rect.width - padding - 24;
   } else if (nearLeft) {
     top = y - rect.height / 2;
-    left = x + padding;
+    left = x + padding - 4;
   } else {
-    top = y - rect.height / 2;
-    left = x + padding;
+    top = y - rect.height / 1.6;
+    left = x + padding - 2;
   }
   left = Math.max(padding, Math.min(left, vw - rect.width - padding));
   top = Math.max(padding, Math.min(top, vh - rect.height - padding));
