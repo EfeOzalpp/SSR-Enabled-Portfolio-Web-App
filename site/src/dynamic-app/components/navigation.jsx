@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import fetchGallery from '../lib/fetchGallery';
-
-import { useStyleInjection } from '../../utils/context-providers/style-injector.ts'; // Adjust path as needed
+import { useStyleInjection } from '../../utils/context-providers/style-injector.ts'; 
 import navCss from '../../styles/dynamic-app/navigation.css?raw';
 
 const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2, isInShadow = false }) => {
@@ -16,7 +15,7 @@ const Navigation = ({ activeColor, customArrowIcon, customArrowIcon2, isInShadow
   useStyleInjection(navCss, 'dynamic-app-style-nav');
 
   const toggleMenu = () => {
-    if (isInShadow) return; // 🛑 no nav in shadow mock
+    if (isInShadow) return; // no nav in shadow mock
     setIsOpen((prev) => !prev);
   };
   const handleCloseMenu = () => setIsOpen(false);

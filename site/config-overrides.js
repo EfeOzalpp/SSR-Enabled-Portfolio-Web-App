@@ -87,7 +87,7 @@ module.exports = function override(config, env) {
         });
       }
     } else {
-      console.warn('[⚠️] Could not find base CSS rule to patch postcss-loader');
+      console.warn('Could not find base CSS rule to patch postcss-loader');
     }
 
     // 3) add Emotion + Loadable babel plugins to every babel-loader (client build)

@@ -201,6 +201,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/content-utility/lazy-view.tsx
 
 
 const LazyInView = ({
@@ -210,59 +211,45 @@ const LazyInView = ({
   eager = false
 }) => {
   const isServer = typeof window === 'undefined';
-  const [hasLoaded, setHasLoaded] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+
+  // Hooks must always run — no early return.
+  // Visible on server so SSR HTML shows immediately; on client we can start invisible unless eager.
+  const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(isServer || eager);
   const [Component, setComponent] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const ref = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const [visibility, setVisibility] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
-  const delayTimer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // Observe element and track intersection ratio
+  // Client-only: observe visibility if not eager
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer || eager) {
-      setVisibility(1);
-      return;
-    }
+    if (isServer || eager) return;
     const io = new IntersectionObserver(([entry]) => {
-      setVisibility(entry.intersectionRatio);
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        io.disconnect();
+      }
     }, {
-      threshold: Array.from({
-        length: 11
-      }, (_, i) => i / 10)
+      threshold: 0.05
     });
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, [isServer, eager]);
 
-  // Logic for two-phase loading
+  // Client-only: load component when visible
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer || hasLoaded) return;
+    if (isServer) return;
+    if (!isVisible || Component) return;
+    let cancelled = false;
+    load().then(mod => {
+      if (!cancelled) setComponent(() => mod.default);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isServer, isVisible, Component, load]);
 
-    // Phase 2 immediate load if visibility >= 0.3
-    if (visibility >= 0.3) {
-      load().then(mod => setComponent(() => mod.default));
-      setHasLoaded(true);
-      if (delayTimer.current) clearTimeout(delayTimer.current);
-      return;
-    }
-
-    // Phase 1 → preload after 3s if visibility >= 0.1
-    if (visibility >= 0.1 && !delayTimer.current) {
-      delayTimer.current = setTimeout(() => {
-        if (!hasLoaded && visibility >= 0.1) {
-          load().then(mod => setComponent(() => mod.default));
-          setHasLoaded(true);
-        }
-      }, 3000);
-    }
-
-    // Reset if element leaves viewport
-    if (visibility < 0.1 && delayTimer.current) {
-      clearTimeout(delayTimer.current);
-      delayTimer.current = null;
-    }
-  }, [visibility, hasLoaded, isServer, load]);
-
-  // Render rule
+  // Render rule:
+  // - If component loaded, render it
+  // - Else, if SSR provided, keep showing SSR HTML (even after becoming visible) until component replaces it
+  // - Else fallback
   const content = Component ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(react__WEBPACK_IMPORTED_MODULE_0__.Suspense, {
     fallback: fallback,
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Component, {})

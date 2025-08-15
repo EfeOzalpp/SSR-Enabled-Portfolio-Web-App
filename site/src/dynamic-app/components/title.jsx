@@ -1,4 +1,4 @@
-// Updated TitleDivider component
+// TitleDivider component
 import { useStyleInjection } from '../../utils/context-providers/style-injector.ts';
 import titleCss from '../../styles/dynamic-app/title.css?raw';
 

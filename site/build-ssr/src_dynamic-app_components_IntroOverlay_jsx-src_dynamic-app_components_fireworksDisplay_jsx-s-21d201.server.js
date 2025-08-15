@@ -788,7 +788,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
- // Adjust path as needed
+
 
 
 const Navigation = ({
@@ -806,7 +806,7 @@ const Navigation = ({
   const [hasShownScrollHint, setHasShownScrollHint] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   (0,_utils_context_providers_style_injector_ts__WEBPACK_IMPORTED_MODULE_2__.useStyleInjection)((_styles_dynamic_app_navigation_css_raw__WEBPACK_IMPORTED_MODULE_3___default()), 'dynamic-app-style-nav');
   const toggleMenu = () => {
-    if (isInShadow) return; // 🛑 no nav in shadow mock
+    if (isInShadow) return; // no nav in shadow mock
     setIsOpen(prev => !prev);
   };
   const handleCloseMenu = () => setIsOpen(false);
@@ -1128,7 +1128,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
- // Adjust path as needed
+
 
 
 const options = [{
@@ -1279,7 +1279,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../styles/dynamic-app/title.css?raw */ "./src/styles/dynamic-app/title.css?raw");
 /* harmony import */ var _styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// Updated TitleDivider component
+// TitleDivider component
 
 
 
