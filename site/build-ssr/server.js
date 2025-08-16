@@ -17436,7 +17436,7 @@ const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["defaul
     // removed by dead control flow
 {}
   },
-  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
+  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -17716,7 +17716,6 @@ ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)
 ${(preloadLinks || []).join('\n')}
 ${fontPreloadLinks}
 
-${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
 
 <style>
 ${fontsCss.rubikCss}
@@ -17727,6 +17726,7 @@ ${fontsCss.epilogueCss}
 
 ${extractorLinkTags}
 ${extractorStyleTags}
+${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
 ${emotionStyleTags}
 </head>
 <body>
@@ -18073,7 +18073,6 @@ const datavizSSR = {
       style: {
         position: 'relative',
         width: '100%',
-        height: '100dvh',
         overflow: 'hidden'
       },
       children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
@@ -18117,6 +18116,86 @@ const datavizSSR = {
 
 /***/ }),
 
+/***/ "./src/ssr/projects/dynamic.ssr.tsx":
+/*!******************************************!*\
+  !*** ./src/ssr/projects/dynamic.ssr.tsx ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   dynamicSSR: () => (/* binding */ dynamicSSR)
+/* harmony export */ });
+/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/projects/dynamic.ssr.tsx
+
+
+
+const dynamicSSR = {
+  fetch: async () => {
+    const rows = (await (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__.getProjectData)('dynamic-frame')) ?? [];
+    const byTitle = Object.fromEntries(rows.map(r => [String(r.title || '').toLowerCase(), r.file?.asset?.url]));
+    return {
+      laptop: byTitle['laptop'],
+      tablet: byTitle['tablet'],
+      phone: byTitle['phone']
+    };
+  },
+  render: svgMap => {
+    const laptop = svgMap.laptop ?? undefined;
+    const tablet = svgMap.tablet ?? undefined;
+    const phone = svgMap.phone ?? undefined;
+    const fallback = laptop ?? tablet ?? phone;
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("section", {
+      className: "block-type-a",
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        className: "device-wrapper",
+        children: [fallback && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("picture", {
+          children: [phone ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("source", {
+            media: "(max-width: 767.98px)",
+            srcSet: phone
+          }) : null, tablet ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("source", {
+            media: "(min-width: 768px) and (max-width: 1025px)",
+            srcSet: tablet
+          }) : null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("img", {
+            id: "dynamic-device-frame",
+            src: fallback,
+            alt: "device",
+            className: "device-frame",
+            decoding: "async",
+            loading: "eager",
+            draggable: false
+          })]
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+          className: "screen-overlay"
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+          id: "dynamic-overlay-loader",
+          className: "soft-loader",
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+            className: "spinner"
+          })
+        })]
+      })
+    });
+  },
+  // Tell the server how to build preloads for the first project
+  buildPreloads: svgMap => {
+    const links = [];
+    const push = u => {
+      if (u) links.push(`<link rel="preload" as="image" href="${u}">`);
+    };
+    push(svgMap.phone);
+    push(svgMap.tablet);
+    push(svgMap.laptop);
+    return links;
+  },
+  criticalCssFiles: ['src/styles/block-type-a.css']
+};
+
+/***/ }),
+
 /***/ "./src/ssr/projects/rotary.ssr.tsx":
 /*!*****************************************!*\
   !*** ./src/ssr/projects/rotary.ssr.tsx ***!
@@ -18153,8 +18232,6 @@ const rotarySSR = {
       style: {
         position: 'relative',
         width: '100%',
-        height: '100dvh',
-        // more deterministic than minHeight here
         overflow: 'hidden'
       },
       children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
@@ -18255,7 +18332,6 @@ const scoopSSR = {
       style: {
         position: 'relative',
         width: '100%',
-        height: '100dvh',
         overflow: 'hidden'
       },
       children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
@@ -18337,7 +18413,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _projects_scoop_ssr__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./projects/scoop.ssr */ "./src/ssr/projects/scoop.ssr.tsx");
 /* harmony import */ var _projects_rotary_ssr__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./projects/rotary.ssr */ "./src/ssr/projects/rotary.ssr.tsx");
 /* harmony import */ var _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./projects/dataviz.ssr */ "./src/ssr/projects/dataviz.ssr.tsx");
+/* harmony import */ var _projects_dynamic_ssr__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./projects/dynamic.ssr */ "./src/ssr/projects/dynamic.ssr.tsx");
 // src/ssr/registry.ts
+
 
 
 
@@ -18345,32 +18423,11 @@ __webpack_require__.r(__webpack_exports__);
 const ssrRegistry = {
   scoop: _projects_scoop_ssr__WEBPACK_IMPORTED_MODULE_0__.scoopSSR,
   rotary: _projects_rotary_ssr__WEBPACK_IMPORTED_MODULE_1__.rotarySSR,
-  dataviz: _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__.datavizSSR
+  dataviz: _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__.datavizSSR,
+  dynamic: _projects_dynamic_ssr__WEBPACK_IMPORTED_MODULE_3__.dynamicSSR
   // game: undefined,
   // dynamic: undefined,
 };
-
-/***/ }),
-
-/***/ "./src/utils/content-utility lazy recursive":
-/*!**********************************************************!*\
-  !*** ./src/utils/content-utility/ lazy namespace object ***!
-  \**********************************************************/
-/***/ ((module) => {
-
-function webpackEmptyAsyncContext(req) {
-	// Here Promise.resolve().then() is used instead of new Promise() to prevent
-	// uncaught exception popping up in devtools
-	return Promise.resolve().then(() => {
-		var e = new Error("Cannot find module '" + req + "'");
-		e.code = 'MODULE_NOT_FOUND';
-		throw e;
-	});
-}
-webpackEmptyAsyncContext.keys = () => ([]);
-webpackEmptyAsyncContext.resolve = webpackEmptyAsyncContext;
-webpackEmptyAsyncContext.id = "./src/utils/content-utility lazy recursive";
-module.exports = webpackEmptyAsyncContext;
 
 /***/ }),
 
@@ -18385,6 +18442,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   baseProjects: () => (/* binding */ baseProjects),
 /* harmony export */   componentMap: () => (/* binding */ componentMap),
+/* harmony export */   dynamicLoaders: () => (/* binding */ dynamicLoaders),
 /* harmony export */   useProjectLoader: () => (/* binding */ useProjectLoader)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
@@ -18392,32 +18450,46 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../ssr/registry */ "./src/ssr/registry.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/content-utility/component-loader.tsx
 
 
 
+
+// ----- Async loaders for non-dynamic projects
 
 const componentMap = {
-  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
-  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
-  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")),
-  game: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_evade-the-rock_jsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/evade-the-rock.jsx */ "./src/components/rock-escapade/evade-the-rock.jsx")),
-  dynamic: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx"))
+  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
+  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
+  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")),
+  game: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_evade-the-rock_jsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/evade-the-rock.jsx */ "./src/components/rock-escapade/evade-the-rock.jsx"))
 };
+
+// ----- Split loaders for dynamic (frame & shadow)
+const dynamicLoaders = {
+  frame: () => __webpack_require__.e(/*! import() | dynamic-frame */ "dynamic-frame").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/frame */ "./src/components/dynamic-app/frame.tsx")),
+  shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
+};
+
+// Explicit union preserves "dynamic" as a valid key
+
 const toComponent = p => p;
 
-// stable base list
+// Stable base list (default client loaders).
+// For "dynamic", point to the lightweight frame by default.
+// Shadow chunk is mounted separately by the SSR enhancer (SSR path)
+// or by ProjectPane's LazyViewMount (client-only path).
 const baseProjects = [{
   key: 'scoop',
   title: 'Ice Cream Scoop',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
 }, {
   key: 'rotary',
   title: 'Rotary Lamp',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
 }, {
   key: 'dataviz',
   title: 'Data Visualization',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
 }, {
   key: 'game',
   title: 'Evade the Rock',
@@ -18426,8 +18498,10 @@ const baseProjects = [{
   key: 'dynamic',
   title: 'Dynamic App',
   isLink: true,
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_content-utility_real-mobile_ts-src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_components_dynamic-app_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app */ "./src/components/dynamic-app.tsx")))
+  lazyImport: () => toComponent(dynamicLoaders.frame())
 }];
+
+// Hook that returns a loader respecting SSR (when present) and client lazy loading.
 function useProjectLoader(key) {
   const ssr = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_1__.useSsrData)();
   const project = baseProjects.find(p => p.key === key);
@@ -18435,20 +18509,12 @@ function useProjectLoader(key) {
   const payload = ssr?.preloaded?.[key];
   const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_2__.ssrRegistry[key];
 
-  // SSR path
+  // --- SSR path: render prebuilt HTML (and attach enhancers) ---
   if (payload && desc?.render) {
     const data = payload.data ?? payload;
-    const withEnhancer = async enhancerPath => {
-      const Enhancer = (await __webpack_require__("./src/utils/content-utility lazy recursive")(enhancerPath)).default;
-      return {
-        default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
-          children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
-        })
-      };
-    };
     if (key === 'rotary') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx-src_utils_content-utility_real-mobile_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
@@ -18458,7 +18524,7 @@ function useProjectLoader(key) {
     }
     if (key === 'scoop') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_scoop_enhancer_tsx-src_utils_content-utility_real-mobile_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/scoop.enhancer */ "./src/ssr/projects/scoop.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_scoop_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/scoop.enhancer */ "./src/ssr/projects/scoop.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
@@ -18476,6 +18542,19 @@ function useProjectLoader(key) {
         };
       };
     }
+    if (key === 'dynamic') {
+      // Option A: the dynamic SSR enhancer computes overlay sizing AND mounts shadow app
+      return async () => {
+        const Enhancer = (await __webpack_require__.e(/*! import() */ "src_ssr_projects_dynamic_enhancer_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/dynamic.enhancer */ "./src/ssr/projects/dynamic.enhancer.tsx"))).default;
+        return {
+          default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+            children: [desc.render(data), " ", (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {}), "          "]
+          })
+        };
+      };
+    }
+
+    // Default SSR (no enhancer)
     return async () => ({
       default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
         children: desc.render(data)
@@ -18483,7 +18562,11 @@ function useProjectLoader(key) {
     });
   }
 
-  // Fallback: client lazy load
+  // --- Client lazy path ---
+  if (key === 'dynamic') {
+    // Ensure the default loader is just the lightweight frame
+    return dynamicLoaders.frame;
+  }
   return project.lazyImport;
 }
 
@@ -18547,6 +18630,9 @@ const queries = {
   'rotary-lamp': `*[_type=="mediaBlock" && title match "Rotary Lamp"][0]{
     mediaOne{ alt, image{asset->{url}}, video{ asset->{url} } },
     mediaTwo{ alt, image{asset->{url}}, video{ asset->{url} } }
+  }`,
+  'dynamic-frame': `*[_type == "svgAsset" && title in ["Laptop","Tablet","Phone"]]{
+    title, file{ asset->{ url } }
   }`
   // add others as I go
 };

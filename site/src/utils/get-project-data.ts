@@ -13,6 +13,9 @@ const queries: Record<string, string> = {
     mediaOne{ alt, image{asset->{url}}, video{ asset->{url} } },
     mediaTwo{ alt, image{asset->{url}}, video{ asset->{url} } }
   }`,
+    'dynamic-frame': `*[_type == "svgAsset" && title in ["Laptop","Tablet","Phone"]]{
+    title, file{ asset->{ url } }
+  }`,
   // add others as I go
 };
 

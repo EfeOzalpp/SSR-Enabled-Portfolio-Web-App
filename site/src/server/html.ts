@@ -112,7 +112,6 @@ ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)
 ${(preloadLinks || []).join('\n')}
 ${fontPreloadLinks}
 
-${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
 
 <style>
 ${fontsCss.rubikCss}
@@ -123,6 +122,7 @@ ${fontsCss.epilogueCss}
 
 ${extractorLinkTags}
 ${extractorStyleTags}
+${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
 ${emotionStyleTags}
 </head>
 <body>

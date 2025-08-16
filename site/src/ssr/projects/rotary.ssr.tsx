@@ -30,7 +30,6 @@ export const rotarySSR: SsrDescriptor = {
         style={{
           position: 'relative',
           width: '100%',
-          height: '100dvh', // more deterministic than minHeight here
           overflow: 'hidden',
         }}
       >

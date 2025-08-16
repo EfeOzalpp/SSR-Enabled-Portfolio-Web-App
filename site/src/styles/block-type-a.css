@@ -12,18 +12,10 @@
 .device-frame { position: relative; display: block; width: 100%; }
 .screen-overlay { position: absolute; z-index: 100; }
 
-/* only on phoné */
-.phone { height: 97dvh; }
-/* only on tablét */
-.tablet { height: 84%; padding-top: 12%;}
-/* only on laptop */
-.laptop { height: calc(100% - 12px); } 
-
 @media (max-width: 767px) {
   .block-type-a {height: 98svh; display: flex; align-items: center; justify-content: center; padding: 0;}
   .device-wrapper {position: relative; width: min(92vw, 96dvh); margin-inline: auto; max-height: 94svh;}
-  .device-frame {display: block; width: 100%; height: 95dvh; margin: 0 auto;}
-  .phone { height: 96dvh; }
+  .device-frame {display: block; width: 100%; margin: 0 auto; height: 96dvh; }
   .screen-overlay {
       position: absolute;
       top: 50%;
@@ -35,6 +27,10 @@
       overflow: hidden;
       z-index: 1000;
     }
+      .device-wrapper .screen-overlay {
+    width: var(--overlay-w, auto);
+    height: var(--overlay-h, auto);
+  }
 }
 @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
   .block-type-a {height: 98dvh; display: flex; align-items: center; justify-content: center; padding: 0;}
@@ -56,6 +52,7 @@
 @media (min-width: 768px) and (max-width: 1024px) {
   .block-type-a {height: 92dvh; }
   .device-wrapper {width: 96dvh; aspect-ratio: 3 / 4;}
+  .device-frame { height: 84%; padding-top: 12%;}
   .device-frame {display: block; margin: 0 auto;}
   .screen-overlay  {top: 12%;  left: 12%; width: 76%; height: 79%;} 
 }
@@ -63,13 +60,13 @@
 @media (min-width: 1025px) and (max-width: 2024px) {
   .block-type-a {height: 96dvh; }
   .device-wrapper {max-width: 154dvh; aspect-ratio: 16 / 10;}
-  .screen-overlay  {top: 6%; left: 2%; width: 96%; height: 88%;} 
+  .screen-overlay  {top: 6%; left: 0.5%; width: 99%; height: 88%;} 
 }
 
 @media (min-width: 2025px) {
   .block-type-a {height: 98dvh; }
   .device-wrapper {max-width: 120dvh; aspect-ratio: 16 / 10;}
-  .screen-overlay  {top: 6%; left: 2%; width: 96%; height: 88%;} 
+  .screen-overlay  {top: 6%; left: 1%; width: 98%; height: 88%;} 
 }
 
 .embedded-app {

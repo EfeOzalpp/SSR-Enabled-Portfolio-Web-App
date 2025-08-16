@@ -1,6 +1,7 @@
-// src/utils/project-pane.tsx
+// src/components/ProjectPane.tsx (or wherever yours lives)
 import React, { useEffect, useState } from 'react';
-import LazyInView from './content-utility/lazy-view';
+import LazyInView from './content-utility/lazy-in-view';
+import LazyViewMount from './content-utility/lazy-view-mount';
 import LoadingScreen from './content-utility/loading';
 import { useProjectLoader } from './content-utility/component-loader';
 import { useSsrData } from './context-providers/ssr-data-context';
@@ -22,22 +23,21 @@ export function ProjectPane({
   const ssr = useSsrData();
   const payload = ssr?.preloaded?.[item.key];
   const desc = ssrRegistry[item.key];
+  const hasSSR = Boolean(payload && desc?.render);
 
-  // Delay showing any client-only fallback until after hydration
   const [isHydrated, setIsHydrated] = useState(false);
   useEffect(() => { setIsHydrated(true); }, []);
 
-  // Only show a loader (fallback) on the client AFTER hydration and only if we have no SSR payload
   const fallbackNode = !payload && isHydrated ? <LoadingScreen isFullScreen={false} /> : null;
+  // Only used for non-dynamic or no-SSR path
+  const serverRender = payload && desc?.render ? desc.render(payload.data ?? payload) : null;
 
-  // If SSR provided payload, render its DOM (same markup server & client)
-  const serverRender = payload && desc?.render
-    ? desc.render(payload.data ?? payload)
-    : null;
+  const isDynamic = item.key === 'dynamic';
+  const blockId = `block-${item.key}`;
 
   return (
     <div
-      id={`block-${item.key}`}
+      id={blockId}
       ref={setRef}
       style={{
         height: isHidden ? '0px' : isFocused ? 'auto' : viewportHeight,
@@ -46,16 +46,44 @@ export function ProjectPane({
         opacity: isHidden ? 0 : 1,
         visibility: isHidden ? 'hidden' : 'visible',
         pointerEvents: isHidden ? 'none' : 'auto',
-        transition: 'opacity .4s ease, visibility .4s ease',
       }}
     >
       <div style={{ minHeight: viewportHeight }}>
-        <LazyInView
-          load={load}
-          fallback={fallbackNode}
-          serverRender={serverRender}
-          eager={isFirst}
-        />
+        {isDynamic ? (
+          <>
+            {/* Frame: SSR-aware hydrator */}
+            <LazyInView
+              load={load}
+              fallback={fallbackNode}
+              serverRender={hasSSR ? null : serverRender} // avoid duplicate SSR HTML when load already renders it
+              eager={isFirst}
+              allowIdle={true}
+            />
+
+            {/* Shadow app: only when NO SSR (client-only path). If SSR exists, enhancer attaches it. */}
+            {!hasSSR && (
+              <LazyViewMount
+                load={() => import('../components/dynamic-app/shadow-entry')}
+                fallback={null}
+                eager={false}
+                eagerThreshold={0.2}
+                mountThreshold={0.3}
+                allowIdle={true}
+                observeTargetId={blockId}
+                rootMargin="0px 0px -15% 0px"
+                componentProps={{ blockId }}
+              />
+            )}
+          </>
+        ) : (
+          <LazyInView
+            load={load}
+            fallback={fallbackNode}
+            serverRender={serverRender}
+            eager={isFirst}
+            allowIdle={false}
+          />
+        )}
       </div>
     </div>
   );
