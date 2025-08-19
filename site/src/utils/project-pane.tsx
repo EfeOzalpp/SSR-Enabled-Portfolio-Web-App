@@ -1,4 +1,4 @@
-// src/components/ProjectPane.tsx (or wherever yours lives)
+// src/components/ProjectPane.tsx
 import React, { useEffect, useState } from 'react';
 import LazyInView from './content-utility/lazy-in-view';
 import LazyViewMount from './content-utility/lazy-view-mount';
@@ -29,10 +29,10 @@ export function ProjectPane({
   useEffect(() => { setIsHydrated(true); }, []);
 
   const fallbackNode = !payload && isHydrated ? <LoadingScreen isFullScreen={false} /> : null;
-  // Only used for non-dynamic or no-SSR path
   const serverRender = payload && desc?.render ? desc.render(payload.data ?? payload) : null;
 
   const isDynamic = item.key === 'dynamic';
+  const isGame = item.key === 'game';
   const blockId = `block-${item.key}`;
 
   return (
@@ -51,16 +51,16 @@ export function ProjectPane({
       <div style={{ minHeight: viewportHeight }}>
         {isDynamic ? (
           <>
-            {/* Frame: SSR-aware hydrator */}
+            {/* Frame */}
             <LazyInView
               load={load}
               fallback={fallbackNode}
-              serverRender={hasSSR ? null : serverRender} // avoid duplicate SSR HTML when load already renders it
+              serverRender={hasSSR ? null : serverRender}
               eager={isFirst}
               allowIdle={true}
             />
 
-            {/* Shadow app: only when NO SSR (client-only path). If SSR exists, enhancer attaches it. */}
+            {/* Shadow only on client path */}
             {!hasSSR && (
               <LazyViewMount
                 load={() => import('../components/dynamic-app/shadow-entry')}
@@ -74,6 +74,17 @@ export function ProjectPane({
                 componentProps={{ blockId }}
               />
             )}
+          </>
+        ) : isGame ? (
+          <>
+            {/* Stage 1: Host shell (BlockGHost) */}
+            <LazyInView
+              load={load} // BlockGHost
+              fallback={fallbackNode}
+              serverRender={serverRender}
+              eager={isFirst}
+              allowIdle={true}
+            />
           </>
         ) : (
           <LazyInView

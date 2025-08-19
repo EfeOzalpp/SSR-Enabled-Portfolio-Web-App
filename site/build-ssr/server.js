@@ -18443,6 +18443,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   baseProjects: () => (/* binding */ baseProjects),
 /* harmony export */   componentMap: () => (/* binding */ componentMap),
 /* harmony export */   dynamicLoaders: () => (/* binding */ dynamicLoaders),
+/* harmony export */   gameLoaders: () => (/* binding */ gameLoaders),
 /* harmony export */   useProjectLoader: () => (/* binding */ useProjectLoader)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
@@ -18460,14 +18461,17 @@ __webpack_require__.r(__webpack_exports__);
 const componentMap = {
   rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
   scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
-  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")),
-  game: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_evade-the-rock_jsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/evade-the-rock.jsx */ "./src/components/rock-escapade/evade-the-rock.jsx"))
+  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx"))
 };
 
 // ----- Split loaders for dynamic (frame & shadow)
 const dynamicLoaders = {
   frame: () => __webpack_require__.e(/*! import() | dynamic-frame */ "dynamic-frame").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/frame */ "./src/components/dynamic-app/frame.tsx")),
   shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
+};
+const gameLoaders = {
+  components: () => __webpack_require__.e(/*! import() | components */ "components").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
+  game: () => Promise.all(/*! import() | game */[__webpack_require__.e("src_components_rock-escapade_game-canvas_tsx"), __webpack_require__.e("game")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx"))
 };
 
 // Explicit union preserves "dynamic" as a valid key
@@ -18493,7 +18497,7 @@ const baseProjects = [{
 }, {
   key: 'game',
   title: 'Evade the Rock',
-  lazyImport: () => toComponent(__webpack_require__.e(/*! import() */ "src_components_rock-escapade_evade-the-rock_jsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/evade-the-rock.jsx */ "./src/components/rock-escapade/evade-the-rock.jsx")))
+  lazyImport: () => toComponent(gameLoaders.components())
 }, {
   key: 'dynamic',
   title: 'Dynamic App',
@@ -18566,6 +18570,10 @@ function useProjectLoader(key) {
   if (key === 'dynamic') {
     // Ensure the default loader is just the lightweight frame
     return dynamicLoaders.frame;
+  }
+  if (key === 'game') {
+    // Ensure the default loader is just the lightweight frame
+    return gameLoaders.components;
   }
   return project.lazyImport;
 }
@@ -19016,17 +19024,6 @@ module.exports = require("react");
 
 /***/ }),
 
-/***/ "react-device-detect":
-/*!**************************************!*\
-  !*** external "react-device-detect" ***!
-  \**************************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("react-device-detect");
-
-/***/ }),
-
 /***/ "react-dom":
 /*!****************************!*\
   !*** external "react-dom" ***!
@@ -19154,6 +19151,36 @@ module.exports = require("through");
 /******/ 				() => (module);
 /******/ 			__webpack_require__.d(getter, { a: getter });
 /******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/create fake namespace object */
+/******/ 	(() => {
+/******/ 		var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
+/******/ 		var leafPrototypes;
+/******/ 		// create a fake namespace object
+/******/ 		// mode & 1: value is a module id, require it
+/******/ 		// mode & 2: merge all properties of value into the ns
+/******/ 		// mode & 4: return value when already ns object
+/******/ 		// mode & 16: return value when it's Promise-like
+/******/ 		// mode & 8|1: behave like require
+/******/ 		__webpack_require__.t = function(value, mode) {
+/******/ 			if(mode & 1) value = this(value);
+/******/ 			if(mode & 8) return value;
+/******/ 			if(typeof value === 'object' && value) {
+/******/ 				if((mode & 4) && value.__esModule) return value;
+/******/ 				if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 			}
+/******/ 			var ns = Object.create(null);
+/******/ 			__webpack_require__.r(ns);
+/******/ 			var def = {};
+/******/ 			leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 			for(var current = mode & 2 && value; (typeof current == 'object' || typeof current == 'function') && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 				Object.getOwnPropertyNames(current).forEach((key) => (def[key] = () => (value[key])));
+/******/ 			}
+/******/ 			def['default'] = () => (value);
+/******/ 			__webpack_require__.d(ns, def);
+/******/ 			return ns;
 /******/ 		};
 /******/ 	})();
 /******/ 	

@@ -80,8 +80,8 @@ export default function useIntersectionTransform(
         }
       } else if (width > 1025) {
         if (percentage > 0.6 && percentage <= 1) {
-          imageContainerTransform = 'translate(0em, 0em)';
-          imageContainer2Transform = 'translate(1em, -29.4em)';
+          imageContainerTransform = 'translate(1em, 1em)';
+          imageContainer2Transform = 'translate(0em, -28.4em)';
           imageContainerZIndex = '1';
           imageContainer2ZIndex = '5';
         } else if (percentage > 0.3 && percentage <= 0.6) {
@@ -91,7 +91,7 @@ export default function useIntersectionTransform(
           imageContainer2ZIndex = '1';
         } else if (percentage >= 0 && percentage <= 0.3) {
           imageContainerTransform = 'translate(0em, 0em)';
-          imageContainer2Transform = 'translate(1em, -28em)';
+          imageContainer2Transform = 'translate(1em, -27.4em)';
           imageContainerZIndex = '5';
           imageContainer2ZIndex = '1';
         }

@@ -1,5 +1,5 @@
-exports.id = "src_components_rock-escapade_evade-the-rock_jsx";
-exports.ids = ["src_components_rock-escapade_evade-the-rock_jsx"];
+exports.id = "components";
+exports.ids = ["components"];
 exports.modules = {
 
 /***/ "./src/components/rock-escapade/block-g-coin-counter.tsx":
@@ -159,6 +159,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _svg_gameover_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/gameover.json */ "./src/svg/gameover.json");
 /* harmony import */ var _svg_highscore_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/highscore.json */ "./src/svg/highscore.json");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/components/rock-escapade/block-g-game-over.tsx
 
 
 
@@ -174,46 +175,49 @@ const BlockGGameOver = ({
   const [isFadingOut, setIsFadingOut] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const lottieRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const handleClick = () => {
-    if (onRestart) onRestart();
+    onRestart?.();
     setIsFadingOut(true);
   };
+
+  // fade-out -> unmount
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isFadingOut) {
-      const timeout = setTimeout(() => {
-        setVisible(false);
-      }, 300);
-      return () => clearTimeout(timeout);
-    }
+    if (!isFadingOut) return;
+    const t = setTimeout(() => setVisible(false), 300);
+    return () => clearTimeout(t);
   }, [isFadingOut]);
+
+  // external trigger to re-show
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (visibleTrigger) {
       setVisible(true);
       setIsFadingOut(false);
     }
   }, [visibleTrigger]);
+
+  // disable background scroll while visible
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!visible) return;
-    const preventScroll = e => e.preventDefault();
-    window.addEventListener('wheel', preventScroll, {
+    const prevent = e => e.preventDefault();
+    window.addEventListener('wheel', prevent, {
       passive: false
     });
-    window.addEventListener('touchmove', preventScroll, {
+    window.addEventListener('touchmove', prevent, {
       passive: false
     });
-    window.addEventListener('keydown', preventScroll, {
+    window.addEventListener('keydown', prevent, {
       passive: false
     });
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
-      window.removeEventListener('wheel', preventScroll);
-      window.removeEventListener('touchmove', preventScroll);
-      window.removeEventListener('keydown', preventScroll);
-      document.body.style.overflow = '';
+      window.removeEventListener('wheel', prevent);
+      window.removeEventListener('touchmove', prevent);
+      window.removeEventListener('keydown', prevent);
+      document.body.style.overflow = prev;
     };
   }, [visible]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    console.log('BlockGGameOver rendered with coins:', coins);
-  }, [coins]);
+
+  // lottie
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!lottieRef.current) return;
     const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
@@ -223,46 +227,351 @@ const BlockGGameOver = ({
       autoplay: true,
       animationData: newHighScore ? _svg_highscore_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_gameover_json__WEBPACK_IMPORTED_MODULE_2__
     });
-    return () => {
-      anim.destroy();
-    };
+    return () => anim.destroy();
   }, [newHighScore]);
   if (!visible) return null;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
-    className: `block-g-gameover ${isFadingOut ? 'fade-out' : ''}`,
-    onClick: handleClick,
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
-      ref: lottieRef,
-      className: "gameover-lottie"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
-      className: "gameover-text-area",
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h1", {
-        className: "gameover-text",
+  return (
+    // OPAQUE, FULL-SCREEN BACKDROP (covers canvas completely)
+    (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+      className: "gameover-overlay",
+      role: "dialog",
+      "aria-modal": "true",
+      onClick: handleClick,
+      style: {
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        background: '#000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: isFadingOut ? 0 : 1,
+        transition: 'opacity 0.3s ease',
+        cursor: 'pointer'
+      },
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "block-g-gameover",
         style: {
-          color: newHighScore ? 'rgb(255 230 203)' : 'rgb(222 202 250)'
+          position: 'relative',
+          background: 'transparent'
         },
-        children: newHighScore ? 'New High Score!' : 'Game Over'
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
-        style: {
-          margin: '8px 0'
-        },
-        children: "\u2014"
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
-        className: "gameover-coin-count",
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("h2", {
-          style: {
-            color: 'rgb(255, 205, 55)'
-          },
-          children: [coins, " Coins Collected"]
-        })
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h4", {
-        className: "gameover-cta",
-        children: "Click to Play Again"
-      })]
-    })]
-  });
+        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+          ref: lottieRef,
+          className: "gameover-lottie"
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+          className: "gameover-text-area",
+          children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h1", {
+            className: "gameover-text",
+            style: {
+              color: newHighScore ? 'rgb(255 230 203)' : 'rgb(222 202 250)'
+            },
+            children: newHighScore ? 'New High Score!' : 'Game Over'
+          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+            style: {
+              margin: '8px 0'
+            },
+            children: "\u2014"
+          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+            className: "gameover-coin-count",
+            children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("h2", {
+              style: {
+                color: 'rgb(255, 205, 55)'
+              },
+              children: [coins, " Coins Collected"]
+            })
+          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h4", {
+            className: "gameover-cta",
+            children: "Click to Play Again"
+          })]
+        })]
+      })
+    })
+  );
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (BlockGGameOver);
+
+/***/ }),
+
+/***/ "./src/components/rock-escapade/block-g-host.tsx":
+/*!*******************************************************!*\
+  !*** ./src/components/rock-escapade/block-g-host.tsx ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ BlockGHost)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
+/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _block_g_onboarding__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./block-g-onboarding */ "./src/components/rock-escapade/block-g-onboarding.tsx");
+/* harmony import */ var _block_g_game_over__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./block-g-game-over */ "./src/components/rock-escapade/block-g-game-over.tsx");
+/* harmony import */ var _block_g_coin_counter__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./block-g-coin-counter */ "./src/components/rock-escapade/block-g-coin-counter.tsx");
+/* harmony import */ var _block_g_exit__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./block-g-exit */ "./src/components/rock-escapade/block-g-exit.tsx");
+/* harmony import */ var _utils_content_utility_real_mobile__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../utils/content-utility/real-mobile */ "./src/utils/content-utility/real-mobile.ts");
+/* harmony import */ var _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../svg/desktop-onboarding.json */ "./src/svg/desktop-onboarding.json");
+/* harmony import */ var _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../svg/mobile-onboarding.json */ "./src/svg/mobile-onboarding.json");
+/* harmony import */ var _utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../utils/content-utility/lazy-view-mount */ "./src/utils/content-utility/lazy-view-mount.tsx");
+/* harmony import */ var _utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../utils/content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
+/* harmony import */ var _subscribeHighScore__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./subscribeHighScore */ "./src/components/rock-escapade/subscribeHighScore.ts");
+/* harmony import */ var _updateHighScore__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./updateHighScore */ "./src/components/rock-escapade/updateHighScore.ts");
+/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../styles/block-type-g.css */ "./src/styles/block-type-g.css");
+/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/components/rock-escapade/BlockGHost.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --- Game mode helpers
+
+const GAME_MODE_CLASS = 'game-mode-active';
+function activateGameMode() {
+  if (typeof document !== 'undefined') document.body.classList.add(GAME_MODE_CLASS);
+}
+function deactivateGameMode() {
+  if (typeof document !== 'undefined') document.body.classList.remove(GAME_MODE_CLASS);
+}
+function isFullscreen() {
+  return typeof document !== 'undefined' && !!document.fullscreenElement;
+}
+function BlockGHost({
+  blockId
+}) {
+  const isRealMobile = (0,_utils_content_utility_real_mobile__WEBPACK_IMPORTED_MODULE_6__.useRealMobileViewport)();
+
+  // lifecycle
+  const [started, setStarted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [fakeFS, setFakeFS] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+
+  // HUD + meta
+  const [coins, setCoins] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [gameOverVisible, setGameOverVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [newHighScore, setNewHighScore] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+
+  // High score from Sanity only (single source of truth)
+  const remoteHighScore = (0,_subscribeHighScore__WEBPACK_IMPORTED_MODULE_11__.useHighScoreSubscription)();
+  const stableHigh = typeof remoteHighScore === 'number' ? remoteHighScore : 0;
+
+  // onboarding overlay state
+  const [countdownPhase, setCountdownPhase] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [showBeginText, setShowBeginText] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [showOverlayBg, setShowOverlayBg] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [shouldRenderOverlayBg, setShouldRenderOverlayBg] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const lottieRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // API from GameCanvas (restart)
+  const restartApi = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // --- Fullscreen
+  const enterFullscreen = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById(blockId);
+    if (!el) return;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
+    try {
+      const p = req?.call(el);
+      if (p?.then) await p;
+      setFakeFS(false);
+    } catch {
+      setFakeFS(true); // CSS fallback for iOS etc.
+    }
+  }, [blockId]);
+  const onStart = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+    void _utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_10__.gameLoaders.game(); // prefetch canvas chunk immediately
+    await enterFullscreen();
+    activateGameMode();
+    setStarted(true);
+    setCoins(0);
+    setCountdownPhase('lottie');
+    requestAnimationFrame(() => {
+      const el = document.getElementById(blockId);
+      el?.focus?.();
+    });
+  }, [enterFullscreen, blockId]);
+
+  // Global key guard (prevent page scroll)
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!started) return;
+    const gameRoot = document.getElementById(blockId);
+    const preventScrollKeys = e => {
+      if (!document.body.classList.contains(GAME_MODE_CLASS)) return;
+      const t = e.target;
+      const tag = t?.tagName;
+      if (tag && /INPUT|TEXTAREA|SELECT/.test(tag)) return;
+      if (gameRoot && t && gameRoot.contains(t)) return;
+      const k = e.key;
+      if (k === ' ' || k === 'Spacebar' || k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight' || k === 'PageUp' || k === 'PageDown' || k === 'Home' || k === 'End') e.preventDefault();
+    };
+    window.addEventListener('keydown', preventScrollKeys);
+    return () => window.removeEventListener('keydown', preventScrollKeys);
+  }, [started, blockId]);
+
+  // Scroll lock while started (real or fake FS)
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (typeof document === 'undefined') return;
+    if (!started && !fakeFS) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [started, fakeFS]);
+
+  // Countdown Lottie -> BEGIN! -> hide
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (countdownPhase !== 'lottie' || !lottieRef.current) return;
+    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
+      container: lottieRef.current,
+      renderer: 'svg',
+      loop: false,
+      autoplay: true,
+      animationData: isRealMobile ? _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_8__ : _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_7__
+    });
+    const onComplete = () => setCountdownPhase('begin');
+    anim.addEventListener('complete', onComplete);
+    return () => {
+      anim.removeEventListener('complete', onComplete);
+      anim.destroy();
+    };
+  }, [countdownPhase, isRealMobile]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (countdownPhase === 'begin') {
+      setShowBeginText(true);
+      const t = setTimeout(() => {
+        setShowBeginText(false);
+        setCountdownPhase(null);
+      }, 1000);
+      return () => clearTimeout(t);
+    }
+  }, [countdownPhase]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (countdownPhase === 'lottie') {
+      setShowOverlayBg(true);
+      setShouldRenderOverlayBg(true);
+    } else if (countdownPhase === null) {
+      setShowOverlayBg(false);
+      const t = setTimeout(() => setShouldRenderOverlayBg(false), 400);
+      return () => clearTimeout(t);
+    }
+  }, [countdownPhase]);
+
+  // GameCanvas callbacks
+  const handleReady = api => {
+    restartApi.current = api;
+  };
+  const handleCoinsChange = n => {
+    setCoins(n);
+    // styling hint while current run is beating the remote value
+    setNewHighScore(n > stableHigh);
+  };
+  const handleGameOver = (finalCoins, isNewHigh) => {
+    setGameOverVisible(true);
+    setNewHighScore(isNewHigh);
+    if (isNewHigh) {
+      // Only update Sanity; UI will reflect via subscription
+      (0,_updateHighScore__WEBPACK_IMPORTED_MODULE_12__.updateHighScore)(finalCoins).catch(e => console.error('[HS] Remote update error:', e));
+    }
+  };
+  const handleRestart = () => {
+    setGameOverVisible(false);
+    setNewHighScore(false);
+    setCountdownPhase(null);
+    restartApi.current?.restart();
+    setCoins(0);
+  };
+  const handleExit = () => {
+    setStarted(false);
+    setGameOverVisible(false);
+    setNewHighScore(false);
+    setCountdownPhase(null);
+    setCoins(0);
+    deactivateGameMode();
+    if (isFullscreen()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen || document.mozCancelFullScreen;
+      try {
+        exit?.call(document);
+      } catch {}
+    }
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => deactivateGameMode(), []);
+
+  // For display: if you’re beating the high, show the current coins next to “New High Score”
+  const displayHigh = newHighScore ? coins : stableHigh;
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("section", {
+    id: blockId,
+    tabIndex: -1,
+    className: `block-type-g ${fakeFS ? 'fake-fs' : ''} ${started ? 'ingame' : ''}`,
+    style: {
+      position: 'relative'
+    },
+    children: [!started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_onboarding__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      onStart: onStart,
+      resetTrigger: started ? 1 : 0
+    }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_exit__WEBPACK_IMPORTED_MODULE_5__["default"], {
+        onExit: handleExit
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        coins: coins,
+        highScore: displayHigh,
+        newHighScore: newHighScore
+      }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+        className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`
+      }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+        ref: lottieRef,
+        id: "lottie-onboarding",
+        className: "countdown-lottie"
+      }), showBeginText && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+        className: "countdown-display",
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("h1", {
+          className: "countdown-text",
+          children: "BEGIN!"
+        })
+      }), gameOverVisible && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_game_over__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        onRestart: handleRestart,
+        visibleTrigger: gameOverVisible ? 1 : 0,
+        coins: coins,
+        newHighScore: newHighScore
+      })]
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_9__["default"], {
+      load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ./game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
+      fallback: null,
+      eager: false // ← keep lazy load FALSE (as requested)
+      ,
+      eagerThreshold: 0.2,
+      mountThreshold: 0.4,
+      allowIdle: true,
+      observeTargetId: blockId,
+      rootMargin: "0px 0px -15% 0px",
+      componentProps: {
+        onReady: handleReady,
+        onCoinsChange: handleCoinsChange,
+        onGameOver: handleGameOver,
+        highScore: stableHigh,
+        // engine baseline comes ONLY from Sanity
+        pauseWhenHidden: true,
+        demoMode: !started,
+        overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
+        allowSpawns: !started || started && (countdownPhase === 'begin' || countdownPhase === null)
+      }
+    })]
+  });
+}
 
 /***/ }),
 
@@ -434,1087 +743,9 @@ const BlockGOnboarding = ({
 
 /***/ }),
 
-/***/ "./src/components/rock-escapade/evade-the-rock.jsx":
-/*!*********************************************************!*\
-  !*** ./src/components/rock-escapade/evade-the-rock.jsx ***!
-  \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/desktop-onboarding.json */ "./src/svg/desktop-onboarding.json");
-/* harmony import */ var _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/mobile-onboarding.json */ "./src/svg/mobile-onboarding.json");
-/* harmony import */ var _utils_context_providers_project_context_tsx__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils/context-providers/project-context.tsx */ "./src/utils/context-providers/project-context.tsx");
-/* harmony import */ var _updateHighScore_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./updateHighScore.js */ "./src/components/rock-escapade/updateHighScore.js");
-/* harmony import */ var _subscribeHighScore_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./subscribeHighScore.js */ "./src/components/rock-escapade/subscribeHighScore.js");
-/* harmony import */ var _block_g_onboarding_tsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./block-g-onboarding.tsx */ "./src/components/rock-escapade/block-g-onboarding.tsx");
-/* harmony import */ var _block_g_exit_tsx__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./block-g-exit.tsx */ "./src/components/rock-escapade/block-g-exit.tsx");
-/* harmony import */ var _block_g_coin_counter_tsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./block-g-coin-counter.tsx */ "./src/components/rock-escapade/block-g-coin-counter.tsx");
-/* harmony import */ var _block_g_game_over_tsx__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./block-g-game-over.tsx */ "./src/components/rock-escapade/block-g-game-over.tsx");
-/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../styles/block-type-g.css */ "./src/styles/block-type-g.css");
-/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_11__);
-/* harmony import */ var react_device_detect__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! react-device-detect */ "react-device-detect");
-/* harmony import */ var react_device_detect__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(react_device_detect__WEBPACK_IMPORTED_MODULE_12__);
-/* harmony import */ var q5__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! q5 */ "q5");
-/* harmony import */ var q5__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(q5__WEBPACK_IMPORTED_MODULE_13__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const RockEscapade = () => {
-  const highScore = (0,_subscribeHighScore_js__WEBPACK_IMPORTED_MODULE_6__.useHighScoreSubscription)();
-  const canvasRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const q5InstanceRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const [initialized, setInitialized] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [overlayVisible, setOverlayVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true); // track overlay visibility
-  const {
-    setBlockGClick
-  } = (0,_utils_context_providers_project_context_tsx__WEBPACK_IMPORTED_MODULE_4__.useProjectVisibility)();
-  const [resetKey, setResetKey] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0); // Reset overlay
-  const [coins, setCoins] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0); // Track coins 
-
-  const lottieContainerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const [showBeginText, setShowBeginText] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [showOverlayBg, setShowOverlayBg] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [shouldRenderOverlayBg, setShouldRenderOverlayBg] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [gameOverVisible, setGameOverVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false); // Track game over state
-  const [countdownPhase, setCountdownPhase] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [newHighScore, setNewHighScore] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false); // unmount when not used for performance
-
-  // Check if thee q5.js canvas is initialized
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!initialized) setInitialized(true);
-  }, [initialized]);
-
-  // Onboarding instructions lottie
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (countdownPhase !== 'lottie' || !lottieContainerRef.current) return;
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
-      container: lottieContainerRef.current,
-      renderer: 'svg',
-      loop: false,
-      autoplay: true,
-      animationData: react_device_detect__WEBPACK_IMPORTED_MODULE_12__.isMobile || react_device_detect__WEBPACK_IMPORTED_MODULE_12__.isTablet ? _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_2__
-    });
-
-    // After animation ends, show BEGIN!
-    anim.addEventListener('complete', () => {
-      setCountdownPhase('begin');
-    });
-    return () => anim.destroy();
-  }, [countdownPhase]);
-  // Render begin! after lottie 
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (countdownPhase === 'begin') {
-      setShowBeginText(true);
-      const timeout = setTimeout(() => {
-        setShowBeginText(false);
-        setCountdownPhase(null); // <– hide Lottie only after "BEGIN!" disappears
-      }, 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [countdownPhase]);
-  // Render bg overlay
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (countdownPhase === 'lottie') {
-      setShowOverlayBg(true);
-      setShouldRenderOverlayBg(true);
-    } else if (countdownPhase === null) {
-      setShowOverlayBg(false);
-      setTimeout(() => {
-        setShouldRenderOverlayBg(false);
-      }, 400);
-    }
-  }, [countdownPhase]);
-  const handleOnboardingStart = () => {
-    setOverlayVisible(false);
-    setBlockGClick(true);
-    setCountdownPhase('lottie');
-  };
-  const handleRestart = () => {
-    setGameOverVisible(false);
-    setNewHighScore(false); // Reset here when a new game starts
-
-    if (q5InstanceRef.current && q5InstanceRef.current.restartGame) {
-      q5InstanceRef.current.restartGame();
-    }
-  };
-
-  // Constant resize canvas to fit changes
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const handleResize = () => {
-      const container = canvasRef.current; // ADD THIS LINE
-      if (q5InstanceRef.current && container) {
-        q5InstanceRef.current.resizeCanvas(container.offsetWidth, container.offsetHeight);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Position above others when overlayVisible is false
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!initialized) return;
-    const canvasContainer = canvasRef.current;
-    if (canvasContainer) {
-      if (!overlayVisible) {
-        canvasContainer.style.position = 'fixed';
-        canvasContainer.style.top = '0';
-        canvasContainer.style.left = '0';
-        canvasContainer.style.zIndex = '1500';
-      } else {
-        canvasContainer.style.position = 'relative';
-        canvasContainer.style.top = '';
-        canvasContainer.style.left = '';
-        canvasContainer.style.zIndex = '';
-      }
-    }
-  }, [initialized, overlayVisible]);
-
-  // Remove spacebar or arrowdown to avoid page scroll during fullscreen mode    
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const handleWheel = e => {
-      if (!overlayVisible) {
-        e.preventDefault();
-      }
-    };
-    const handleKeyDown = e => {
-      if (!overlayVisible && (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-        e.preventDefault();
-      }
-    };
-    window.addEventListener('wheel', handleWheel, {
-      passive: false
-    });
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [overlayVisible]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const navMenu = document.querySelector('.nav-menu');
-    if (!navMenu) return;
-    if (!overlayVisible) {
-      navMenu.style.zIndex = '0'; // push it behind gameplay
-    } else {
-      navMenu.style.zIndex = ''; // restore default
-    }
-  }, [overlayVisible]);
-
-  // unmount canvas when not in view 
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      setIsVisible(entry.isIntersecting);
-    }, {
-      root: null,
-      threshold: 0.01 // trigger when at least 1% is visible
-    });
-    const el = canvasRef.current;
-    if (el) observer.observe(el);
-    return () => {
-      if (el) observer.unobserve(el);
-    };
-  }, []);
-
-  // Q5.js canvas features
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!initialized || !isVisible) return;
-    const sketch = p => {
-      // Declare non-react visible Q5.JS variables
-      let verticalMode = window.innerWidth <= 1024 && window.innerHeight > window.innerWidth;
-      let rectangles = []; // obstacles
-      let octagons = []; // money currency
-      let particles = []; // particle effect
-      let projectiles = []; // fire projectiles 
-      let circle;
-      let lastSpawnTime = 0;
-      let lastOctagonSpawnTime = 0;
-      let rectangleSpawnRate = 2;
-      let localCoins = 0;
-      let gameOver = false;
-      let fadeAlpha = 0;
-      let spawnEnabled = false;
-      let prevGameOver = false; // inside sketch scope
-
-      let lastFiredTime = -Infinity; // initially allows immediate fire
-      let cooldownDuration = 1500; // in ms
-
-      let cooldownRadiusMax = 48;
-      let cooldownRadius = 0;
-      let movingUp = false;
-      let movingDown = false;
-      let movingLeft = false;
-      let movingRight = false;
-      let w, h;
-      const restartGame = () => {
-        gameOver = false;
-        fadeAlpha = 0;
-        localCoins = 0;
-        setCoins(0);
-        rectangles = [];
-        octagons = []; // clear all octagons
-        particles = [];
-        circle = new Circle(p, 240, p.height / 2, 33);
-        q5InstanceRef.current.circle = circle;
-        lastOctagonSpawnTime = p.millis(); // reset spawn timer
-      };
-
-      // attach to p
-      p.restartGame = restartGame;
-
-      // Setup the canvas
-      p.setup = () => {
-        // Always match canvas size to window dimensions
-        const container = canvasRef.current;
-        w = container ? container.offsetWidth : window.innerWidth;
-        h = container ? container.offsetHeight : window.innerHeight;
-        p.createCanvas(w, h);
-
-        // Start octagon spawning immediately regardless of overlay mode
-        lastOctagonSpawnTime = p.millis();
-
-        // Delay rectangle spawn if starting gameplay (as your prior logic intended)
-        if (!overlayVisible) {
-          setTimeout(() => {
-            spawnEnabled = true;
-          }, 8000); // delay spawning by 3s for gameplay onboarding
-        } else {
-          spawnEnabled = true; // enable spawn immediately in preview
-        }
-
-        // Render the user circle
-        circle = new Circle(p, 240, h / 2, 33);
-        q5InstanceRef.current.circle = circle;
-      };
-
-      // Render inside canvas
-      p.draw = () => {
-        let delta = p.deltaTime / 16.67;
-        setCoins(localCoins);
-        p.background(25);
-        if (overlayVisible) {
-          autoEvade();
-        } else {
-          if (movingUp) circle.moveUp();else if (movingDown) circle.moveDown();else circle.stopVertical();
-          if (movingLeft) circle.moveLeft();else if (movingRight) circle.moveRight();else circle.stopHorizontal();
-        }
-        circle.update(delta);
-        circle.display();
-        if (spawnEnabled || overlayVisible) {
-          spawnRectangles();
-        }
-        updateRectangles(delta);
-        spawnOctagons();
-        updateOctagons(delta);
-        if (!react_device_detect__WEBPACK_IMPORTED_MODULE_12__.isMobile) {
-          p.blendMode(p.ADD);
-        }
-        for (let i = particles.length - 1; i >= 0; i--) {
-          let part = particles[i];
-          part.update(delta);
-          part.display();
-          if (part.isDead()) particles.splice(i, 1);
-        }
-        p.blendMode(p.BLEND);
-        for (let i = projectiles.length - 1; i >= 0; i--) {
-          let proj = projectiles[i];
-          proj.update(delta);
-          proj.display();
-          if (proj.isDead()) projectiles.splice(i, 1);
-        }
-        if (!overlayVisible) {
-          if (!prevGameOver && gameOver) {
-            setGameOverVisible(true);
-            if (localCoins > highScore) {
-              (0,_updateHighScore_js__WEBPACK_IMPORTED_MODULE_5__.updateHighScore)(localCoins);
-            }
-          }
-          if (localCoins > highScore) {
-            setNewHighScore(true);
-          } else {
-            setNewHighScore(false);
-          }
-          prevGameOver = gameOver;
-          if (gameOver) {
-            p.background(25, fadeAlpha);
-            fadeAlpha = p.min(fadeAlpha + 30 * delta, 255);
-            return;
-          }
-          let cooldownElapsed = p.millis() - lastFiredTime;
-          if (cooldownElapsed < cooldownDuration) {
-            let remaining = cooldownDuration - cooldownElapsed;
-            let cooldownProgress = remaining / cooldownDuration;
-            let indicatorRadius = cooldownProgress * cooldownRadiusMax;
-            p.noStroke();
-            p.fill(200, 150, 255, 100);
-            p.ellipse(circle.x, circle.y, indicatorRadius * 2, indicatorRadius * 2);
-          }
-        }
-      }; // End of p.draw
-
-      // Spawn Rectangles
-      const spawnRectangles = () => {
-        let rectanglesInViewport = rectangles.filter(r => {
-          // Determine if rectangle is within visible viewport
-          if (verticalMode) {
-            return r.y + r.h > 0 && r.y < p.height;
-          } else {
-            return r.x + r.w > 0 && r.x < p.width;
-          }
-        }).length;
-        let maxRectangles;
-        let timeElapsed = p.millis() / 1000; // seconds since sketch start
-
-        if (window.innerWidth >= 1025) {
-          maxRectangles = 50;
-          if (rectanglesInViewport < 10) rectangleSpawnRate = 6;else if (rectanglesInViewport < 25) rectangleSpawnRate = 5;else if (rectanglesInViewport < 40) rectangleSpawnRate = 4;else rectangleSpawnRate = 0;
-        } else if (window.innerWidth >= 768) {
-          maxRectangles = 60;
-          if (rectanglesInViewport < 8) rectangleSpawnRate = 5;else if (rectanglesInViewport < 20) rectangleSpawnRate = 4;else if (rectanglesInViewport < 40) rectangleSpawnRate = 3;else rectangleSpawnRate = 0;
-        } else {
-          maxRectangles = 25;
-          if (rectanglesInViewport < 10) rectangleSpawnRate = 4;else if (rectanglesInViewport < 20) rectangleSpawnRate = 3;else rectangleSpawnRate = 1;
-        }
-
-        // Introduce initial spawn buffer to reduce early clutter
-        let initialSpawnBuffer = timeElapsed < 10 ? 1.5 : 1; // 50% longer spawn interval first 10s
-
-        // Spawn if under viewport cap instead of total array cap
-        if (rectangleSpawnRate > 0 && p.millis() - lastSpawnTime > 2000 / rectangleSpawnRate * initialSpawnBuffer && rectanglesInViewport < maxRectangles) {
-          rectangles.push(new Shape(p, true, false, verticalMode));
-          lastSpawnTime = p.millis();
-        }
-
-        // Periodic cleanup every 5s to remove any stale or NaN rectangles
-        if (p.millis() % 5000 < 20) {
-          rectangles = rectangles.filter(r => !isNaN(r.x) && !isNaN(r.y));
-        }
-      };
-
-      // Update Rectanglee
-      const updateRectangles = delta => {
-        for (let i = rectangles.length - 1; i >= 0; i--) {
-          let r = rectangles[i];
-          r.update(delta);
-          r.display();
-          if (circle.overlaps(r)) gameOver = true;
-          for (let j = projectiles.length - 1; j >= 0; j--) {
-            let proj = projectiles[j];
-            let projSize, projX, projY, projW, projH;
-            if (proj.size) {
-              projSize = proj.size;
-              projX = proj.x - projSize / 2;
-              projY = proj.y - projSize / 2;
-              projW = projSize;
-              projH = projSize;
-            } else {
-              projSize = proj.radius * 2;
-              projX = proj.x - proj.radius;
-              projY = proj.y - proj.radius;
-              projW = projSize;
-              projH = projSize;
-            }
-            if (projX + projW > r.x && projX < r.x + r.w && projY + projH > r.y && projY < r.y + r.h) {
-              if (proj instanceof RectangleProjectile) {
-                if (p.random() < 0.05) {
-                  // 5% chance to trigger cascade destruction
-
-                  rectangles.splice(i, 1);
-                  projectiles.splice(j, 1);
-
-                  // Spawn purple rectangle-shaped projectiles in 360 directions
-                  for (let k = 0; k < 8; k++) {
-                    let angle = p.TWO_PI / 8 * k;
-                    let speed = p.random(2, 4);
-                    let vx = Math.cos(angle) * speed;
-                    let vy = Math.sin(angle) * speed;
-                    projectiles.push(new RectangleProjectile(p, r.x + r.w / 2, r.y + r.h / 2, vx, vy, '#c896ff'));
-                  }
-                } else {
-                  // Bounce off normally without destruction
-                  proj.vx *= -1;
-                  proj.vy *= -1;
-                  proj.x += proj.vx * delta * 2;
-                  proj.y += proj.vy * delta * 2;
-                }
-              } else {
-                // Normal projectile destroys rectangle and itself
-                rectangles.splice(i, 1);
-                projectiles.splice(j, 1);
-
-                // Spawn purple rectangle-shaped projectiles in 360 directions
-                for (let k = 0; k < 8; k++) {
-                  let angle = p.TWO_PI / 8 * k;
-                  let speed = p.random(2, 4);
-                  let vx = Math.cos(angle) * speed;
-                  let vy = Math.sin(angle) * speed;
-                  projectiles.push(new RectangleProjectile(p, r.x + r.w / 2, r.y + r.h / 2, vx, vy, '#c896ff'));
-                }
-              }
-              break; // exit projectile loop for this rectangle
-            }
-          }
-          let offscreen = verticalMode ? r.y - r.h > p.height + 100 || r.y + r.h < -100 : r.x + r.w < -100 || r.x - r.w > p.width + 100;
-          if (offscreen) {
-            rectangles.splice(i, 1);
-            continue;
-          }
-        }
-        for (let i = 0; i < rectangles.length; i++) {
-          let r1 = rectangles[i];
-          for (let j = i + 1; j < rectangles.length; j++) {
-            let r2 = rectangles[j];
-            if (r1.overlaps(r2)) r1.resolveCollision(r2);
-          }
-        }
-      };
-
-      // Spawn octagons
-      const spawnOctagons = () => {
-        if (!spawnEnabled) return;
-        if (p.millis() - lastOctagonSpawnTime > 2000) {
-          if (octagons.length === 0) {
-            // only spawn one if none exist
-            octagons.push(new Shape(p, true, true, verticalMode));
-          }
-          lastOctagonSpawnTime = p.millis();
-        }
-      };
-
-      // Update the octagons
-      const updateOctagons = delta => {
-        let buffer = 150;
-        for (let i = octagons.length - 1; i >= 0; i--) {
-          let o = octagons[i];
-          o.update(delta);
-          o.display();
-          if (circle.overlaps(o)) {
-            localCoins += 20;
-            setCoins(prev => prev + 20);
-            for (let j = 0; j < 10; j++) {
-              particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c, 0, 0, 5));
-            }
-            octagons.splice(i, 1);
-            continue;
-          }
-          let speed = Math.abs(o.vx) + Math.abs(o.vy);
-          let numParticles;
-          if (speed < 1) numParticles = 0.05;else if (speed < 3) numParticles = 0.1;else if (speed < 6) numParticles = 0.2;else numParticles = 0.3;
-          let particlesToSpawn = Math.floor(numParticles);
-          let fractionalPart = numParticles - particlesToSpawn;
-          for (let j = 0; j < particlesToSpawn; j++) {
-            particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
-          }
-          if (p.random() < fractionalPart) {
-            particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
-          }
-          if (o.x + o.size < -buffer || o.x - o.size > p.width + buffer || o.y + o.size < -buffer || o.y - o.size > p.height + buffer) {
-            octagons.splice(i, 1);
-          }
-        }
-      };
-
-      // Auto evade the rectangles and seek octagons during preview (overlayDisplay is true)
-      const autoEvade = () => {
-        let evadeForceX = 0;
-        let evadeForceY = 0;
-        let dangerLevel = 0;
-        rectangles.forEach(rect => {
-          let rectCenterX = rect.x + rect.w / 2;
-          let rectCenterY = rect.y + rect.h / 2;
-          let dx = circle.x - rectCenterX;
-          let dy = circle.y - rectCenterY;
-          let distSq = dx * dx + dy * dy;
-          if (distSq < 20000) {
-            let dist = Math.sqrt(distSq) || 1;
-            let weight = 1 / (dist + 300); // +50 to prevent extreme near-field force
-            let force = weight * 150; // adjust multiplier for overall strength
-
-            evadeForceX += dx / dist * force;
-            evadeForceY += dy / dist * force;
-
-            // Increase danger level exponentially closer
-            dangerLevel += 1 / (dist + 1) * 10;
-          }
-        });
-        let attractForceX = 0;
-        let attractForceY = 0;
-
-        // Only seek octagon if not in extreme danger
-        if (octagons.length > 0 && dangerLevel < 50) {
-          let closestOctagon = octagons.reduce((prev, curr) => {
-            let prevDist = p.dist(circle.x, circle.y, prev.x + prev.size / 2, prev.y + prev.size / 2);
-            let currDist = p.dist(circle.x, circle.y, curr.x + curr.size / 2, curr.y + curr.size / 2);
-            return currDist < prevDist ? curr : prev;
-          });
-          let dx = closestOctagon.x + closestOctagon.size / 2 - circle.x;
-          let dy = closestOctagon.y + closestOctagon.size / 2 - circle.y;
-          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          attractForceX = dx / dist * 0.45;
-          attractForceY = dy / dist * 0.45;
-        }
-
-        // Combine forces with priority to evasion
-        circle.ax = evadeForceX + attractForceX;
-        circle.ay = evadeForceY + attractForceY;
-
-        // If no forces are active, drift gently to center
-        if (circle.ax === 0 && circle.ay === 0) {
-          let centerDx = p.width / 2 - circle.x;
-          let centerDy = p.height / 2 - circle.y;
-          let centerDist = Math.sqrt(centerDx * centerDx + centerDy * centerDy) || 1;
-          circle.ax = centerDx / centerDist * 0.1;
-          circle.ay = centerDy / centerDist * 0.1;
-        }
-      };
-
-      // Desktop Navigation
-      p.keyPressed = () => {
-        if (p.key === ' ' || p.key === 'Spacebar') {
-          let now = p.millis();
-          if (now - lastFiredTime >= cooldownDuration) {
-            lastFiredTime = now;
-            if (circle) {
-              let proj = new Projectile(p, circle.x, circle.y, circle.vx !== 0 || circle.vy !== 0 ? circle.vx : 5, circle.vy !== 0 || circle.vx !== 0 ? circle.vy : 0);
-              projectiles.push(proj);
-            }
-          }
-        }
-        if (p.key === 'w' || p.keyCode === p.UP_ARROW) movingUp = true;
-        if (p.key === 's' || p.keyCode === p.DOWN_ARROW) movingDown = true;
-        if (p.key === 'a' || p.keyCode === p.LEFT_ARROW) movingLeft = true;
-        if (p.key === 'd' || p.keyCode === p.RIGHT_ARROW) movingRight = true;
-      };
-      p.keyReleased = () => {
-        if (p.key === 'w' || p.keyCode === p.UP_ARROW) movingUp = false;
-        if (p.key === 's' || p.keyCode === p.DOWN_ARROW) movingDown = false;
-        if (p.key === 'a' || p.keyCode === p.LEFT_ARROW) movingLeft = false;
-        if (p.key === 'd' || p.keyCode === p.RIGHT_ARROW) movingRight = false;
-      };
-      p.touchStarted = () => {
-        if (overlayVisible) return;
-
-        // Fire projectile only if touch count is 1 (single tap) and not moving
-        if (p.touches.length === 1) {
-          const now = p.millis();
-          if (now - lastFiredTime >= cooldownDuration) {
-            lastFiredTime = now;
-            const vx = circle.vx !== 0 || circle.vy !== 0 ? circle.vx : 5;
-            const vy = circle.vy !== 0 || circle.vx !== 0 ? circle.vy : 0;
-            projectiles.push(new Projectile(p, circle.x, circle.y, vx, vy));
-          }
-        }
-        return false; // prevent default
-      };
-      p.touchMoved = () => {
-        // Movement logic here (if needed)
-        return false;
-      };
-      p.touchEnded = () => {
-        return false;
-      };
-
-      // Q5.js classes for shapes, user control, and particle effects
-      class Circle {
-        constructor(p, x, y, r) {
-          this.p = p;
-          this.x = x;
-          this.y = y;
-          this.vx = 0;
-          this.vy = 0;
-          this.ax = 0;
-          this.ay = 0;
-          this.radius = r;
-          this.c = p.color(200, 150, 255);
-          this.trail = [];
-        }
-        update(delta) {
-          this.vx += this.ax * delta;
-          this.vy += this.ay * delta;
-          this.vx *= Math.pow(0.92, delta);
-          this.vy *= Math.pow(0.92, delta);
-          this.x += this.vx * delta;
-          this.y += this.vy * delta;
-          if (this.y + this.radius < 0) this.y = this.p.height + this.radius;else if (this.y - this.radius > this.p.height) this.y = -this.radius;
-          if (this.x + this.radius < 0) this.x = this.p.width + this.radius;else if (this.x - this.radius > this.p.width) this.x = -this.radius;
-          this.trail.push(this.p.createVector(this.x, this.y));
-          if (this.trail.length > 8) this.trail.shift();
-          let speedLimit = 10;
-          this.vx = this.p.constrain(this.vx, -speedLimit, speedLimit);
-          this.vy = this.p.constrain(this.vy, -speedLimit, speedLimit);
-        }
-        display() {
-          for (let i = 0; i < this.trail.length; i++) {
-            let pos = this.trail[i];
-            let alpha = this.p.map(i, 0, this.trail.length - 1, 30, 100);
-            let trailRadius = this.p.map(i, 0, this.trail.length - 1, this.radius / 2, this.radius);
-            this.p.fill(200, 150, 255, alpha);
-            this.p.noStroke();
-            this.p.ellipse(pos.x, pos.y, trailRadius, trailRadius);
-          }
-          this.p.fill(this.c);
-          this.p.noStroke();
-          this.p.ellipse(this.x, this.y, this.radius, this.radius);
-        }
-        moveUp() {
-          this.ay = -0.5;
-        }
-        moveDown() {
-          this.ay = 0.5;
-        }
-        moveLeft() {
-          this.ax = -0.5;
-        }
-        moveRight() {
-          this.ax = 0.5;
-        }
-        stopVertical() {
-          this.ay = 0;
-        }
-        stopHorizontal() {
-          this.ax = 0;
-        }
-        overlaps(other) {
-          if (other.isOctagon) {
-            let distToOther = this.p.dist(this.x, this.y, other.x + other.size / 2, other.y + other.size / 2);
-            return distToOther < this.radius + other.size / 2;
-          } else {
-            let closestX = this.p.constrain(this.x, other.x, other.x + other.w);
-            let closestY = this.p.constrain(this.y, other.y, other.y + other.h);
-            let distance = this.p.dist(this.x, this.y, closestX, closestY);
-            return distance < this.radius * 0.3;
-          }
-        }
-      }
-      class Shape {
-        constructor(p, startOffScreen, isOctagon, verticalMode) {
-          this.p = p;
-          this.isOctagon = isOctagon;
-          this.verticalMode = verticalMode;
-          this.reset(startOffScreen);
-        }
-        reset(startOffScreen) {
-          if (this.verticalMode) {
-            this.x = this.p.random(this.p.width);
-            if (this.isOctagon) {
-              if (startOffScreen) {
-                // Spawn just above the visible area
-                this.y = -this.p.random(30, 60);
-              } else {
-                // Fallback random position within viewport if needed
-                this.y = this.p.random(this.p.height);
-              }
-              this.vx = this.p.random(-1.2, 1.2);
-              if (this.p.random() < 0.1) {
-                this.vy = this.p.random(6, 9);
-              } else if (this.p.random() < 0.2) {
-                this.vy = this.p.random(0.5, 1.5);
-              } else {
-                this.vy = this.p.random(2, 5);
-              }
-              this.size = 25;
-              const playfulColors = [this.p.color(255, 215, 0), this.p.color(255, 223, 70), this.p.color(255, 200, 0), this.p.color(255, 170, 50)];
-              this.c = this.p.random(playfulColors);
-            } else {
-              this.y = startOffScreen ? -this.p.random(60, 120) : this.p.random(this.p.height);
-              this.vx = this.p.random(-0.5, 0.5);
-              this.vy = this.p.random(1, 3);
-              this.w = this.p.random(28, 70);
-              this.h = this.p.random(28, 70);
-              this.c = this.p.color(235, 235, 255);
-            }
-          } else {
-            if (startOffScreen) {
-              // Spawn just beyond right edge for horizontal gameplay
-              this.x = this.p.width + this.p.random(10, 40);
-            } else {
-              this.x = this.p.random(this.p.width);
-            }
-            this.y = this.p.random(this.p.height);
-            if (this.isOctagon) {
-              let baseSpeedX = this.p.random(-2.5, -0.5);
-              if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
-                baseSpeedX *= 4.5;
-              }
-              if (this.p.random() < 0.1) {
-                baseSpeedX *= 2;
-              } else if (this.p.random() < 0.2) {
-                baseSpeedX *= 0.5;
-              }
-              this.vx = baseSpeedX;
-              this.vy = this.p.random(-0.3, 0.3);
-              this.size = 25;
-              const playfulColors = [this.p.color(255, 215, 0), this.p.color(255, 223, 70), this.p.color(255, 200, 0), this.p.color(255, 170, 50)];
-              this.c = this.p.random(playfulColors);
-            } else {
-              this.vx = this.p.random(-3, -1);
-              this.vy = this.p.random(-0.5, 0.5);
-              if (window.innerWidth >= 1025 && window.innerWidth > window.innerHeight) {
-                this.w = this.p.random(33, 105);
-                this.h = this.p.random(33, 105);
-              } else {
-                this.w = this.p.random(30, 75);
-                this.h = this.p.random(30, 75);
-              }
-              this.c = this.p.color(235, 235, 255);
-            }
-          }
-          this.rotation = 0;
-          this.rotationSpeed = this.p.random(-1, 1);
-        }
-        update(delta) {
-          this.x += this.vx * delta;
-          this.y += this.vy * delta;
-          this.rotation += this.rotationSpeed * delta;
-        }
-        display() {
-          this.p.push();
-          this.p.translate(this.x + (this.isOctagon ? this.size / 2 : this.w / 2), this.y + (this.isOctagon ? this.size / 2 : this.h / 2));
-          this.p.rotate(this.p.radians(this.rotation));
-          this.p.fill(this.c);
-          this.p.noStroke();
-          if (this.isOctagon) this.drawOctagon(0, 0, this.size);else {
-            this.p.rectMode(this.p.CENTER);
-            this.p.rect(0, 0, this.w, this.h);
-          }
-          this.p.pop();
-        }
-        drawOctagon(x, y, size) {
-          let angleStep = this.p.TWO_PI / 8;
-          this.p.beginShape();
-          for (let i = 0; i < 8; i++) {
-            let angle = i * angleStep;
-            let px = x + this.p.cos(angle) * size / 2;
-            let py = y + this.p.sin(angle) * size / 2;
-            this.p.vertex(px, py);
-          }
-          this.p.endShape(this.p.CLOSE);
-        }
-        overlaps(other) {
-          let thisW = this.isOctagon ? this.size : this.w;
-          let thisH = this.isOctagon ? this.size : this.h;
-          let otherW = other.isOctagon ? other.size : other.w;
-          let otherH = other.isOctagon ? other.size : other.h;
-          return !(this.x + thisW < other.x || this.x > other.x + otherW || this.y + thisH < other.y || this.y > other.y + otherH);
-        }
-        resolveCollision(other) {
-          let thisW = this.isOctagon ? this.size : this.w;
-          let thisH = this.isOctagon ? this.size : this.h;
-          let otherW = other.isOctagon ? other.size : other.w;
-          let otherH = other.isOctagon ? other.size : other.h;
-          let overlapX = Math.min(this.x + thisW, other.x + otherW) - Math.max(this.x, other.x);
-          let overlapY = Math.min(this.y + thisH, other.y + otherH) - Math.max(this.y, other.y);
-          if (overlapX < overlapY) {
-            if (this.x < other.x) {
-              this.x -= overlapX / 2;
-              other.x += overlapX / 2;
-            } else {
-              this.x += overlapX / 2;
-              other.x -= overlapX / 2;
-            }
-            this.vx *= -1;
-            other.vx *= -1;
-          } else {
-            if (this.y < other.y) {
-              this.y -= overlapY / 2;
-              other.y += overlapY / 2;
-            } else {
-              this.y += overlapY / 2;
-              other.y -= overlapY / 2;
-            }
-            this.vy *= -1;
-            other.vy *= -1;
-          }
-        }
-      }
-      class Particle {
-        constructor(p, x, y, lifespan = 255, c = p.color(255, 215, 0), sourceVx = 0, sourceVy = 0, speedMultiplier = null) {
-          this.p = p;
-          this.x = x;
-          this.y = y;
-          this.lifespan = lifespan;
-          this.c = c;
-          const sourceSpeed = Math.sqrt(sourceVx * sourceVx + sourceVy * sourceVy);
-          let emissionSpeed = p.map(sourceSpeed, 0, 5, 1, 3);
-          emissionSpeed = p.constrain(emissionSpeed, 1.2, 3.5);
-          if (speedMultiplier !== null) {
-            emissionSpeed *= speedMultiplier; // only apply if explicitly set
-          }
-          const emissionAngle = p.random(0, p.TWO_PI);
-          this.vx = Math.cos(emissionAngle) * emissionSpeed + sourceVx * 0.1;
-          this.vy = Math.sin(emissionAngle) * emissionSpeed + sourceVy * 0.1;
-        }
-        update(delta) {
-          this.x += this.vx * delta;
-          this.y += this.vy * delta;
-          this.lifespan -= 1 * delta;
-        }
-        display() {
-          this.p.noStroke();
-          this.p.fill(this.c.levels[0], this.c.levels[1], this.c.levels[2], this.lifespan);
-          this.p.ellipse(this.x, this.y, 4, 4);
-        }
-        isDead() {
-          return this.lifespan <= 0;
-        }
-      }
-      class Projectile {
-        constructor(p, x, y, vx, vy) {
-          this.p = p;
-          this.x = x;
-          this.y = y;
-          const dirMag = Math.sqrt(vx * vx + vy * vy) || 1;
-          const dirX = vx / dirMag;
-          const dirY = vy / dirMag;
-          this.minSpeed = 0.6; // minimum base speed (slow launch)
-          this.maxSpeed = 12; // maximum top speed (cap)
-          this.speed = this.minSpeed;
-          this.vx = dirX * this.speed;
-          this.vy = dirY * this.speed;
-          this.targetSpeed = 8; // cruising target speed
-          this.acceleration = 3;
-          this.radius = 6;
-          this.lifespan = 500;
-          this.trail = [];
-          this.color = p.color(200, 150, 255);
-        }
-        update(delta) {
-          this.speed += (this.targetSpeed - this.speed) * this.acceleration * delta;
-          if (this.speed < this.minSpeed) this.speed = this.minSpeed;
-          if (this.speed > this.maxSpeed) this.speed = this.maxSpeed;
-          const dirMag = Math.sqrt(this.vx * this.vx + this.vy * this.vy) || 1;
-          const dirX = this.vx / dirMag;
-          const dirY = this.vy / dirMag;
-          this.vx = dirX * this.speed;
-          this.vy = dirY * this.speed;
-          this.x += this.vx * delta;
-          this.y += this.vy * delta;
-          this.lifespan -= 1 * delta;
-          this.trail.push({
-            x: this.x,
-            y: this.y,
-            alpha: 160
-          });
-          if (this.trail.length > 20) this.trail.shift();
-          for (let i = 0; i < this.trail.length; i++) {
-            this.trail[i].alpha *= 0.8;
-          }
-        }
-        display() {
-          for (let i = 0; i < this.trail.length; i++) {
-            let t = this.trail[i];
-            this.p.fill(200, 150, 255, t.alpha);
-            this.p.noStroke();
-            this.p.ellipse(t.x, t.y, this.radius * 2, this.radius * 2);
-          }
-          this.p.fill(this.color);
-          this.p.noStroke();
-          this.p.ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
-        }
-        isDead() {
-          return this.lifespan <= 0 || this.x < 0 || this.x > this.p.width || this.y < 0 || this.y > this.p.height;
-        }
-      }
-      class RectangleProjectile {
-        constructor(p, x, y, vx, vy, color) {
-          this.p = p;
-          this.x = x;
-          this.y = y;
-
-          // Random size between 8 and 20
-          this.size = p.random(8, 20);
-
-          // Speed multiplier based on size (larger = faster)
-          const baseSpeed = Math.sqrt(vx * vx + vy * vy);
-          const sizeSpeedFactor = this.p.map(this.size, 8, 20, 1, 2);
-          this.vx = vx * sizeSpeedFactor;
-          this.vy = vy * sizeSpeedFactor;
-          this.lifespan = 80;
-          this.maxLifespan = this.lifespan;
-          this.color = p.color(color);
-          this.rotation = p.random(360);
-          this.rotationSpeed = p.random(-20, 20);
-        }
-        update(delta) {
-          this.x += this.vx * delta;
-          this.y += this.vy * delta;
-          this.lifespan -= 1 * delta;
-          this.rotation += this.rotationSpeed * delta;
-        }
-        display() {
-          this.p.push();
-          this.p.translate(this.x, this.y);
-          this.p.rotate(this.p.radians(this.rotation));
-          let alpha = this.p.map(this.lifespan, 0, this.maxLifespan, 0, 255);
-          this.p.fill(this.color.levels[0], this.color.levels[1], this.color.levels[2], alpha);
-          this.p.noStroke();
-          this.p.rectMode(this.p.CENTER);
-          this.p.rect(0, 0, this.size, this.size);
-          this.p.pop();
-        }
-        isDead() {
-          return this.lifespan <= 0 || this.x < -50 || this.x > this.p.width + 50 || this.y < -50 || this.y > this.p.height + 50;
-        }
-      }
-    }; // end of sketch
-
-    const q5Instance = new (q5__WEBPACK_IMPORTED_MODULE_13___default())(sketch, canvasRef.current);
-    q5InstanceRef.current = q5Instance;
-    if (q5InstanceRef.current && q5InstanceRef.current.p && q5InstanceRef.current.p.restartGame) {
-      q5InstanceRef.current.restartGame = q5InstanceRef.current.p.restartGame;
-    }
-    return () => {
-      if (q5Instance && q5Instance.remove) q5Instance.remove();
-      if (canvasRef.current) canvasRef.current.innerHTML = '';
-    };
-  }, [initialized, overlayVisible, isVisible]);
-
-  // Exit button state changes 
-  const handleExit = () => {
-    setOverlayVisible(true);
-    setBlockGClick(false);
-    setGameOverVisible(false);
-    setCountdownPhase(null); // Reset Lottie state
-    setShowBeginText(false);
-    setResetKey(prev => prev + 1);
-  };
-
-  // Event handler for touch based interaction
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!initialized) return;
-    const attachTouchListeners = () => {
-      const canvas = document.querySelector('.evade-the-rock canvas');
-      if (!canvas) {
-        setTimeout(attachTouchListeners, 100);
-        return;
-      }
-      let lastTouchPosition = null;
-      const handleTouchMove = e => {
-        if (!q5InstanceRef.current || !q5InstanceRef.current.circle) return;
-        const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const touchX = touch.clientX - rect.left;
-        const touchY = touch.clientY - rect.top;
-        const circle = q5InstanceRef.current.circle;
-        if (lastTouchPosition) {
-          const dx = touchX - lastTouchPosition.x;
-          const dy = touchY - lastTouchPosition.y;
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-
-          // Base force multiplier by device
-          let baseMultiplier = 0.4;
-          if (react_device_detect__WEBPACK_IMPORTED_MODULE_12__.isTablet) {
-            baseMultiplier = 0.6;
-          } else if (react_device_detect__WEBPACK_IMPORTED_MODULE_12__.isMobile) {
-            baseMultiplier = 0.5;
-          } else if (react_device_detect__WEBPACK_IMPORTED_MODULE_12__.isDesktop) {
-            baseMultiplier = 0.35;
-          }
-
-          // Calculate speed factor based on distance moved
-          const speedFactor = Math.log2(dist + 1);
-          const forceMultiplier = baseMultiplier * speedFactor;
-
-          // Apply as impulse to velocity directly
-          circle.vx += dx / dist * forceMultiplier;
-          circle.vy += dy / dist * forceMultiplier;
-        }
-        lastTouchPosition = {
-          x: touchX,
-          y: touchY
-        };
-        e.preventDefault();
-      };
-      const handleTouchEnd = () => {
-        console.log('Touch ended.');
-        lastTouchPosition = null;
-        // No velocity reset – friction will decay it naturally
-      };
-      canvas.addEventListener('touchmove', handleTouchMove, {
-        passive: false
-      });
-      canvas.addEventListener('touchend', handleTouchEnd);
-      return () => {
-        canvas.removeEventListener('touchmove', handleTouchMove);
-        canvas.removeEventListener('touchend', handleTouchEnd);
-      };
-    };
-    attachTouchListeners();
-  }, [initialized, overlayVisible]);
-
-  // Simply render current coin count to mirror high score if it exceeds the high score
-  const displayHighScore = coins > highScore ? coins : highScore;
-  const isNewHighScore = coins > highScore;
-
-  // Return HTML structure
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("section", {
-    className: "block-type-g",
-    style: {
-      position: 'relative'
-    },
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
-      className: "evade-the-rock",
-      style: {
-        width: '100%',
-        height: '100%'
-      },
-      ref: canvasRef
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_onboarding_tsx__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      onStart: handleOnboardingStart,
-      resetTrigger: resetKey
-    }, resetKey), !overlayVisible && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_exit_tsx__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      onExit: handleExit
-    }), !overlayVisible && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_coin_counter_tsx__WEBPACK_IMPORTED_MODULE_9__["default"], {
-      coins: coins,
-      highScore: displayHighScore,
-      newHighScore: newHighScore
-    }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
-      className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`
-    }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
-      ref: lottieContainerRef,
-      id: "lottie-onboarding",
-      className: "countdown-lottie"
-    }), showBeginText && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
-      className: "countdown-display",
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("h1", {
-        className: "countdown-text",
-        children: "BEGIN!"
-      })
-    }), gameOverVisible && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_game_over_tsx__WEBPACK_IMPORTED_MODULE_10__["default"], {
-      onRestart: handleRestart,
-      coins: coins,
-      newHighScore: newHighScore
-    })]
-  });
-};
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (RockEscapade);
-
-/***/ }),
-
-/***/ "./src/components/rock-escapade/subscribeHighScore.js":
+/***/ "./src/components/rock-escapade/subscribeHighScore.ts":
 /*!************************************************************!*\
-  !*** ./src/components/rock-escapade/subscribeHighScore.js ***!
+  !*** ./src/components/rock-escapade/subscribeHighScore.ts ***!
   \************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -1526,36 +757,36 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
-// Subscribe High Score
 
 
+const ID = 'highscore';
+const QUERY = `*[_id == $id][0]{ _id, score }`;
 const useHighScoreSubscription = () => {
   const [highScore, setHighScore] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const query = `*[_type == "highScore"][0]{score}`;
-
-    // Initial fetch
-    _utils_sanity__WEBPACK_IMPORTED_MODULE_1__["default"].fetch(query).then(data => {
-      if (data?.score !== undefined) setHighScore(data.score);
+    const params = {
+      id: ID
+    };
+    _utils_sanity__WEBPACK_IMPORTED_MODULE_1__["default"].fetch(QUERY, params).then(doc => {
+      if (typeof doc?.score === 'number') setHighScore(doc.score);
     });
-
-    // Subscribe to updates
-    const subscription = _utils_sanity__WEBPACK_IMPORTED_MODULE_1__["default"].listen(query).subscribe(update => {
-      const newScore = update.result?.score;
-      if (newScore !== undefined) {
-        setHighScore(newScore);
-      }
+    const sub = _utils_sanity__WEBPACK_IMPORTED_MODULE_1__["default"].listen(QUERY, params, {
+      includeResult: true,
+      visibility: 'query'
+    }).subscribe(ev => {
+      const next = ev?.result?.score;
+      if (typeof next === 'number') setHighScore(next);
     });
-    return () => subscription.unsubscribe();
+    return () => sub.unsubscribe?.();
   }, []);
   return highScore;
 };
 
 /***/ }),
 
-/***/ "./src/components/rock-escapade/updateHighScore.js":
+/***/ "./src/components/rock-escapade/updateHighScore.ts":
 /*!*********************************************************!*\
-  !*** ./src/components/rock-escapade/updateHighScore.js ***!
+  !*** ./src/components/rock-escapade/updateHighScore.ts ***!
   \*********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -1565,23 +796,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   updateHighScore: () => (/* binding */ updateHighScore)
 /* harmony export */ });
 /* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
-// updateHighScore for block type g
 
+const ID = 'highscore';
+
+// Cast once to keep TS happy across client versions
+const c = _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"];
 async function updateHighScore(newScore) {
   try {
-    await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].createIfNotExists({
-      _id: 'highscore',
+    await c.createIfNotExists({
+      _id: ID,
       _type: 'highScore',
-      // ensure casing matches schema
       score: 0
     });
-    const updated = await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].patch('highscore').set({
+    const doc = await c.getDocument(ID);
+    const current = doc?.score ?? 0;
+    if (newScore <= current) return current;
+    const updated = await c.patch(ID).ifRevisionId(doc._rev).set({
       score: newScore
     }).commit();
-    console.log('High score updated:', updated.score);
-    return updated.score;
+    return updated?.score ?? newScore;
   } catch (err) {
-    console.error('Failed to update high score:', err);
+    console.error('[HS] update failed:', err);
     return null;
   }
 }
@@ -1708,6 +943,152 @@ const projectColors = {
     darkThemeTop: 'rgba(17, 17, 17, 1)'
   }
 };
+
+/***/ }),
+
+/***/ "./src/utils/content-utility/lazy-view-mount.tsx":
+/*!*******************************************************!*\
+  !*** ./src/utils/content-utility/lazy-view-mount.tsx ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ LazyViewMount)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+
+const hasWindow = typeof window !== 'undefined';
+const hasRIC = hasWindow && 'requestIdleCallback' in window;
+const hasCIC = hasWindow && 'cancelIdleCallback' in window;
+const ric = (cb, opts) => hasRIC ? window.requestIdleCallback(cb, opts) : setTimeout(cb, opts?.timeout ?? 0);
+const cic = id => hasCIC ? window.cancelIdleCallback(id) : clearTimeout(id);
+function LazyViewMount({
+  load,
+  fallback = null,
+  eager = false,
+  mountThreshold = 0.3,
+  allowIdle = true,
+  componentProps,
+  eagerThreshold = 0.2,
+  observeTargetId,
+  rootMargin
+}) {
+  const isServer = !hasWindow;
+  const selfRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [Comp, setComp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const mounted = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const initialDecisionMade = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const mountNow = () => {
+    if (mounted.current) return;
+    mounted.current = true;
+    setComp(() => /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.lazy)(load));
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (isServer || mounted.current) return;
+
+    // Determine which element to observe
+    const el = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
+
+    // If we can’t observe anything, fall back to idle (if allowed), else mount immediately
+    if (!el) {
+      if (allowIdle) {
+        idleId.current = ric(() => mountNow(), {
+          timeout: 2000
+        });
+      } else {
+        mountNow();
+      }
+      return () => {
+        if (idleId.current) {
+          cic(idleId.current);
+          idleId.current = null;
+        }
+      };
+    }
+
+    // If IO is absent (very old browsers), fall back similarly
+    if (typeof IntersectionObserver === 'undefined') {
+      if (allowIdle) {
+        idleId.current = ric(() => mountNow(), {
+          timeout: 2000
+        });
+      } else {
+        mountNow();
+      }
+      return () => {
+        if (idleId.current) {
+          cic(idleId.current);
+          idleId.current = null;
+        }
+      };
+    }
+    const io = new IntersectionObserver(([entry]) => {
+      const ratio = entry.intersectionRatio;
+
+      // 1) First decision: conditional eager (only on first callback)
+      if (!initialDecisionMade.current) {
+        initialDecisionMade.current = true;
+        if (eager && ratio >= eagerThreshold) {
+          mountNow();
+          io.disconnect();
+          if (idleId.current) {
+            cic(idleId.current);
+            idleId.current = null;
+          }
+          return;
+        }
+        // else, fall through to normal threshold rule
+      }
+
+      // 2) Normal lazy rule
+      if (ratio >= mountThreshold) {
+        mountNow();
+        io.disconnect();
+        if (idleId.current) {
+          cic(idleId.current);
+          idleId.current = null;
+        }
+      }
+    }, {
+      threshold: Array.from(new Set([0, eagerThreshold, mountThreshold])).sort(),
+      root: null,
+      rootMargin // optional
+    });
+    io.observe(el);
+    if (allowIdle && !mounted.current) {
+      // schedule idle fallback; will be canceled if IO mounts earlier
+      idleId.current = ric(() => mountNow(), {
+        timeout: 2000
+      });
+    }
+    return () => {
+      io.disconnect();
+      if (idleId.current) {
+        cic(idleId.current);
+        idleId.current = null;
+      }
+    };
+  }, [isServer, eager, eagerThreshold, mountThreshold, allowIdle, load, observeTargetId, rootMargin]);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+    ref: selfRef,
+    style: {
+      width: '100%',
+      height: '100%'
+    },
+    children: Comp ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(react__WEBPACK_IMPORTED_MODULE_0__.Suspense, {
+      fallback: fallback,
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Comp, {
+        ...(componentProps || {})
+      })
+    }) : fallback
+  });
+}
 
 /***/ }),
 
@@ -2061,4 +1442,4 @@ const useTooltipInit = () => {
 
 };
 ;
-//# sourceMappingURL=src_components_rock-escapade_evade-the-rock_jsx.server.js.map
+//# sourceMappingURL=components.server.js.map

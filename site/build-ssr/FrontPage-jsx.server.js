@@ -576,7 +576,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/components/ProjectPane.tsx (or wherever yours lives)
+// src/components/ProjectPane.tsx
 
 
 
@@ -605,9 +605,9 @@ function ProjectPane({
   const fallbackNode = !payload && isHydrated ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
     isFullScreen: false
   }) : null;
-  // Only used for non-dynamic or no-SSR path
   const serverRender = payload && desc?.render ? desc.render(payload.data ?? payload) : null;
   const isDynamic = item.key === 'dynamic';
+  const isGame = item.key === 'game';
   const blockId = `block-${item.key}`;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
     id: blockId,
@@ -628,8 +628,7 @@ function ProjectPane({
         children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
           load: load,
           fallback: fallbackNode,
-          serverRender: hasSSR ? null : serverRender // avoid duplicate SSR HTML when load already renders it
-          ,
+          serverRender: hasSSR ? null : serverRender,
           eager: isFirst,
           allowIdle: true
         }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
@@ -645,6 +644,15 @@ function ProjectPane({
             blockId
           }
         })]
+      }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+          load: load // BlockGHost
+          ,
+          fallback: fallbackNode,
+          serverRender: serverRender,
+          eager: isFirst,
+          allowIdle: true
+        })
       }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
         load: load,
         fallback: fallbackNode,

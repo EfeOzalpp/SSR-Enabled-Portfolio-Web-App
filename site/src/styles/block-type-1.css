@@ -29,7 +29,7 @@
 
 /* Media query for devices 768px to 1024px */
 @media (min-width: 768px) and (max-width: 1024px) {
-  .block-type-1 { height: 92dvh; flex-direction: column;}
+  .block-type-1 { height: 92dvh !important; flex-direction: column;}
   .ssr-initial-split .block-type-1 { height: 92dvh;}
   #rotary-media-1 { object-position: center 18%; }
   #rotary-media-2 { object-position: center top; }
@@ -39,7 +39,7 @@
 
 /* Media query for devices >=1025px */
 @media (min-width: 1025px) {
-  .block-type-1 { height: 96dvh; flex-direction: row; width: 100%; }
+  .block-type-1 { height: 96dvh !important; flex-direction: row; width: 100%; }
   .ssr-initial-split .block-type-1 { height: 96dvh;}
   .media-content-1, .media-content-2 { width: 50%; height: 100%; }
   #icecream-media-1 { object-position: left center;}

@@ -8,7 +8,6 @@ export const componentMap = {
   rotary: () => import('../../components/block-type-1/rotary-lamp'),
   scoop: () => import('../../components/block-type-1/ice-cream-scoop'),
   dataviz: () => import('../../components/block-type-1/data-visualization'),
-  game: () => import('../../components/rock-escapade/evade-the-rock.jsx'),
 } as const;
 
 // ----- Split loaders for dynamic (frame & shadow)
@@ -22,6 +21,19 @@ export const dynamicLoaders = {
     import(
       /* webpackChunkName: "dynamic-shadow" */
       '../../components/dynamic-app/shadow-entry'
+    ),
+} as const;
+
+export const gameLoaders = {
+  components: () =>
+    import(
+      /* webpackChunkName: "components" */
+      '../../components/rock-escapade/block-g-host'
+    ),
+  game: () =>
+    import(
+      /* webpackChunkName: "game" */
+      '../../components/rock-escapade/game-canvas'
     ),
 } as const;
 
@@ -66,7 +78,7 @@ export const baseProjects: Project[] = [
   {
     key: 'game',
     title: 'Evade the Rock',
-    lazyImport: () => toComponent(import('../../components/rock-escapade/evade-the-rock.jsx')),
+    lazyImport: () => toComponent(gameLoaders.components()),
   },
   {
     key: 'dynamic',
@@ -154,6 +166,11 @@ export function useProjectLoader(key: ProjectKey) {
   if (key === 'dynamic') {
     // Ensure the default loader is just the lightweight frame
     return dynamicLoaders.frame as unknown as () => Promise<{ default: ComponentType<any> }>;
+  }
+
+    if (key === 'game') {
+    // Ensure the default loader is just the lightweight frame
+    return gameLoaders.components as unknown as () => Promise<{ default: ComponentType<any> }>;
   }
 
   return project.lazyImport;

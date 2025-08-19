@@ -7,6 +7,26 @@ import { loadableReady } from '@loadable/component';
 import App from './App';
 import { SsrDataProvider } from './utils/context-providers/ssr-data-context';
 
+if (process.env.NODE_ENV !== 'production') {
+  window.addEventListener('error', (e) => {
+    // This fires even when React overlay just says "Script error."
+    // You’ll see filename/line OR at least the actual Error object.
+    // eslint-disable-next-line no-console
+    console.error('[window.error]', {
+      message: e.message,
+      filename: e.filename,
+      lineno: e.lineno,
+      colno: e.colno,
+      error: e.error,            // real Error with stack if same-origin
+    });
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    // eslint-disable-next-line no-console
+    console.error('[unhandledrejection]', e.reason);
+  });
+}
+
 // SSR payload from server
 // (server writes: <script>window.__SSR_DATA__ = {...}</script>)
 const ssrData = window.__SSR_DATA__ ?? null;
