@@ -265,7 +265,7 @@ const showTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 99_000);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;

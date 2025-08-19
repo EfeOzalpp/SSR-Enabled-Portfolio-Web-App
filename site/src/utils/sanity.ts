@@ -5,7 +5,7 @@ const client: SanityClient = createClient({
   projectId: 'uyghamp6',
   dataset: 'production',
   apiVersion: '2023-01-01',
-  token: process.env.REACT_APP_SANITY_TOKEN,
+  token: process.env.SANITY_WRITE_TOKEN,
   useCdn: false,
 });
 

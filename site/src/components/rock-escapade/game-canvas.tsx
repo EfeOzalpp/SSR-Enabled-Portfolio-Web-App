@@ -61,7 +61,7 @@ export default function GameCanvas({
       const el = hostRef.current;
       if (!el || !el.isConnected) return;
 
-      // defensive: clear any leftover canvases and prior instance
+      // clear any old instance/canvas
       el.replaceChildren();
       if (q5Ref.current?.remove) {
         try { q5Ref.current.remove(); } catch {}
@@ -88,20 +88,38 @@ export default function GameCanvas({
         const cooldownDuration = 1500;
         const cooldownRadiusMax = 48;
 
-        // ---- touch steering state ----
-        let touchStart: { x: number; y: number } | null = null;
+        // perf caps
+        const MAX_PARTICLES = isRealMobile ? 600 : 1200;
+        const MAX_PROJECTILES = 140;
+        const MAX_RECTANGLES = 220;
+
+        // ---------- Pointer gesture state ----------
+        // One drag at a time
+        let dragPointerId: number | null = null;
         let lastTouch: { x: number; y: number } | null = null;
-        let touchStartMillis = 0;
-        const TAP_MS = 180;   // max time for a tap
-        const TAP_MOVE = 12;  // max move (px) to still count as a tap
-        const baseImpulse = isRealMobile ? 0.5 : 0.35; // stronger on phones
+
+        // Primary candidate before promotion to drag
+        let primaryCandidateId: number | null = null;
+        type TapInfo = { x0: number; y0: number; x: number; y: number; t0: number };
+        let primaryTapInfo: TapInfo | null = null;
+
+        // Secondary tap candidates (never drag)
+        const tapCandidates = new Map<number, TapInfo>();
+
+        // thresholds
+        const TAP_MS = 180;
+        const TAP_MOVE = 12;     // also used as drag promotion threshold
+        const DRAG_PROMOTE = TAP_MOVE;
+        const baseImpulse = isRealMobile ? 0.5 : 0.35;
 
         let movingUp = false;
         let movingDown = false;
         let movingLeft = false;
         let movingRight = false;
 
-        // ---------------- Autoevade can spawn regardless ----------------
+        // cached colors
+        let GOLD_COLORS: any[] = [];
+
         function canSpawn() {
           return demoRef.current || allowSpawnsRef.current;
         }
@@ -125,9 +143,182 @@ export default function GameCanvas({
         p.setup = () => {
           const w = el.offsetWidth;
           const h = el.offsetHeight;
+
+          if (isRealMobile && p.pixelDensity) p.pixelDensity(1);
+          p.frameRate?.(60);
           p.createCanvas(w, h);
 
+          // keep the page from stealing gestures
+          (el as HTMLElement).style.touchAction = 'none';
+          (p as any).canvas.style.touchAction = 'none';
+          (el as HTMLElement).style.overscrollBehavior = 'none';
+          (el as HTMLElement).style.webkitUserSelect = 'none';
+          (el as HTMLElement).style.userSelect = 'none';
+
+          const canvas = (p as any).canvas as HTMLCanvasElement;
+
+          const getCanvasCoords = (e: PointerEvent) => {
+            const r = canvas.getBoundingClientRect();
+            const x = (e.clientX - r.left) * (p.width / r.width);
+            const y = (e.clientY - r.top) * (p.height / r.height);
+            return { x, y };
+          };
+
+          const promoteToDrag = (pointerId: number, x: number, y: number) => {
+            dragPointerId = pointerId;
+            lastTouch = { x, y };
+            try { canvas.setPointerCapture(pointerId); } catch {}
+          };
+
+          // ----- handlers -----
+          const onDown = (e: PointerEvent) => {
+            if (demoRef.current || overlayRef.current) return;
+            const { x, y } = getCanvasCoords(e);
+
+            if (dragPointerId === null && primaryCandidateId === null) {
+              // first finger becomes a tap candidate; may promote to drag on move
+              primaryCandidateId = e.pointerId;
+              primaryTapInfo = { x0: x, y0: y, x, y, t0: p.millis() };
+            } else {
+              // any other finger is a pure tap candidate (never drag)
+              tapCandidates.set(e.pointerId, { x0: x, y0: y, x, y, t0: p.millis() });
+            }
+            e.preventDefault();
+          };
+
+          const onMove = (e: PointerEvent) => {
+            if (demoRef.current || overlayRef.current) return;
+            const { x, y } = getCanvasCoords(e);
+
+            // Candidate → promote to drag when moved enough
+            if (primaryCandidateId === e.pointerId && dragPointerId === null) {
+              // update candidate pos
+              if (primaryTapInfo) { primaryTapInfo.x = x; primaryTapInfo.y = y; }
+              const moved = primaryTapInfo
+                ? Math.hypot(x - primaryTapInfo.x0, y - primaryTapInfo.y0)
+                : 0;
+              if (moved > DRAG_PROMOTE) {
+                promoteToDrag(e.pointerId, x, y);
+                // no longer a tap candidate
+                primaryCandidateId = null;
+                primaryTapInfo = null;
+              }
+              e.preventDefault();
+              return;
+            }
+
+            // Active drag: only this pointer moves the ship
+            if (e.pointerId === dragPointerId) {
+              if (!lastTouch || !circle) { lastTouch = { x, y }; e.preventDefault(); return; }
+              const dx = x - lastTouch.x;
+              const dy = y - lastTouch.y;
+              const dist = Math.hypot(dx, dy) || 1;
+              const speedFactor = Math.log2(dist + 1);
+              const force = baseImpulse * speedFactor;
+              circle.vx += (dx / dist) * force;
+              circle.vy += (dy / dist) * force;
+              lastTouch = { x, y };
+              e.preventDefault();
+              return;
+            }
+
+            // Secondary tap candidates: track movement for tap thresholding
+            const ti = tapCandidates.get(e.pointerId);
+            if (ti) { ti.x = x; ti.y = y; }
+            e.preventDefault();
+          };
+
+          const tryFire = () => {
+            const now = p.millis();
+            if (now - lastFiredTime >= cooldownDuration) {
+              lastFiredTime = now;
+              const vx = (circle.vx !== 0 || circle.vy !== 0) ? circle.vx : 5;
+              const vy = (circle.vy !== 0 || circle.vx !== 0) ? circle.vy : 0;
+              projectiles.push(new Projectile(p, circle.x, circle.y, vx, vy));
+              if (projectiles.length > MAX_PROJECTILES) {
+                projectiles.splice(0, projectiles.length - MAX_PROJECTILES);
+              }
+            }
+          };
+
+          const onUp = (e: PointerEvent) => {
+            if (demoRef.current || overlayRef.current) return;
+
+            // End drag only if the drag pointer lifted
+            if (e.pointerId === dragPointerId) {
+              try { canvas.releasePointerCapture(e.pointerId); } catch {}
+              dragPointerId = null;
+              lastTouch = null;
+              e.preventDefault();
+              return;
+            }
+
+            // Primary candidate ended without being promoted → evaluate as tap
+            if (primaryCandidateId === e.pointerId && dragPointerId === null) {
+              const ti = primaryTapInfo;
+              primaryCandidateId = null;
+              primaryTapInfo = null;
+              if (ti) {
+                const dt = p.millis() - ti.t0;
+                const moved = Math.hypot(ti.x - ti.x0, ti.y - ti.y0);
+                if (dt <= TAP_MS && moved <= TAP_MOVE) tryFire();
+              }
+              e.preventDefault();
+              return;
+            }
+
+            // Secondary tap candidate → evaluate as tap
+            const ti = tapCandidates.get(e.pointerId);
+            if (ti) {
+              tapCandidates.delete(e.pointerId);
+              const dt = p.millis() - ti.t0;
+              const moved = Math.hypot(ti.x - ti.x0, ti.y - ti.y0);
+              if (dt <= TAP_MS && moved <= TAP_MOVE) tryFire(); // does NOT affect drag
+              e.preventDefault();
+            }
+          };
+
+          const onCancel = (e: PointerEvent) => {
+            // Clean up states safely
+            if (e.pointerId === dragPointerId) {
+              dragPointerId = null;
+              lastTouch = null;
+            }
+            if (primaryCandidateId === e.pointerId) {
+              primaryCandidateId = null;
+              primaryTapInfo = null;
+            }
+            tapCandidates.delete(e.pointerId);
+          };
+
+          canvas.addEventListener('pointerdown', onDown, { passive: false });
+          canvas.addEventListener('pointermove', onMove, { passive: false });
+          canvas.addEventListener('pointerup', onUp, { passive: false });
+          canvas.addEventListener('pointercancel', onCancel as any, { passive: false });
+          canvas.addEventListener('lostpointercapture', (e: any) => {
+            if (e.pointerId === dragPointerId) {
+              dragPointerId = null;
+              lastTouch = null;
+            }
+          });
+
+          (p as any)._pointerCleanup = () => {
+            try {
+              canvas.removeEventListener('pointerdown', onDown as any);
+              canvas.removeEventListener('pointermove', onMove as any);
+              canvas.removeEventListener('pointerup', onUp as any);
+              canvas.removeEventListener('pointercancel', onCancel as any);
+            } catch {}
+          };
+
           verticalMode = window.innerWidth <= 1024 && window.innerHeight > window.innerWidth;
+
+          GOLD_COLORS = [
+            p.color(255, 215, 0),
+            p.color(255, 223, 70),
+            p.color(255, 200, 0),
+            p.color(255, 170, 50),
+          ];
 
           lastOctagonSpawnTime = p.millis();
           circle = new Circle(p, 240, h / 2, 33);
@@ -138,27 +329,25 @@ export default function GameCanvas({
 
         // ---------------- Draw loop ----------------
         p.draw = () => {
-          
-        const demo = demoRef.current;
-          // detect transition: demo -> live
-        if (!demo && lastDemoFlag) {
-          // hard reset to a clean field
-          rectangles = [];
-          octagons = [];
-          particles = [];
-          projectiles = [];
-          coins = 0;
-          coinsChangeRef.current?.(0);
+          const demo = demoRef.current;
 
-          circle.x = 240;
-          circle.y = p.height / 2;
-          circle.vx = circle.vy = circle.ax = circle.ay = 0;
+          // detect demo → live transition
+          if (!demo && lastDemoFlag) {
+            rectangles = [];
+            octagons = [];
+            particles = [];
+            projectiles = [];
+            coins = 0;
+            coinsChangeRef.current?.(0);
 
-          // reset spawn timers so first spawn can happen immediately when allowed
-          lastOctagonSpawnTime = p.millis();
-          lastSpawnTime       = p.millis();
-        }
-        lastDemoFlag = demo;
+            circle.x = 240;
+            circle.y = p.height / 2;
+            circle.vx = circle.vy = circle.ax = circle.ay = 0;
+
+            lastOctagonSpawnTime = p.millis();
+            lastSpawnTime       = p.millis();
+          }
+          lastDemoFlag = demo;
 
           if (pauseHiddenRef.current && !visibleRef.current) {
             p.background(25);
@@ -167,9 +356,8 @@ export default function GameCanvas({
 
           const delta = p.deltaTime / 16.67;
           p.background(25);
-          // in p.draw(), before applying key-driven movement:
+
           if (!demo && overlayRef.current) {
-            // lock controls while overlay is visible
             movingUp = movingDown = movingLeft = movingRight = false;
             circle.stopHorizontal();
             circle.stopVertical();
@@ -311,6 +499,8 @@ export default function GameCanvas({
             lastSpawnTime = p.millis();
           }
 
+          if (rectangles.length > MAX_RECTANGLES) rectangles.splice(0, rectangles.length - MAX_RECTANGLES);
+
           if (p.millis() % 5000 < 20) {
             rectangles = rectangles.filter((r) => !isNaN(r.x) && !isNaN(r.y));
           }
@@ -323,7 +513,7 @@ export default function GameCanvas({
             r.display();
             if (!demoRef.current && circle.overlaps(r)) gameOver = true;
 
-            // projectiles collision
+            // projectile collision
             for (let j = projectiles.length - 1; j >= 0; j--) {
               const proj = projectiles[j];
               const projSize = (proj.size ?? proj.radius * 2);
@@ -385,6 +575,7 @@ export default function GameCanvas({
             const vy = Math.sin(angle) * speed;
             projectiles.push(new RectangleProjectile(p, cx, cy, vx, vy, '#c896ff'));
           }
+          if (projectiles.length > MAX_PROJECTILES) projectiles.splice(0, projectiles.length - MAX_PROJECTILES);
         }
 
         function spawnOctagons(p: any) {
@@ -412,6 +603,7 @@ export default function GameCanvas({
               for (let j = 0; j < 10; j++) {
                 particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c, 0, 0, 5));
               }
+              if (particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
               octagons.splice(i, 1);
               continue;
             }
@@ -428,6 +620,7 @@ export default function GameCanvas({
 
             for (let j = 0; j < whole; j++) particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
             if (p.random() < frac) particles.push(new Particle(p, o.x + o.size / 2, o.y + o.size / 2, 255, o.c));
+            if (particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
 
             if (
               o.x + o.size < -buffer ||
@@ -440,17 +633,18 @@ export default function GameCanvas({
           }
         }
 
-        // ---------------- Input ----------------
+        // ---------------- Keyboard ----------------
         p.keyPressed = () => {
-          if (demoRef.current || overlayRef.current) return; // ← add overlay guard
+          if (demoRef.current || overlayRef.current) return;
           if (p.key === ' ' || p.key === 'Spacebar') {
             const now = p.millis();
             if (now - lastFiredTime >= cooldownDuration) {
               lastFiredTime = now;
               if (circle) {
-                const vx = circle.vx !== 0 || circle.vy !== 0 ? circle.vx : 5;
-                const vy = circle.vy !== 0 || circle.vx !== 0 ? circle.vy : 0;
+                const vx = (circle.vx !== 0 || circle.vy !== 0) ? circle.vx : 5;
+                const vy = (circle.vy !== 0 || circle.vx !== 0) ? circle.vy : 0;
                 projectiles.push(new Projectile(p, circle.x, circle.y, vx, vy));
+                if (projectiles.length > MAX_PROJECTILES) projectiles.splice(0, projectiles.length - MAX_PROJECTILES);
               }
             }
           }
@@ -461,62 +655,11 @@ export default function GameCanvas({
         };
 
         p.keyReleased = () => {
-          if (demoRef.current || overlayRef.current) return; // ← add overlay guard
+          if (demoRef.current || overlayRef.current) return;
           if (p.key === 'w' || p.keyCode === p.UP_ARROW)    movingUp = false;
           if (p.key === 's' || p.keyCode === p.DOWN_ARROW)  movingDown = false;
           if (p.key === 'a' || p.keyCode === p.LEFT_ARROW)  movingLeft = false;
           if (p.key === 'd' || p.keyCode === p.RIGHT_ARROW) movingRight = false;
-        };
-
-        p.touchStarted = () => {
-          if (demoRef.current || overlayRef.current) return false; // ← add overlay guard
-          if (p.touches.length !== 1) return false;
-          touchStart = { x: p.mouseX, y: p.mouseY };
-          lastTouch = { x: p.mouseX, y: p.mouseY };
-          touchStartMillis = p.millis();
-          return false;
-        };
-
-        p.touchMoved = () => {
-          if (demoRef.current || overlayRef.current) return false; // ← add overlay guard
-          if (!lastTouch || !circle) return false;
-
-          const dx = p.mouseX - lastTouch.x;
-          const dy = p.mouseY - lastTouch.y;
-          const dist = Math.hypot(dx, dy) || 1;
-
-          const speedFactor = Math.log2(dist + 1);
-          const force = baseImpulse * speedFactor;
-
-          circle.vx += (dx / dist) * force;
-          circle.vy += (dy / dist) * force;
-
-          lastTouch = { x: p.mouseX, y: p.mouseY };
-          return false;
-        };
-
-        p.touchEnded = () => {
-          if (demoRef.current || overlayRef.current) return false; // ← add overlay guard
-
-          const dt = p.millis() - touchStartMillis;
-          const moved =
-            touchStart && lastTouch
-              ? Math.hypot(lastTouch.x - touchStart.x, lastTouch.y - touchStart.y)
-              : 0;
-
-          if (dt <= TAP_MS && moved <= TAP_MOVE) {
-            const now = p.millis();
-            if (now - lastFiredTime >= cooldownDuration) {
-              lastFiredTime = now;
-              const vx = circle.vx !== 0 || circle.vy !== 0 ? circle.vx : 5;
-              const vy = circle.vy !== 0 || circle.vx !== 0 ? circle.vy : 0;
-              projectiles.push(new Projectile(p, circle.x, circle.y, vx, vy));
-            }
-          }
-
-          touchStart = null;
-          lastTouch = null;
-          return false;
         };
 
         // ---------------- Classes ----------------
@@ -558,7 +701,7 @@ export default function GameCanvas({
               if(this.isOctagon){
                 this.y=startOff?-this.p.random(30,60):this.p.random(this.p.height);this.vx=this.p.random(-1.2,1.2);
                 if(this.p.random()<0.1)this.vy=this.p.random(6,9);else if(this.p.random()<0.2)this.vy=this.p.random(0.5,1.5);else this.vy=this.p.random(2,5);
-                this.size=25;const colors=[this.p.color(255,215,0),this.p.color(255,223,70),this.p.color(255,200,0),this.p.color(255,170,50)];this.c=this.p.random(colors);
+                this.size=25;this.c=this.p.random(GOLD_COLORS);
               } else {
                 this.y=startOff?-this.p.random(60,120):this.p.random(this.p.height);this.vx=this.p.random(-0.5,0.5);this.vy=this.p.random(1,3);
                 this.w=this.p.random(28,70);this.h=this.p.random(28,70);this.c=this.p.color(235,235,255);
@@ -568,7 +711,7 @@ export default function GameCanvas({
               if(this.isOctagon){
                 let baseX=this.p.random(-2.5,-0.5);if(window.innerWidth>=1025&&window.innerWidth>window.innerHeight)baseX*=4.5;
                 if(this.p.random()<0.1)baseX*=2;else if(this.p.random()<0.2)baseX*=0.5;this.vx=baseX;this.vy=this.p.random(-0.3,0.3);this.size=25;
-                const colors=[this.p.color(255,215,0),this.p.color(255,223,70),this.p.color(255,200,0),this.p.color(255,170,50)];this.c=this.p.random(colors);
+                this.c=this.p.random(GOLD_COLORS);
               } else {
                 this.vx=this.p.random(-3,-1);this.vy=this.p.random(-0.5,0.5);
                 if(window.innerWidth>=1025&&window.innerWidth>window.innerHeight){this.w=this.p.random(33,105);this.h=this.p.random(33,105);}
@@ -653,25 +796,19 @@ export default function GameCanvas({
         }
       }; // end sketch
 
-      // delay until next frame so host is laid out, no await needed
+      // ----- mount / resize / cleanup -----
       requestAnimationFrame(() => {
         if (!alive || !el.isConnected) return;
 
-        // q5 init (guard against duplicates)
         if (q5Ref.current) {
           try { q5Ref.current.remove?.(); } catch {}
           q5Ref.current = null;
         }
         let instance: any;
-        try {
-          instance = new q5(sketch, el);
-        } catch (err) {
-          console.error('[GameCanvas] q5 init error', err);
-          return;
-        }
+        try { instance = new q5(sketch, el); }
+        catch (err) { console.error('[GameCanvas] q5 init error', err); return; }
         q5Ref.current = instance;
 
-        // helps autoevade when the canvas starts off-screen
         if (pauseHiddenRef.current && 'IntersectionObserver' in window) {
           io = new IntersectionObserver(([entry]) => {
             visibleRef.current = entry.isIntersecting;
@@ -683,7 +820,6 @@ export default function GameCanvas({
           io.observe(el);
         }
 
-        // ----- RESIZE HOOKS -----
         let ro: ResizeObserver | null = null;
         const vv: VisualViewport | undefined = (window as any).visualViewport;
         let lastW = 0, lastH = 0;
@@ -694,46 +830,33 @@ export default function GameCanvas({
           if (!host || !host.isConnected || !inst?.resizeCanvas) return;
           const w = Math.max(1, Math.round(host.offsetWidth));
           const h = Math.max(1, Math.round(host.offsetHeight));
-          if (w === lastW && h === lastH) return; // no-op if unchanged
+          if (w === lastW && h === lastH) return;
           lastW = w; lastH = h;
-          try { inst.resizeCanvas(w, h); }
-          catch (e) { console.warn('[GameCanvas] resize skipped', e); }
+          try { inst.resizeCanvas(w, h); } catch (e) { console.warn('[GameCanvas] resize skipped', e); }
         };
 
-        // Window resize (already helpful for desktop)
         onResize = () => requestAnimationFrame(resizeToHost);
         window.addEventListener('resize', onResize);
 
-        // Parent size changes (CSS/layout) — the important part
         if ('ResizeObserver' in window) {
           ro = new ResizeObserver(() => requestAnimationFrame(resizeToHost));
           ro.observe(el);
         }
 
-        // Mobile URL bar/orientation/address-bar collapse
         window.addEventListener('orientationchange', onResize);
         vv?.addEventListener('resize', onResize);
         vv?.addEventListener('scroll', onResize);
 
-        // Fullscreen enter/exit
         const onFs = () => requestAnimationFrame(resizeToHost);
         document.addEventListener('fullscreenchange', onFs);
 
-        // Visibility throttle
-        if (pauseHiddenRef.current && 'IntersectionObserver' in window) {
-          io = new IntersectionObserver(([entry]) => {
-            visibleRef.current = entry.isIntersecting;
-            // when it becomes visible again, make sure size matches
-            if (entry.isIntersecting) requestAnimationFrame(resizeToHost);
-          }, { threshold: 0.01 });
-          io.observe(el);
-        }
-
-        // initial sync (in case the host changed between setup and now)
         requestAnimationFrame(resizeToHost);
 
-        // single cleanup
         cleanupRef.current = () => {
+          const instAny = q5Ref.current as any;
+          if (instAny && typeof instAny._pointerCleanup === 'function') {
+            try { instAny._pointerCleanup(); } catch {}
+          }
           if (io) io.disconnect();
           if (onResize) window.removeEventListener('resize', onResize);
           document.removeEventListener('fullscreenchange', onFs);
@@ -743,9 +866,9 @@ export default function GameCanvas({
           if (q5Ref.current?.remove) q5Ref.current.remove();
           q5Ref.current = null;
           el.replaceChildren();
-          };
-        })
+        };
       });
+    });
 
     return () => {
       alive = false;

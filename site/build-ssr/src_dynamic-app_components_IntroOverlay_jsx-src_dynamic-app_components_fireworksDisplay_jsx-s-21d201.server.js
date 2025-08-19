@@ -1880,7 +1880,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _image_builder__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./image-builder */ "./src/utils/media-providers/image-builder.ts");
 /* harmony import */ var _image_upgrade_manager__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./image-upgrade-manager */ "./src/utils/media-providers/image-upgrade-manager.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/utils/media-providers/MediaLoader.tsx
+// src/utils/media-providers/media-loader.tsx
 
 
 
@@ -2004,8 +2004,8 @@ const MediaLoader = ({
     if (type !== 'video' || !videoRef.current) return;
     const v = videoRef.current;
     const handleLoaded = () => {
-      setPosterRemoved(true); // Remove in VDOM
-      v.removeAttribute('poster'); // Remove in DOM
+      setPosterRemoved(true);
+      v.removeAttribute('poster');
       v.play().catch(err => {
         console.warn('Autoplay failed:', err);
       });
@@ -2015,6 +2015,8 @@ const MediaLoader = ({
     });
     return () => v.removeEventListener('loadeddata', handleLoaded);
   }, [type]);
+
+  // Guard: no src → nothing to render
   if (!src) return null;
 
   // ====== IMAGE ======
@@ -2023,6 +2025,9 @@ const MediaLoader = ({
     const mediumSrc = typeof src === 'string' ? src : (0,_image_builder__WEBPACK_IMPORTED_MODULE_3__.getMediumImageUrl)(src);
     const highResSrc = typeof src === 'string' ? src : (0,_image_builder__WEBPACK_IMPORTED_MODULE_3__.getHighQualityImageUrl)(src);
     const resolvedSrc = showHigh ? highResSrc : showMedium ? mediumSrc : ultraLowSrc;
+
+    // Avoid empty string
+    if (!resolvedSrc) return null;
     return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
       ref: containerRef,
       style: {
@@ -2040,7 +2045,7 @@ const MediaLoader = ({
         loading: priority ? 'eager' : undefined,
         fetchPriority: showHigh || priority ? 'high' : showMedium ? 'auto' : 'low',
         id: id,
-        src: resolvedSrc,
+        src: resolvedSrc || undefined,
         alt: alt,
         onLoad: onMediaLoaded,
         onError: e => console.warn('Image failed', e.target.src),
@@ -2061,6 +2066,8 @@ const MediaLoader = ({
   const vs = isVideoSetObj ? src : undefined;
   const legacyVideoUrl = typeof src === 'string' ? src : undefined;
   const posterUrl = vs?.poster ? typeof vs.poster === 'string' ? vs.poster : (0,_image_builder__WEBPACK_IMPORTED_MODULE_3__.urlFor)(vs.poster).width(1200).quality(80).auto('format').url() : undefined;
+  const hasVideoSource = Boolean(vs?.webmUrl || vs?.mp4Url || legacyVideoUrl);
+  if (!hasVideoSource) return null;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
     ref: containerRef,
     style: {
@@ -2094,13 +2101,13 @@ const MediaLoader = ({
       controls: controls,
       poster: posterRemoved ? undefined : posterUrl,
       children: [vs?.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
-        src: vs.webmUrl,
+        src: vs.webmUrl || undefined,
         type: "video/webm"
       }), vs?.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
-        src: vs.mp4Url,
+        src: vs.mp4Url || undefined,
         type: "video/mp4"
       }), !vs?.webmUrl && !vs?.mp4Url && legacyVideoUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
-        src: legacyVideoUrl
+        src: legacyVideoUrl || undefined
       })]
     })]
   });

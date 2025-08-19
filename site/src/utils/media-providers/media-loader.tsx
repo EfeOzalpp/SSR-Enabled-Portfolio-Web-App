@@ -1,4 +1,4 @@
-// src/utils/media-providers/MediaLoader.tsx
+// src/utils/media-providers/media-loader.tsx
 import { useRef, useState, useEffect } from 'react';
 import { useVideoVisibility } from './video-observer';
 import LoadingScreen from '../content-utility/loading';
@@ -45,7 +45,7 @@ type VideoSetSrc = {
 
 type MediaLoaderProps = {
   type: 'image' | 'video';
-  src: string | SanityImageSource | VideoSetSrc;
+  src: string | SanityImageSource | VideoSetSrc | null | undefined;
   alt?: string;
   id?: string;
   className?: string;
@@ -161,8 +161,8 @@ const MediaLoader = ({
     if (type !== 'video' || !videoRef.current) return;
     const v = videoRef.current;
     const handleLoaded = () => {
-      setPosterRemoved(true); // Remove in VDOM
-      v.removeAttribute('poster'); // Remove in DOM
+      setPosterRemoved(true);
+      v.removeAttribute('poster');
       v.play().catch(err => {
         console.warn('Autoplay failed:', err);
       });
@@ -171,6 +171,7 @@ const MediaLoader = ({
     return () => v.removeEventListener('loadeddata', handleLoaded);
   }, [type]);
 
+  // Guard: no src → nothing to render
   if (!src) return null;
 
   // ====== IMAGE ======
@@ -180,6 +181,9 @@ const MediaLoader = ({
     const highResSrc  = typeof src === 'string' ? src : getHighQualityImageUrl(src);
 
     const resolvedSrc = showHigh ? highResSrc : showMedium ? mediumSrc : ultraLowSrc;
+
+    // Avoid empty string
+    if (!resolvedSrc) return null;
 
     return (
       <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -193,7 +197,7 @@ const MediaLoader = ({
           loading={priority ? 'eager' : undefined}
           fetchPriority={showHigh || priority ? 'high' : showMedium ? 'auto' : 'low'}
           id={id}
-          src={resolvedSrc}
+          src={resolvedSrc || undefined}
           alt={alt}
           onLoad={onMediaLoaded}
           onError={(e) => console.warn('Image failed', (e.target as HTMLImageElement).src)}
@@ -225,6 +229,9 @@ const MediaLoader = ({
           : urlFor(vs.poster).width(1200).quality(80).auto('format').url())
       : undefined;
 
+  const hasVideoSource = Boolean(vs?.webmUrl || vs?.mp4Url || legacyVideoUrl);
+  if (!hasVideoSource) return null;
+
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
       {!loaded && (
@@ -253,10 +260,10 @@ const MediaLoader = ({
         controls={controls}
         poster={posterRemoved ? undefined : posterUrl}
       >
-        {vs?.webmUrl && <source src={vs.webmUrl} type="video/webm" />}
-        {vs?.mp4Url  && <source src={vs.mp4Url}  type="video/mp4"  />}
+        {vs?.webmUrl && <source src={vs.webmUrl || undefined} type="video/webm" />}
+        {vs?.mp4Url  && <source src={vs.mp4Url  || undefined} type="video/mp4"  />}
         {!vs?.webmUrl && !vs?.mp4Url && legacyVideoUrl && (
-          <source src={legacyVideoUrl} />
+          <source src={legacyVideoUrl || undefined} />
         )}
       </video>
     </div>

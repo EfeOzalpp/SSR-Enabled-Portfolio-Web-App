@@ -62,7 +62,7 @@ const Frame: React.FC = () => {
         <img
           ref={frameRef}
           id="dynamic-device-frame"
-          src={svgUrl || ''}
+          src={svgUrl || undefined}
           alt={device}
           className={`device-frame ${device}`}
           decoding="async"

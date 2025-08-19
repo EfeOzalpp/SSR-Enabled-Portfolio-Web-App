@@ -24,9 +24,10 @@
 
 @media (max-width: 768px) {
   #custom-global-tooltip {
-    transform: scale(0.8); 
-    padding: 6px 13px 6px 8px;
+    transform: scale(0.7); 
+    padding: 6px 8px 4px 8px;
   }
+  .tooltip-tag {padding: 3px 3px 4px 4px !important; margin: 1px 0;}
 }
 
 @media (min-width: 1025px) {

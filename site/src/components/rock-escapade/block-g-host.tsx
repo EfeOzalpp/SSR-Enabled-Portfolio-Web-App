@@ -226,6 +226,7 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
       {/* HUD & overlays during live play */}
       {started && (
         <>
+          {/* keep interactive */}
           <ExitButton onExit={handleExit} />
           <CoinCounter
             coins={coins}
@@ -233,16 +234,25 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
             newHighScore={newHighScore}
           />
 
+          {/* Non-interactive overlays so they don't block the canvas */}
           {shouldRenderOverlayBg && (
-            <div className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`} />
+            <div
+              className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`}
+              style={{ pointerEvents: 'none' }}
+            />
           )}
 
           {(countdownPhase === 'lottie' || countdownPhase === 'begin') && (
-            <div ref={lottieRef} id="lottie-onboarding" className="countdown-lottie" />
+            <div
+              ref={lottieRef}
+              id="lottie-onboarding"
+              className="countdown-lottie"
+              style={{ pointerEvents: 'none' }}
+            />
           )}
 
           {showBeginText && (
-            <div className="countdown-display">
+            <div className="countdown-display" style={{ pointerEvents: 'none' }}>
               <h1 className="countdown-text">BEGIN!</h1>
             </div>
           )}
@@ -272,7 +282,7 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
           onReady: handleReady,
           onCoinsChange: handleCoinsChange,
           onGameOver: handleGameOver,
-          highScore: stableHigh,      // engine baseline comes ONLY from Sanity
+          highScore: displayHigh,     // minor: mirror what's shown in HUD
           pauseWhenHidden: true,
           demoMode: !started,
           overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',

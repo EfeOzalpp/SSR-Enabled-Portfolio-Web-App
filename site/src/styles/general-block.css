@@ -152,7 +152,8 @@ button.view-project-btn {
   .arrow-svg { filter: drop-shadow(0 0px 10px rgba(0,0,0,0.6));}
   .view-project-arrow { width: 2.4em;}
   .split-arrow {scale: 0.7;}
-  .title-lottie { width: 10.6em !important; pointer-events: all;}
+  .title-lottie { width: 8.8em !important; pointer-events: all;}
+  .github-lottie, .linkedin-lottie { width: 1.6em !important;}
 }
 
 @media (orientation: portrait) and (max-width: 1024px) and (min-width: 768px) {

@@ -531,13 +531,22 @@ function BlockGHost({
         highScore: displayHigh,
         newHighScore: newHighScore
       }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
-        className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`
+        className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`,
+        style: {
+          pointerEvents: 'none'
+        }
       }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
         ref: lottieRef,
         id: "lottie-onboarding",
-        className: "countdown-lottie"
+        className: "countdown-lottie",
+        style: {
+          pointerEvents: 'none'
+        }
       }), showBeginText && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
         className: "countdown-display",
+        style: {
+          pointerEvents: 'none'
+        },
         children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("h1", {
           className: "countdown-text",
           children: "BEGIN!"
@@ -562,8 +571,8 @@ function BlockGHost({
         onReady: handleReady,
         onCoinsChange: handleCoinsChange,
         onGameOver: handleGameOver,
-        highScore: stableHigh,
-        // engine baseline comes ONLY from Sanity
+        highScore: displayHigh,
+        // minor: mirror what's shown in HUD
         pauseWhenHidden: true,
         demoMode: !started,
         overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
@@ -1291,7 +1300,7 @@ const showTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 99_000);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;
