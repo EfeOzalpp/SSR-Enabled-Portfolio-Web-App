@@ -1,5 +1,11 @@
 /* Block Type A styles */
-.block-type-a { width: 100%; background: #111111; display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 0; overflow: hidden; }
+.block-type-a { width: 100%; background: linear-gradient(
+  to right,
+  #1f1f1f 0%,
+  #181818 40%,
+  #111111 75%,
+  #0f0f0f 100%
+); display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 0; overflow: hidden; }
 
 .device-wrapper { position: relative; width: 100%; margin: 0 auto; }
 .device-frame { width: 100%; height: auto; display: block; z-index: 1100; position: relative; pointer-events: none; touch-action: none; }
@@ -60,7 +66,7 @@
 
 @media (min-width: 1025px) and (max-width: 2024px) {
   .block-type-a {height: 96dvh; }
-  .device-wrapper {max-width: 154dvh; aspect-ratio: 16 / 10;}
+  .device-wrapper {max-width: 146dvh; aspect-ratio: 16 / 10;}
   .screen-overlay  {top: 6%; left: 0.5%; width: 99%; height: 88%;} 
 }
 

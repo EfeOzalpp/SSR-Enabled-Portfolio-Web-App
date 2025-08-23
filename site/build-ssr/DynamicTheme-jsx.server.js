@@ -19,7 +19,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _dynamic_app_components_title__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dynamic-app/components/title */ "./src/dynamic-app/components/title.jsx");
 /* harmony import */ var _dynamic_app_components_homepage_UIcards__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dynamic-app/components/homepage-UIcards */ "./src/dynamic-app/components/homepage-UIcards.jsx");
 /* harmony import */ var _dynamic_app_components_sortBy__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./dynamic-app/components/sortBy */ "./src/dynamic-app/components/sortBy.jsx");
-/* harmony import */ var _utils_content_utility_loading_tsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./utils/content-utility/loading.tsx */ "./src/utils/content-utility/loading.tsx");
+/* harmony import */ var _utils_loading_loading__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./utils/loading/loading */ "./src/utils/loading/loading.tsx");
 /* harmony import */ var _dynamic_app_components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./dynamic-app/components/fireworksDisplay */ "./src/dynamic-app/components/fireworksDisplay.jsx");
 /* harmony import */ var _dynamic_app_components_pauseButton__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./dynamic-app/components/pauseButton */ "./src/dynamic-app/components/pauseButton.jsx");
 /* harmony import */ var _dynamic_app_components_footer__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./dynamic-app/components/footer */ "./src/dynamic-app/components/footer.jsx");
@@ -187,7 +187,7 @@ function DynamicTheme() {
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
       className: "dynamic-app",
       ref: dynamicAppRef,
-      children: isLoading ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_utils_content_utility_loading_tsx__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      children: isLoading ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_utils_loading_loading__WEBPACK_IMPORTED_MODULE_5__["default"], {
         isFullScreen: true
       }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)("div", {
         className: "homePage-container",

@@ -4,7 +4,7 @@ import Navigation from './dynamic-app/components/navigation';
 import TitleDivider from './dynamic-app/components/title';
 import UIcards from './dynamic-app/components/homepage-UIcards';
 import SortBy from './dynamic-app/components/sortBy';
-import LoadingScreen from './utils/content-utility/loading.tsx';
+import LoadingScreen from './utils/loading/loading';
 import FireworksDisplay from './dynamic-app/components/fireworksDisplay';
 import PauseButton from './dynamic-app/components/pauseButton';
 import Footer from './dynamic-app/components/footer';

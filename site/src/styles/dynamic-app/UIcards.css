@@ -84,9 +84,9 @@ h-name, h-name a {padding-left: 6%; width: 84%; flex-grow: 1; display: flex; jus
 
 /* Card title and icon */
 h-name, h-name a {width: 90%; flex-grow: 1; display: flex; justify-content: space-between; align-items: center; position: relative; color: white; margin-top: auto; z-index: 10; bottom: 1.2em; padding-right: 0px;}
-#shadow-dynamic-app h-name, #shadow-dynamic-app h-name a {width: calc(98% - 16px);}
+#shadow-dynamic-app h-name, #shadow-dynamic-app h-name a {width: calc(98% - 20px); bottom: 1.325em;}
 .title-text {padding-left: 32px; position: absolute;}
-#shadow-dynamic-app .title-text{padding-left: 16px;}
+#shadow-dynamic-app .title-text{padding-left: 20px;}
 .svg-icon {width: 1.05em; height: 1em; padding-right: 7%; display: inline-block; margin-left: auto;} .svg-icon:hover {transform: translateX(2px); transition: transform 150ms ease-out;}
 
 /* Shadow app stylé */

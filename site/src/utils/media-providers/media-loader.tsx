@@ -1,7 +1,7 @@
 // src/utils/media-providers/media-loader.tsx
 import { useRef, useState, useEffect } from 'react';
 import { useVideoVisibility } from './video-observer';
-import LoadingScreen from '../content-utility/loading';
+import LoadingScreen from '../loading/loading';
 import { SanityImageSource } from '@sanity/image-url/lib/types/types';
 import {
   getLowResImageUrl,

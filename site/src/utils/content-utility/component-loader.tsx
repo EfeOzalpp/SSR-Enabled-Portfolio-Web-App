@@ -158,6 +158,21 @@ export function useProjectLoader(key: ProjectKey) {
       };
     }
 
+     if (key === 'game') {
+    return async () => {
+      const Enhancer = (await import('../../ssr/projects/game.enhancer')).default;
+      return {
+        default: () => (
+          <>
+            {desc.render!(data)} {/* SSR onboarding (coin + text) */}
+            <Enhancer />         {/* Hydrates into BlockGHost when visible/idle */}
+          </>
+        ),
+      };
+    };
+  }
+
+
     // Default SSR (no enhancer)
     return async () => ({ default: () => <>{desc.render!(data)}</> });
   }

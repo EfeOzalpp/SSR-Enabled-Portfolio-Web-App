@@ -3,22 +3,35 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 function readTextSafe(p: string) {
-  try { return fs.readFileSync(p, 'utf8'); } catch { return ''; }
+  try {
+    return fs.readFileSync(p, 'utf8');
+  } catch {
+    return '';
+  }
 }
 
 /**
- * Minimal prefixer to mimic your PostCSS rule.
- * - Skips at-rules like @keyframes / @font-face to avoid corrupting them.
- * - Leaves html/body/:root, shadow hosts and ::slotted unchanged.
+ * Scopes CSS to a prefix (default: #efe-portfolio).
+ * - Recursively prefixes selectors inside @media blocks.
+ * - Skips @keyframes and @font-face (they remain global).
+ * - Leaves html/body/:root and allowlisted selectors unprefixed.
+ * - Preserves comma-separated selectors.
  */
 export function prefixCss(css: string, prefix = '#efe-portfolio') {
-  return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
+  // 1) Recursively process @media blocks so their inner selectors get prefixed.
+  css = css.replace(/@media[^{]+\{([\s\S]*?)\}/g, (full, inner) => {
+    const prefixedInner = prefixCss(inner, prefix);
+    return full.replace(inner, prefixedInner);
+  });
+
+  // 2) Keep @keyframes and @font-face as-is (global).
+  //    We just avoid touching those blocks by targeting only non-at-rule selectors below.
+
+  // 3) Prefix top-level rules (not starting with '@'), preserving comma lists.
+  return css.replace(/(^|\})\s*([^{@}][^{]*)\{/g, (m, brace, selector) => {
     const sel = selector.trim();
 
-    // don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
-    if (sel.startsWith('@')) return `${brace} ${sel}`;
-
-    // allowlisted selectors that should remain global
+    // Allowlist selectors that should remain global
     if (
       sel.startsWith('html') ||
       sel.startsWith('body') ||
@@ -27,10 +40,13 @@ export function prefixCss(css: string, prefix = '#efe-portfolio') {
       sel.includes('#shadow-dynamic-app') ||
       sel.includes('::slotted')
     ) {
-      return `${brace} ${sel}`;
+      return `${brace} ${sel}{`;
     }
 
-    return `${brace} ${prefix} ${sel}`;
+    // Prefix each comma-separated selector
+    const parts = sel.split(',').map(s => s.trim()).filter(Boolean);
+    const prefixed = parts.map(s => `${prefix} ${s}`).join(', ');
+    return `${brace} ${prefixed}{`;
   });
 }
 
@@ -62,7 +78,12 @@ export function buildHtmlOpen(opts: {
   iconSvg: string;
   iconIco: string;
   preloadLinks: string[];
-  fontsCss: { rubikCss: string; orbitronCss: string; poppinsCss: string; epilogueCss: string };
+  fontsCss: {
+    rubikCss: string;
+    orbitronCss: string;
+    poppinsCss: string;
+    epilogueCss: string;
+  };
   extractorLinkTags: string;
   extractorStyleTags: string;
   emotionStyleTags: string;
@@ -70,33 +91,57 @@ export function buildHtmlOpen(opts: {
   extraCriticalCss?: string;
 }) {
   const {
-    IS_DEV, routePath, iconSvg, iconIco, preloadLinks,
-    fontsCss, extractorLinkTags, extractorStyleTags, emotionStyleTags,
+    IS_DEV,
+    routePath,
+    iconSvg,
+    iconIco,
+    preloadLinks,
+    fontsCss,
+    extractorLinkTags,
+    extractorStyleTags,
+    emotionStyleTags,
     extraCriticalCss = '',
   } = opts;
 
   const ROOT = process.cwd();
-  const cssTheme  = readTextSafe(path.resolve(ROOT, 'src/styles/font+theme.css'));
-  const cssBlocks = readTextSafe(path.resolve(ROOT, 'src/styles/general-block.css'));
+  const cssTheme = readTextSafe(
+    path.resolve(ROOT, 'src/styles/font+theme.css')
+  );
+  const cssBlocks = readTextSafe(
+    path.resolve(ROOT, 'src/styles/general-block.css')
+  );
 
-  // Inline prefixed CSS only for landing routes
+  // 1) App-level critical CSS only for landing routes (keeps HEAD lean)
   let appCriticalCss = '';
   if (routePath === '/' || routePath === '/home') {
     appCriticalCss =
       prefixCss(cssTheme) +
       '\n/* --- separator --- */\n' +
-      prefixCss(cssBlocks) +
-      (extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '');
+      prefixCss(cssBlocks);
   }
+
+  // 2) Always inline project critical CSS when provided
+  const projectCriticalCss = extraCriticalCss
+    ? '\n/* --- project critical --- */\n' + extraCriticalCss
+    : '';
+
+  // 3) Decide html class for homepage font sizing
+  const htmlClass =
+    routePath === '/' || routePath === '/home' ? 'font-small' : '';
 
   // Build font preloads from inlined font CSS (limit to keep HEAD lean)
   const fontPreloadLinks = buildFontPreloads(
-    [fontsCss.rubikCss, fontsCss.orbitronCss, fontsCss.poppinsCss, fontsCss.epilogueCss],
+    [
+      fontsCss.rubikCss,
+      fontsCss.orbitronCss,
+      fontsCss.poppinsCss,
+      fontsCss.epilogueCss,
+    ],
     4
   ).join('\n');
 
   return `<!doctype html>
-<html lang="en">
+<html lang="en" class="${htmlClass}">
 <head>
 <meta charSet="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -112,7 +157,6 @@ ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)
 ${(preloadLinks || []).join('\n')}
 ${fontPreloadLinks}
 
-
 <style>
 ${fontsCss.rubikCss}
 ${fontsCss.orbitronCss}
@@ -122,7 +166,9 @@ ${fontsCss.epilogueCss}
 
 ${extractorLinkTags}
 ${extractorStyleTags}
-${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
+${(appCriticalCss || projectCriticalCss)
+  ? `<style id="critical-inline-app-css">${appCriticalCss}${projectCriticalCss}</style>`
+  : ''}
 ${emotionStyleTags}
 </head>
 <body>
@@ -131,7 +177,9 @@ ${emotionStyleTags}
 
 export function buildHtmlClose(ssrPayload: any, scriptTags: string) {
   // write the SSR payload safely
-  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
+  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(
+    ssrPayload
+  ).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
 ${scriptTags}
 </body></html>`;

@@ -16,6 +16,10 @@ const queries: Record<string, string> = {
     'dynamic-frame': `*[_type == "svgAsset" && title in ["Laptop","Tablet","Phone"]]{
     title, file{ asset->{ url } }
   }`,
+    'rock-coin': `*[_type=="imageDemanded" && title=="coin"][0]{
+    alt,
+    image{ asset->{ url } }
+  }`,
   // add others as I go
 };
 

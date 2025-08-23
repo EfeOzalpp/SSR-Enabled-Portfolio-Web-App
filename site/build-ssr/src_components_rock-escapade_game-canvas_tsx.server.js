@@ -379,11 +379,11 @@ function GameCanvas({
           }
           lastDemoFlag = demo;
           if (pauseHiddenRef.current && !visibleRef.current) {
-            p.background(25);
+            p.background(28);
             return;
           }
           const delta = p.deltaTime / 16.67;
-          p.background(25);
+          p.background(28);
           if (!demo && overlayRef.current) {
             movingUp = movingDown = movingLeft = movingRight = false;
             circle.stopHorizontal();
@@ -424,7 +424,7 @@ function GameCanvas({
             }
             prevGameOver = gameOver;
             if (gameOver) {
-              p.background(25, 180);
+              p.background(28, 180);
               return;
             }
             drawCooldownRing();
@@ -1046,8 +1046,8 @@ function GameCanvas({
     className: "evade-the-rock",
     ref: hostRef,
     style: {
-      width: '100%',
-      height: '100%'
+      width: '100vw',
+      height: '100dvh'
     }
   });
 }

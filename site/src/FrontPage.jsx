@@ -1,6 +1,6 @@
 // src/FrontPage.jsx
 import { useEffect } from 'react';
-import loadable from '@loadable/component'; 
+import loadable from '@loadable/component';
 import ViewProject from './utils/title/view-project.tsx';
 import { TitleProvider } from './utils/title/title-context.tsx';
 import ScrollController from './utils/scroll-controller.tsx';
@@ -14,15 +14,16 @@ const NavMenu = loadable(() => import('./components/nav-menu.tsx'), {
 });
 
 function Frontpage() {
-  // tiny UX helpers; ok on both SSR/CSR (no DOM read until effect)
+  // UX helpers (safe on both SSR/CSR; no DOM read until effect)
   useEffect(() => {
-    document.documentElement.classList.add('font-small');
-
     const preventPinchZoom = (event) => {
       const tag = event?.target?.tagName?.toLowerCase?.() || '';
       if (tag === 'video') return;
-      if ('touches' in event && event.touches?.length > 1) event.preventDefault();
+      if ('touches' in event && event.touches?.length > 1) {
+        event.preventDefault();
+      }
     };
+
     const preventGesture = (e) => {
       const tag = e?.target?.tagName?.toLowerCase?.() || '';
       if (tag === 'video') return;
@@ -35,7 +36,6 @@ function Frontpage() {
     document.addEventListener('gestureend', preventGesture);
 
     return () => {
-      document.documentElement.classList.remove('font-small');
       document.removeEventListener('touchmove', preventPinchZoom);
       document.removeEventListener('gesturestart', preventGesture);
       document.removeEventListener('gesturechange', preventGesture);

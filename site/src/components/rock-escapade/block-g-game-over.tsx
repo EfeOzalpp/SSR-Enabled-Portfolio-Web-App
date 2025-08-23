@@ -83,8 +83,7 @@ const BlockGGameOver: React.FC<Props> = ({ onRestart, visibleTrigger, coins, new
         position: 'fixed',
         inset: 0,
         width: '100vw',
-        height: '100vh',
-        background: '#000',                
+        height: '100vh',              
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -94,7 +93,7 @@ const BlockGGameOver: React.FC<Props> = ({ onRestart, visibleTrigger, coins, new
       }}
     >
       {/* Keep your existing class for inner layout/typography */}
-      <div className="block-g-gameover" style={{ position: 'relative', background: 'transparent' }}>
+      <div className="block-g-gameover" style={{ position: 'relative' }}>
         <div ref={lottieRef} className="gameover-lottie" />
         <div className="gameover-text-area">
           <h1

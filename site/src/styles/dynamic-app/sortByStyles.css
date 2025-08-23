@@ -123,18 +123,18 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 .options-container {position: absolute; z-index: 1000; background: #222222; width: 100%; right: -1.6px;  top: calc(100% - 8px); padding-top: 8px; padding-bottom: 8px; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px;}
 
 /* Students Heading */
-.students-heading {position: relative; top: 36px; left: -6px;}
+.students-heading {position: relative; top: 28px;}
 
 /* Pause Button styles */
 .pause-button-wrapper {padding-left: 20%; padding-top: 24px;}
 .lottie-container {width: 2.4em; height: 2.4em; z-index: 100; position: relative;}
-#shadow-dynamic-app .lottie-container {width: 2.8em; height: 2.8em; z-index: 100;}
+#shadow-dynamic-app .lottie-container {width: 2.6em; height: 2.6em; z-index: 100;}
 
 #shadow-dynamic-app .sort-by-container {transform: scale(0.8);}
-#shadow-dynamic-app .sort-by-divider {padding-left: 8em; padding-right: 8em; padding-bottom: 1.6em; padding-top: 1.6em;}
-#shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container  {min-width: 42%;} 
+#shadow-dynamic-app .sort-by-divider {padding-left: 8.8em; padding-right: 8.8em; padding-bottom: 0.8em; padding-top: 3.6em;}
+#shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container  {min-width: 176px;} 
 #shadow-dynamic-app .custom-arrow {top: 50%;}
-#shadow-dynamic-app .pause-button-wrapper {padding-left: 16em; padding-top: 1.6em; transform: scale(0.95);}
+#shadow-dynamic-app .pause-button-wrapper {padding-left: 12.8em; padding-top: 2.4em;}
 #shadow-dynamic-app .students-heading {left: 0px;}
 #shadow-dynamic-app span.custom-arrow.open {transform: translateY(-50%) rotate(180deg) !important; top: 50% !important;}
 }

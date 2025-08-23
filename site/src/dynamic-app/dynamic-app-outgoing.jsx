@@ -1,9 +1,9 @@
-// DynamicTheme émbéd.jsx
+// DynamicTheme émbéd.jsx (with guarded alt observer)
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Navigation from './components/navigation';
 import TitleDivider from './components/title';
 import SortBy from './components/sortBy';
-import LoadingScreen from '../utils/content-utility/loading.tsx';
+import LoadingScreen from '../utils/loading/loading';
 import FireworksDisplay from './components/fireworksDisplay';
 import PauseButton from './components/pauseButton';
 import Footer from './components/footer';
@@ -26,25 +26,31 @@ function DynamicTheme() {
   const [isLoading, setIsLoading] = useState(true);
   const [pauseAnimation, setPauseAnimation] = useState(false);
   const [showNavigation, setShowNavigation] = useState(false);
+
+  /** @type {React.MutableRefObject<((enabled:boolean)=>void)|null>} */
   const toggleFireworksRef = useRef(null);
+  /** @type {React.MutableRefObject<HTMLElement|null>} */
   const scrollContainerRef = useRef(null);
+  /** @type {React.MutableRefObject<HTMLElement|null>} */
   const shadowRef = useRef(null);
-  const [showFireworks, setShowFireworks] = useState(true); // rémové firéwork to savé héadroom whén not in viéw 
+
+  // Derived fireworks mount flag (visibility && !paused)
+  const [showFireworks, setShowFireworks] = useState(true);
+
+  // Track host visibility for guarding alt updates
+  const [isHostVisible, setIsHostVisible] = useState(false);
+  const hostVisibleRef = useRef(false);
 
   const { getShadowRoot, injectStyle } = useShadowRoot();
 
   useEffect(() => {
-    [
-      indexCss,
-      miscCss,
-      overlayCss,
-    ].forEach(injectStyle);
+    [indexCss, miscCss, overlayCss].forEach(injectStyle);
   }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       setIsLoading(false);
-      setShowNavigation(true); // runs when DOM is ready
+      setShowNavigation(true);
     }, 200);
     return () => clearTimeout(timeout);
   }, []);
@@ -55,15 +61,14 @@ function DynamicTheme() {
         const iconMapping = icons.reduce((acc, icon) => {
           acc[icon.title] = icon.icon;
           return acc;
-        }, {});
+        }, /** @type {Record<string,string>} */ ({}));
         setSvgIcons(iconMapping);
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 200);
+        setTimeout(() => setIsLoading(false), 200);
       });
     }, 400);
   }, []);
 
+  /** @type {React.MutableRefObject<Document|ShadowRoot|null>} */
   const observerRoot = useRef(null);
 
   useEffect(() => {
@@ -71,77 +76,109 @@ function DynamicTheme() {
     observerRoot.current = root;
   }, [getShadowRoot]);
 
-  useEffect(() => {
-    if (!isLoading && sortedImages.length > 0) {
-      const root = observerRoot.current;
-      setupAltObserver(handleActivate, handleDeactivate, root);
-    }
-  }, [sortedImages, pauseAnimation, isLoading]);
-
-  const handleSetToggleFireworks = useCallback((toggleFunction) => {
-    toggleFireworksRef.current = toggleFunction;
-  }, []);
-
-  const handlePauseToggle = useCallback((isEnabled) => {
-    if (toggleFireworksRef.current) {
-      toggleFireworksRef.current(isEnabled);
-    }
-    setPauseAnimation(!isEnabled);
-  }, []);
-
-  const handleActivate = (alt1) => {
+  // ------ ALT color logic (unchanged helpers) ------
+  const handleActivate = useCallback((alt1) => {
     const colors = colorMapping[alt1];
-
     if (colors && colors[0] !== activeColor) {
       setActiveColor(colors[2]);
       setMovingTextColors([colors[0], colors[1], colors[3]]);
       setLastKnownColor(colors[2]);
     }
-  };
+  }, [activeColor]);
 
-  const handleDeactivate = (alt1) => {
+  const handleDeactivate = useCallback(() => {
     if (activeColor !== lastKnownColor) {
       setActiveColor(lastKnownColor);
     }
-  };
+  }, [activeColor, lastKnownColor]);
 
-  // résizé
+  // ------ Guarded alt observer: only while host is visible; dedup events; cleanup properly ------
+  const currentAltRef = useRef(null);
+
+  useEffect(() => {
+    if (isLoading || sortedImages.length === 0) return;
+    const root = observerRoot.current;
+    if (!root) return;
+
+    const guardedActivate = (alt1) => {
+      if (!hostVisibleRef.current) return;           // ignore when section not visible
+      if (currentAltRef.current === alt1) return;    // ignore duplicate activate
+      currentAltRef.current = alt1;
+      handleActivate(alt1);
+    };
+
+    const guardedDeactivate = (alt1) => {
+      if (!hostVisibleRef.current) return;           // ignore when section not visible
+      if (currentAltRef.current !== alt1) return;    // only deactivate if it was the active one
+      handleDeactivate(alt1);
+    };
+
+    const cleanup = setupAltObserver(guardedActivate, guardedDeactivate, root);
+    return typeof cleanup === 'function' ? cleanup : undefined;
+    // NOTE: don't include pauseAnimation here; pausing shouldn't rebuild the observer
+  }, [isLoading, sortedImages, handleActivate, handleDeactivate]);
+
+  // ------ Pause button bridge ------
+  const handleSetToggleFireworks = useCallback((toggleFunction) => {
+    toggleFireworksRef.current = toggleFunction;
+  }, []);
+
+  const handlePauseToggle = useCallback((isEnabled) => {
+    // sync internal engine immediately, if mounted
+    if (toggleFireworksRef.current) toggleFireworksRef.current(isEnabled);
+    setPauseAnimation(!isEnabled);
+  }, []);
+
+  // ------ Resize (as you had) ------
   useEffect(() => {
     if (!shadowRef.current) return;
     const observer = new ResizeObserver(() => {
       console.log('[🔁 Resize observed]', shadowRef.current?.getBoundingClientRect());
-      // Optionally trigger reflows / state updates
     });
     observer.observe(shadowRef.current);
     return () => observer.disconnect();
   }, []);
 
-  // Remove firework when not in view
+  // ------ Host visibility controls fireworks AND gates alt updates ------
   useEffect(() => {
-    // Directly select the container by ID
     const container = document.querySelector('#block-dynamic');
-
     if (!container) {
       console.warn('[FireworkObserver] #block-dynamic not found in DOM');
       return;
     }
 
-    // IntersectionObserver setup
-    const observer = new IntersectionObserver(
+    const io = new IntersectionObserver(
       ([entry]) => {
-        const isVisible = entry.isIntersecting;
-        setShowFireworks(prev => (prev !== isVisible ? isVisible : prev));
+        const visible = !!entry.isIntersecting;
+        hostVisibleRef.current = visible;
+        setIsHostVisible(visible);
+
+        const desired = visible && !pauseAnimation; // respect Pause
+        setShowFireworks((prev) => (prev !== desired ? desired : prev));
+        if (toggleFireworksRef.current) toggleFireworksRef.current(desired);
       },
-      {
-        threshold: 0.3, // ~30% visible before toggling
-        root: null,     // null means observe relative to the viewport
-      }
+      { threshold: 0.3, root: null }
     );
 
-    observer.observe(container);
+    io.observe(container);
 
-    return () => observer.disconnect();
-  }, []);
+    // Run once immediately
+    const rect = container.getBoundingClientRect();
+    const visibleNow = rect.top < window.innerHeight && rect.bottom > 0;
+    hostVisibleRef.current = visibleNow;
+    setIsHostVisible(visibleNow);
+
+    const initialDesired = visibleNow && !pauseAnimation;
+    setShowFireworks((prev) => (prev !== initialDesired ? initialDesired : prev));
+    if (toggleFireworksRef.current) toggleFireworksRef.current(initialDesired);
+
+    return () => io.disconnect();
+  }, [pauseAnimation]);
+
+  // Keep internal engine synced when pause toggles
+  useEffect(() => {
+    if (toggleFireworksRef.current) toggleFireworksRef.current(!pauseAnimation && isHostVisible);
+  }, [pauseAnimation, isHostVisible]);
 
   const cardRefs = useRef([]);
   cardRefs.current = sortedImages.map((_, i) => cardRefs.current[i] ?? React.createRef());
@@ -153,32 +190,36 @@ function DynamicTheme() {
       ) : (
         <div className="homePage-container" ref={scrollContainerRef}>
           <IntroOverlay />
-            <div className="navigation-wrapper">
-              {showNavigation && (
-                <Navigation
-                  customArrowIcon2={svgIcons['arrow1']}
-                  customArrowIcon={svgIcons['arrow2']}
+
+          <div className="navigation-wrapper">
+            {showNavigation && (
+              <Navigation
+                customArrowIcon2={svgIcons['arrow1']}
+                customArrowIcon={svgIcons['arrow2']}
+                items={sortedImages}
+                activeColor={activeColor}
+                isInShadow={typeof getShadowRoot === 'function' && getShadowRoot() !== document}
+                scrollLockContainer={scrollContainerRef.current}
+              />
+            )}
+          </div>
+
+          <div className="firework-wrapper">
+            <div className="firework-divider">
+              {showFireworks && (
+                <FireworksDisplay
+                  colorMapping={colorMapping}
                   items={sortedImages}
                   activeColor={activeColor}
-                  isInShadow={typeof getShadowRoot === 'function' && getShadowRoot() !== document}
-                  scrollLockContainer={scrollContainerRef.current}
+                  lastKnownColor={lastKnownColor}
+                  onToggleFireworks={handleSetToggleFireworks}
                 />
               )}
             </div>
-        <div className="firework-wrapper">
-            <div className="firework-divider">
-              {showFireworks && (
-              <FireworksDisplay
-                colorMapping={colorMapping}
-                items={sortedImages}
-                activeColor={activeColor}
-                lastKnownColor={lastKnownColor}
-                onToggleFireworks={handleSetToggleFireworks}
-              />
-              )}
-            </div>
           </div>
+
           <div className="section-divider"></div>
+
           <div className="title-divider">
             <TitleDivider
               svgIcon={svgIcons['logo-small-1']}
@@ -186,22 +227,26 @@ function DynamicTheme() {
               pauseAnimation={pauseAnimation}
             />
           </div>
+
           <div id="homePage">
             <div className="no-overflow">
               <div className="pause-button-wrapper">
                 <PauseButton toggleP5Animation={handlePauseToggle} />
               </div>
+
               <div className="sort-by-divider">
                 <h3 className="students-heading">Students</h3>
-              <SortBy
-                setSortOption={() => {}}
-                onFetchItems={setSortedImages}
-                customArrowIcon={svgIcons['arrow2']}
-                colorMapping={colorMapping}
-                getRoot={getShadowRoot}
-              />
+                <SortBy
+                  setSortOption={() => {}}
+                  onFetchItems={setSortedImages}
+                  customArrowIcon={svgIcons['arrow2']}
+                  colorMapping={colorMapping}
+                  getRoot={getShadowRoot}
+                />
               </div>
+
               <div className="section-divider2"></div>
+
               <div className="UI-card-divider">
                 {sortedImages.map((data, index) => (
                   <ObservedCard
@@ -214,6 +259,7 @@ function DynamicTheme() {
                   />
                 ))}
               </div>
+
               <Footer
                 customArrowIcon2={svgIcons['arrow1']}
                 linkArrowIcon={svgIcons['link-icon']}
@@ -222,7 +268,7 @@ function DynamicTheme() {
           </div>
         </div>
       )}
-  </>
+    </>
   );
 }
 

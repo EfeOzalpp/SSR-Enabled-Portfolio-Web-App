@@ -1,12 +1,11 @@
-// src/utils/sanity.ts
-import { createClient, type SanityClient } from '@sanity/client';
+// utils/sanity.ts
+import {createClient} from '@sanity/client'
 
-const client: SanityClient = createClient({
+const client = createClient({
   projectId: 'uyghamp6',
   dataset: 'production',
   apiVersion: '2023-01-01',
-  token: process.env.SANITY_WRITE_TOKEN,
-  useCdn: false,
-});
+  useCdn: true,
+})
 
-export default client;
+export default client

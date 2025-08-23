@@ -1,5 +1,5 @@
-exports.id = "src_utils_content-utility_loading_tsx";
-exports.ids = ["src_utils_content-utility_loading_tsx"];
+exports.id = "src_utils_loading_loading_tsx";
+exports.ids = ["src_utils_loading_loading_tsx"];
 exports.modules = {
 
 /***/ "./src/styles/loading-overlay.css":
@@ -23,10 +23,10 @@ module.exports = /*#__PURE__*/JSON.parse('{"v":"5.12.1","fr":30,"ip":0,"op":144,
 
 /***/ }),
 
-/***/ "./src/utils/content-utility/loading.tsx":
-/*!***********************************************!*\
-  !*** ./src/utils/content-utility/loading.tsx ***!
-  \***********************************************/
+/***/ "./src/utils/loading/loading.tsx":
+/*!***************************************!*\
+  !*** ./src/utils/loading/loading.tsx ***!
+  \***************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -90,4 +90,4 @@ const LoadingScreen = ({
 
 };
 ;
-//# sourceMappingURL=src_utils_content-utility_loading_tsx.server.js.map
+//# sourceMappingURL=src_utils_loading_loading_tsx.server.js.map

@@ -31,7 +31,7 @@ a {text-decoration: none;}
 /* Large devices */
 @media (min-width: 1025px) and  (max-width: 2024px) {
   html.font-small {
-  font-size: 70%;
+  font-size: 70% !important;
 }
 
   h1 { font-size: clamp(2.2rem, 3vw, 3rem); line-height: 1.2; }

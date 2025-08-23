@@ -77,13 +77,14 @@ const NavMenu = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])(
   fallback: null
 });
 function Frontpage() {
-  // tiny UX helpers; ok on both SSR/CSR (no DOM read until effect)
+  // UX helpers (safe on both SSR/CSR; no DOM read until effect)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    document.documentElement.classList.add('font-small');
     const preventPinchZoom = event => {
       const tag = event?.target?.tagName?.toLowerCase?.() || '';
       if (tag === 'video') return;
-      if ('touches' in event && event.touches?.length > 1) event.preventDefault();
+      if ('touches' in event && event.touches?.length > 1) {
+        event.preventDefault();
+      }
     };
     const preventGesture = e => {
       const tag = e?.target?.tagName?.toLowerCase?.() || '';
@@ -97,7 +98,6 @@ function Frontpage() {
     document.addEventListener('gesturechange', preventGesture);
     document.addEventListener('gestureend', preventGesture);
     return () => {
-      document.documentElement.classList.remove('font-small');
       document.removeEventListener('touchmove', preventPinchZoom);
       document.removeEventListener('gesturestart', preventGesture);
       document.removeEventListener('gesturechange', preventGesture);
@@ -299,6 +299,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/content-utility/lazy-view-mount.tsx
 
 
 const hasWindow = typeof window !== 'undefined';
@@ -309,121 +310,181 @@ const cic = id => hasCIC ? window.cancelIdleCallback(id) : clearTimeout(id);
 function LazyViewMount({
   load,
   fallback = null,
-  eager = false,
-  mountThreshold = 0.3,
-  allowIdle = true,
-  componentProps,
-  eagerThreshold = 0.2,
+  // strategy
+  mountMode = 'io',
+  // IO-only
+  enterThreshold = 0.2,
+  exitThreshold = 0.05,
+  unmountDelayMs = 150,
+  root = null,
+  rootMargin = '0px',
   observeTargetId,
-  rootMargin
+  // preload
+  preloadOnIdle = true,
+  preloadIdleTimeout = 2000,
+  preloadOnFirstIO = true,
+  // layout/UX
+  placeholderMinHeight = 360,
+  fadeMs = 300,
+  fadeEasing = 'ease',
+  componentProps
 }) {
   const isServer = !hasWindow;
   const selfRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [Comp, setComp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const mounted = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+
+  // mounted vs visible (for fade)
+  const mountedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const [isMounted, setIsMounted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const unmountDebounceRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const fadeOutTimerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const firstIOSeen = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+
+  // preload cache
+  const preloadPromiseRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const initialDecisionMade = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
-  const mountNow = () => {
-    if (mounted.current) return;
-    mounted.current = true;
-    setComp(() => /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.lazy)(load));
+  const ensurePreloaded = () => {
+    if (!preloadPromiseRef.current) {
+      preloadPromiseRef.current = load();
+    }
+    return preloadPromiseRef.current;
   };
+  const clearUnmountTimers = () => {
+    if (unmountDebounceRef.current != null) {
+      window.clearTimeout(unmountDebounceRef.current);
+      unmountDebounceRef.current = null;
+    }
+    if (fadeOutTimerRef.current != null) {
+      window.clearTimeout(fadeOutTimerRef.current);
+      fadeOutTimerRef.current = null;
+    }
+  };
+  const mountNow = () => {
+    if (mountedRef.current) {
+      if (!isVisible) setIsVisible(true);
+      return;
+    }
+    mountedRef.current = true;
+    const promise = ensurePreloaded();
+    setComp(prev => prev ?? /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.lazy)(() => promise));
+    setIsMounted(true);
+    requestAnimationFrame(() => setIsVisible(true));
+  };
+  const scheduleUnmount = () => {
+    if (!mountedRef.current) return;
+    clearUnmountTimers();
+    unmountDebounceRef.current = window.setTimeout(() => {
+      setIsVisible(false);
+      fadeOutTimerRef.current = window.setTimeout(() => {
+        setIsMounted(false);
+        mountedRef.current = false;
+      }, fadeMs);
+    }, unmountDelayMs);
+  };
+
+  /* Preload on idle (works for all modes) */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer || mounted.current) return;
-
-    // Determine which element to observe
-    const el = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
-
-    // If we can’t observe anything, fall back to idle (if allowed), else mount immediately
-    if (!el) {
-      if (allowIdle) {
-        idleId.current = ric(() => mountNow(), {
-          timeout: 2000
-        });
-      } else {
-        mountNow();
-      }
-      return () => {
-        if (idleId.current) {
-          cic(idleId.current);
-          idleId.current = null;
-        }
-      };
-    }
-
-    // If IO is absent (very old browsers), fall back similarly
-    if (typeof IntersectionObserver === 'undefined') {
-      if (allowIdle) {
-        idleId.current = ric(() => mountNow(), {
-          timeout: 2000
-        });
-      } else {
-        mountNow();
-      }
-      return () => {
-        if (idleId.current) {
-          cic(idleId.current);
-          idleId.current = null;
-        }
-      };
-    }
-    const io = new IntersectionObserver(([entry]) => {
-      const ratio = entry.intersectionRatio;
-
-      // 1) First decision: conditional eager (only on first callback)
-      if (!initialDecisionMade.current) {
-        initialDecisionMade.current = true;
-        if (eager && ratio >= eagerThreshold) {
-          mountNow();
-          io.disconnect();
-          if (idleId.current) {
-            cic(idleId.current);
-            idleId.current = null;
-          }
-          return;
-        }
-        // else, fall through to normal threshold rule
-      }
-
-      // 2) Normal lazy rule
-      if (ratio >= mountThreshold) {
-        mountNow();
-        io.disconnect();
-        if (idleId.current) {
-          cic(idleId.current);
-          idleId.current = null;
-        }
-      }
-    }, {
-      threshold: Array.from(new Set([0, eagerThreshold, mountThreshold])).sort(),
-      root: null,
-      rootMargin // optional
+    if (isServer || !preloadOnIdle) return;
+    if (idleId.current) cic(idleId.current);
+    idleId.current = ric(() => ensurePreloaded(), {
+      timeout: preloadIdleTimeout
     });
-    io.observe(el);
-    if (allowIdle && !mounted.current) {
-      // schedule idle fallback; will be canceled if IO mounts earlier
-      idleId.current = ric(() => mountNow(), {
-        timeout: 2000
-      });
-    }
     return () => {
-      io.disconnect();
       if (idleId.current) {
         cic(idleId.current);
         idleId.current = null;
       }
     };
-  }, [isServer, eager, eagerThreshold, mountThreshold, allowIdle, load, observeTargetId, rootMargin]);
+  }, [isServer, preloadOnIdle, preloadIdleTimeout, load]);
+
+  /* Mount behavior per mode */
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (isServer) return;
+    if (mountMode === 'immediate') {
+      // mount as soon as possible
+      mountNow();
+      return;
+    }
+    if (mountMode === 'idle') {
+      // after idle (or immediately if idle already passed)
+      let cancel = ric(() => mountNow(), {
+        timeout: preloadIdleTimeout
+      });
+      return () => {
+        if (cancel) cic(cancel);
+      };
+    }
+
+    // mountMode === 'io'
+    const el = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      mountNow();
+      return;
+    }
+
+    // --- replace the IntersectionObserver callback in lazy-view-mount.tsx ---
+    const thresholds = Array.from(new Set([0, exitThreshold, enterThreshold])).sort((a, b) => a - b);
+    const io = new IntersectionObserver(([entry]) => {
+      const ratio = entry.intersectionRatio || 0;
+      const visible = !!entry.isIntersecting;
+
+      // First IO seen → optional preload
+      if (!firstIOSeen.current) {
+        firstIOSeen.current = true;
+        if (preloadOnFirstIO) ensurePreloaded();
+      }
+
+      // Fast-path: on any (re)intersection, mount immediately if not mounted
+      if (visible && !mountedRef.current) {
+        clearUnmountTimers();
+        mountNow();
+        return;
+      }
+
+      // Normal hysteresis:
+      // - If we've reached the "enter" threshold, keep/make visible
+      if (ratio >= enterThreshold) {
+        clearUnmountTimers();
+        if (!mountedRef.current) mountNow();
+        return;
+      }
+
+      // - If we've dropped below exit threshold OR not intersecting at all, schedule unmount
+      if (!visible || ratio <= exitThreshold) {
+        scheduleUnmount();
+      }
+    }, {
+      root,
+      rootMargin,
+      threshold: thresholds
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      clearUnmountTimers();
+    };
+  }, [isServer, mountMode, root, rootMargin, enterThreshold, exitThreshold, observeTargetId, load, fadeMs, unmountDelayMs, preloadIdleTimeout, preloadOnFirstIO]);
+  const CompAny = Comp;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
     ref: selfRef,
     style: {
       width: '100%',
-      height: '100%'
+      minHeight: placeholderMinHeight,
+      position: 'relative'
     },
-    children: Comp ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(react__WEBPACK_IMPORTED_MODULE_0__.Suspense, {
-      fallback: fallback,
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Comp, {
-        ...(componentProps || {})
+    children: isMounted && CompAny ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+      style: {
+        opacity: isVisible ? 1 : 0,
+        transition: `opacity ${fadeMs}ms ${fadeEasing}`,
+        willChange: 'opacity'
+      },
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(react__WEBPACK_IMPORTED_MODULE_0__.Suspense, {
+        fallback: fallback,
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(CompAny, {
+          ...(componentProps || {})
+        })
       })
     }) : fallback
   });
@@ -571,7 +632,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./content-utility/lazy-in-view */ "./src/utils/content-utility/lazy-in-view.tsx");
 /* harmony import */ var _content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./content-utility/lazy-view-mount */ "./src/utils/content-utility/lazy-view-mount.tsx");
-/* harmony import */ var _content_utility_loading__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./content-utility/loading */ "./src/utils/content-utility/loading.tsx");
+/* harmony import */ var _loading_loading__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./loading/loading */ "./src/utils/loading/loading.tsx");
 /* harmony import */ var _content_utility_component_loader__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
@@ -602,7 +663,7 @@ function ProjectPane({
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     setIsHydrated(true);
   }, []);
-  const fallbackNode = !payload && isHydrated ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
+  const fallbackNode = !payload && isHydrated ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
     isFullScreen: false
   }) : null;
   const serverRender = payload && desc?.render ? desc.render(payload.data ?? payload) : null;
@@ -634,12 +695,23 @@ function ProjectPane({
         }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
           load: () => Promise.all(/*! import() */[__webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_utils_content-utility_real-mobile_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
           fallback: null,
-          eager: false,
-          eagerThreshold: 0.2,
-          mountThreshold: 0.3,
-          allowIdle: true,
-          observeTargetId: blockId,
-          rootMargin: "0px 0px -15% 0px",
+          mountMode: "idle" // no IO mount - unmount
+
+          /* Mount/Unmount hysteresis */,
+          enterThreshold: 0.2,
+          exitThreshold: 0.05,
+          unmountDelayMs: 150
+
+          /* Preload chunk early so re-mounts are instant (but don't render yet) */,
+          preloadOnIdle: true,
+          preloadIdleTimeout: 2000,
+          preloadOnFirstIO: true
+
+          /* IO config */,
+          observeTargetId: blockId // or remove to observe the placeholder itself
+          ,
+          rootMargin: "0px",
+          placeholderMinHeight: 360,
           componentProps: {
             blockId
           }
@@ -747,80 +819,163 @@ const ScrollController = () => {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (focusedProjectKey) setJustExitedFocusKey(focusedProjectKey);
   }, [focusedProjectKey]);
+
+  /**
+   * Global, capture-phase edge handoff for both wheel & touch.
+   * - Uses composedPath() so it works through Shadow DOM.
+   * - Finds the nearest scrollable in the path (overflow:auto/scroll and scrollHeight > clientHeight).
+   * - When at top/bottom edge, prevents default and scrolls the outer container instead.
+   * - Enabled only while #block-dynamic is in view.
+   */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) return;
-    let cleanupFns = [];
-    const observer = new MutationObserver(() => {
-      const embeddedEl = document.querySelector('.embedded-app');
-      if (embeddedEl && cleanupFns.length === 0) {
-        const handleWheel = e => {
-          const {
-            deltaY
-          } = e;
-          const {
-            scrollTop,
-            scrollHeight,
-            clientHeight
-          } = embeddedEl;
-          const atTop = scrollTop <= 0;
-          const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-          if (deltaY < 0 && atTop || deltaY > 0 && atBottom) {
-            e.preventDefault();
-            scrollContainer.scrollBy({
-              top: deltaY > 0 ? 300 : -300,
-              behavior: 'smooth'
-            });
-          }
-        };
-        let startY = 0;
-        const handleTouchStart = e => {
-          if (e.touches.length === 1) startY = e.touches[0].clientY;
-        };
-        const handleTouchMove = e => {
-          if (e.touches.length !== 1) return;
-          const currentY = e.touches[0].clientY;
-          const deltaY = currentY - startY;
-          const {
-            scrollTop,
-            scrollHeight,
-            clientHeight
-          } = embeddedEl;
-          const atTop = scrollTop <= 0;
-          const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-          const scrollAmount = Math.max(100, window.innerHeight * 1);
-          if (deltaY > 5 && atTop) {
-            e.preventDefault();
-            scrollContainer.scrollBy({
-              top: -scrollAmount,
-              behavior: 'smooth'
-            });
-          } else if (deltaY < -5 && atBottom) {
-            scrollContainer.scrollBy({
-              top: scrollAmount,
-              behavior: 'smooth'
-            });
-          }
-        };
-        embeddedEl.addEventListener('wheel', handleWheel, {
-          passive: false
-        });
-        embeddedEl.addEventListener('touchstart', handleTouchStart, {
-          passive: true
-        });
-        embeddedEl.addEventListener('touchmove', handleTouchMove, {
-          passive: false
-        });
-        cleanupFns = [() => embeddedEl.removeEventListener('wheel', handleWheel), () => embeddedEl.removeEventListener('touchstart', handleTouchStart), () => embeddedEl.removeEventListener('touchmove', handleTouchMove)];
+    const outer = scrollContainerRef.current;
+    if (!outer) return;
+    let enabled = false;
+    let hostIO = null;
+
+    // Track a single active touch gesture
+    let activeScrollEl = null;
+    let touchActive = false;
+    let lastY = 0;
+    const getPath = e => e.composedPath ? e.composedPath() : [e.target];
+    const isScrollableEl = el => {
+      const cs = getComputedStyle(el);
+      const canScrollY = cs.overflowY === 'auto' || cs.overflowY === 'scroll';
+      return canScrollY && el.scrollHeight > el.clientHeight;
+    };
+    const findScrollableInPath = path => {
+      for (const t of path) {
+        if (!(t instanceof HTMLElement)) continue;
+        // Prefer an explicit marker if you use one:
+        if (t.classList?.contains('embedded-app')) return t;
+        if (isScrollableEl(t)) return t;
       }
-    });
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+      return null;
+    };
+    const atTop = el => el.scrollTop <= 0;
+    const atBottom = el => el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+
+    // ----- Wheel (desktop, trackpads) -----
+    const onWheel = e => {
+      if (!enabled) return;
+      const path = getPath(e);
+      const scrollEl = findScrollableInPath(path);
+      if (!scrollEl) return;
+
+      // If the inner can still scroll, let it handle
+      const goingDown = e.deltaY > 0;
+      if (goingDown && !atBottom(scrollEl)) return;
+      if (!goingDown && !atTop(scrollEl)) return;
+
+      // Edge hit: hand off to outer
+      e.preventDefault();
+      outer.scrollBy({
+        top: e.deltaY > 0 ? 300 : -300,
+        behavior: 'smooth'
+      });
+    };
+
+    // ----- Touch (mobile) -----
+    const onTouchStart = e => {
+      if (!enabled) return;
+      if (e.touches.length !== 1) return;
+      const path = getPath(e);
+      activeScrollEl = findScrollableInPath(path);
+      touchActive = true;
+      lastY = e.touches[0].clientY;
+    };
+    const onTouchMove = e => {
+      if (!enabled || !touchActive || e.touches.length !== 1) return;
+      const y = e.touches[0].clientY;
+      const dy = y - lastY; // finger down => dy>0, finger up => dy<0
+      lastY = y;
+
+      // If no dedicated scroll el was captured, try again dynamically
+      if (!activeScrollEl) {
+        const path = getPath(e);
+        activeScrollEl = findScrollableInPath(path);
+      }
+      const el = activeScrollEl;
+      if (!el) return;
+      const canScroll = el.scrollHeight > el.clientHeight;
+      const hitTop = !canScroll || atTop(el);
+      const hitBottom = !canScroll || atBottom(el);
+
+      // Pulling down at top => scroll outer up; pulling up at bottom => scroll outer down
+      if (dy > 0 && hitTop || dy < 0 && hitBottom) {
+        // Important: passive MUST be false for this to take effect
+        e.preventDefault();
+        // Use sync scrollTop change for immediate response on iOS
+        outer.scrollTop -= dy;
+      }
+    };
+    const onTouchEnd = () => {
+      touchActive = false;
+      activeScrollEl = null;
+    };
+    const enable = () => {
+      if (enabled) return;
+      enabled = true;
+      // capture:true so we see events before inner handlers; passive:false where we may call preventDefault
+      window.addEventListener('wheel', onWheel, {
+        capture: true,
+        passive: false
+      });
+      window.addEventListener('touchstart', onTouchStart, {
+        capture: true,
+        passive: true
+      });
+      window.addEventListener('touchmove', onTouchMove, {
+        capture: true,
+        passive: false
+      });
+      window.addEventListener('touchend', onTouchEnd, {
+        capture: true,
+        passive: true
+      });
+      window.addEventListener('touchcancel', onTouchEnd, {
+        capture: true,
+        passive: true
+      });
+    };
+    const disable = () => {
+      if (!enabled) return;
+      enabled = false;
+      window.removeEventListener('wheel', onWheel, {
+        capture: true
+      });
+      window.removeEventListener('touchstart', onTouchStart, {
+        capture: true
+      });
+      window.removeEventListener('touchmove', onTouchMove, {
+        capture: true
+      });
+      window.removeEventListener('touchend', onTouchEnd, {
+        capture: true
+      });
+      window.removeEventListener('touchcancel', onTouchEnd, {
+        capture: true
+      });
+      touchActive = false;
+      activeScrollEl = null;
+    };
+
+    // Gate by host visibility so we don't run globally all the time
+    const host = document.getElementById('block-dynamic');
+    if (host && 'IntersectionObserver' in window) {
+      hostIO = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) enable();else disable();
+      }, {
+        threshold: [0, 0.2]
+      });
+      hostIO.observe(host);
+    } else {
+      // Fallback: just enable
+      enable();
+    }
     return () => {
-      observer.disconnect();
-      cleanupFns.forEach(fn => fn());
+      if (hostIO) hostIO.disconnect();
+      disable();
     };
   }, [scrollContainerRef]);
   const blockIds = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.map(p => `#block-${p.key}`), [projects]);

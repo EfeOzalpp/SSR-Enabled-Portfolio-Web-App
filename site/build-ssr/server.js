@@ -17395,7 +17395,7 @@ const Frontpage = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"]
     // removed by dead control flow
 {}
   },
-  importAsync: () => Promise.all(/*! import() | FrontPage-jsx */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("FrontPage-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./FrontPage.jsx */ "./src/FrontPage.jsx")),
+  importAsync: () => Promise.all(/*! import() | FrontPage-jsx */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("FrontPage-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./FrontPage.jsx */ "./src/FrontPage.jsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -17436,7 +17436,7 @@ const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["defaul
     // removed by dead control flow
 {}
   },
-  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
+  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -17574,6 +17574,58 @@ function buildPreloadLinks(firstData) {
 
 /***/ }),
 
+/***/ "./src/server/cssPipeline.ts":
+/*!***********************************!*\
+  !*** ./src/server/cssPipeline.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   buildCriticalCss: () => (/* binding */ buildCriticalCss)
+/* harmony export */ });
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var postcss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! postcss */ "postcss");
+/* harmony import */ var postcss__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(postcss__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var postcss_prefix_selector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! postcss-prefix-selector */ "postcss-prefix-selector");
+/* harmony import */ var postcss_prefix_selector__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(postcss_prefix_selector__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+
+/**
+ * Processes CSS files with the same prefixer logic used in client build.
+ * Returns one concatenated CSS string.
+ */
+async function buildCriticalCss(files, {
+  prefix = '#efe-portfolio',
+  allow = selector => selector.startsWith('html') || selector.startsWith('body') || selector.startsWith(':root') || selector.includes('#dynamic-theme') || selector.includes('#shadow-dynamic-app') || selector.includes('::slotted')
+} = {}) {
+  const root = process.cwd();
+  const out = [];
+  const plugins = [postcss_prefix_selector__WEBPACK_IMPORTED_MODULE_3___default()({
+    prefix,
+    transform: (_p, selector, prefixed) => allow(selector) ? selector : prefixed
+  })];
+  for (const rel of files) {
+    const abs = path__WEBPACK_IMPORTED_MODULE_1___default().resolve(root, rel);
+    if (!fs__WEBPACK_IMPORTED_MODULE_0___default().existsSync(abs)) continue;
+    const css = fs__WEBPACK_IMPORTED_MODULE_0___default().readFileSync(abs, 'utf8');
+    const result = await postcss__WEBPACK_IMPORTED_MODULE_2___default()(plugins).process(css, {
+      from: abs
+    });
+    out.push(result.css);
+  }
+  return out.join('\n/* --- separator --- */\n');
+}
+
+/***/ }),
+
 /***/ "./src/server/emotion.ts":
 /*!*******************************!*\
   !*** ./src/server/emotion.ts ***!
@@ -17608,6 +17660,57 @@ function createEmotion() {
 
 /***/ }),
 
+/***/ "./src/server/highScoreRoute.ts":
+/*!**************************************!*\
+  !*** ./src/server/highScoreRoute.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! express */ "express");
+/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(express__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _sanityWrite__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sanityWrite */ "./src/server/sanityWrite.ts");
+
+
+const router = (0,express__WEBPACK_IMPORTED_MODULE_0__.Router)();
+router.post('/highscore', async (req, res) => {
+  const {
+    score
+  } = req.body;
+  if (typeof score !== 'number') {
+    return res.status(400).json({
+      error: 'Invalid score'
+    });
+  }
+  try {
+    const current = await _sanityWrite__WEBPACK_IMPORTED_MODULE_1__.writeClient.fetch(`*[_type == "highScore"] | order(score desc)[0]{score}`);
+    if (current && score <= current.score) {
+      return res.json({
+        highScore: current.score
+      });
+    }
+    const created = await _sanityWrite__WEBPACK_IMPORTED_MODULE_1__.writeClient.create({
+      _type: 'highScore',
+      score
+    });
+    return res.json({
+      highScore: created.score
+    });
+  } catch (err) {
+    console.error('[HS API] update failed:', err.message || err);
+    return res.status(500).json({
+      error: 'Failed to update score'
+    });
+  }
+});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (router);
+
+/***/ }),
+
 /***/ "./src/server/html.ts":
 /*!****************************!*\
   !*** ./src/server/html.ts ***!
@@ -17637,22 +17740,35 @@ function readTextSafe(p) {
 }
 
 /**
- * Minimal prefixer to mimic your PostCSS rule.
- * - Skips at-rules like @keyframes / @font-face to avoid corrupting them.
- * - Leaves html/body/:root, shadow hosts and ::slotted unchanged.
+ * Scopes CSS to a prefix (default: #efe-portfolio).
+ * - Recursively prefixes selectors inside @media blocks.
+ * - Skips @keyframes and @font-face (they remain global).
+ * - Leaves html/body/:root and allowlisted selectors unprefixed.
+ * - Preserves comma-separated selectors.
  */
 function prefixCss(css, prefix = '#efe-portfolio') {
-  return css.replace(/(^|\})\s*([^{]+)/g, (m, brace, selector) => {
+  // 1) Recursively process @media blocks so their inner selectors get prefixed.
+  css = css.replace(/@media[^{]+\{([\s\S]*?)\}/g, (full, inner) => {
+    const prefixedInner = prefixCss(inner, prefix);
+    return full.replace(inner, prefixedInner);
+  });
+
+  // 2) Keep @keyframes and @font-face as-is (global).
+  //    We just avoid touching those blocks by targeting only non-at-rule selectors below.
+
+  // 3) Prefix top-level rules (not starting with '@'), preserving comma lists.
+  return css.replace(/(^|\})\s*([^{@}][^{]*)\{/g, (m, brace, selector) => {
     const sel = selector.trim();
 
-    // don't prefix at-rule blocks (e.g., @keyframes, @font-face, @media headers)
-    if (sel.startsWith('@')) return `${brace} ${sel}`;
-
-    // allowlisted selectors that should remain global
+    // Allowlist selectors that should remain global
     if (sel.startsWith('html') || sel.startsWith('body') || sel.startsWith(':root') || sel.includes('#dynamic-theme') || sel.includes('#shadow-dynamic-app') || sel.includes('::slotted')) {
-      return `${brace} ${sel}`;
+      return `${brace} ${sel}{`;
     }
-    return `${brace} ${prefix} ${sel}`;
+
+    // Prefix each comma-separated selector
+    const parts = sel.split(',').map(s => s.trim()).filter(Boolean);
+    const prefixed = parts.map(s => `${prefix} ${s}`).join(', ');
+    return `${brace} ${prefixed}{`;
   });
 }
 
@@ -17691,16 +17807,22 @@ function buildHtmlOpen(opts) {
   const cssTheme = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/font+theme.css'));
   const cssBlocks = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/general-block.css'));
 
-  // Inline prefixed CSS only for landing routes
+  // 1) App-level critical CSS only for landing routes (keeps HEAD lean)
   let appCriticalCss = '';
   if (routePath === '/' || routePath === '/home') {
-    appCriticalCss = prefixCss(cssTheme) + '\n/* --- separator --- */\n' + prefixCss(cssBlocks) + (extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '');
+    appCriticalCss = prefixCss(cssTheme) + '\n/* --- separator --- */\n' + prefixCss(cssBlocks);
   }
+
+  // 2) Always inline project critical CSS when provided
+  const projectCriticalCss = extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '';
+
+  // 3) Decide html class for homepage font sizing
+  const htmlClass = routePath === '/' || routePath === '/home' ? 'font-small' : '';
 
   // Build font preloads from inlined font CSS (limit to keep HEAD lean)
   const fontPreloadLinks = buildFontPreloads([fontsCss.rubikCss, fontsCss.orbitronCss, fontsCss.poppinsCss, fontsCss.epilogueCss], 4).join('\n');
   return `<!doctype html>
-<html lang="en">
+<html lang="en" class="${htmlClass}">
 <head>
 <meta charSet="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -17716,7 +17838,6 @@ ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)
 ${(preloadLinks || []).join('\n')}
 ${fontPreloadLinks}
 
-
 <style>
 ${fontsCss.rubikCss}
 ${fontsCss.orbitronCss}
@@ -17726,7 +17847,7 @@ ${fontsCss.epilogueCss}
 
 ${extractorLinkTags}
 ${extractorStyleTags}
-${appCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}</style>` : ''}
+${appCriticalCss || projectCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}${projectCriticalCss}</style>` : ''}
 ${emotionStyleTags}
 </head>
 <body>
@@ -17750,31 +17871,34 @@ ${scriptTags}
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! express */ "express");
-/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(express__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react-router */ "./node_modules/react-router/dist/development/index.js");
-/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-dom/server */ "react-dom/server");
-/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_dom_server__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _App__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../App */ "./src/App.jsx");
-/* harmony import */ var _loadable_server__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @loadable/server */ "./node_modules/@loadable/server/dist/cjs/loadable-server.cjs.js");
-/* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.cjs.js");
-/* harmony import */ var _emotion__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./emotion */ "./src/server/emotion.ts");
-/* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! http-proxy-middleware */ "http-proxy-middleware");
-/* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__);
-/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
-/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
-/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
-/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
-/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/server/index.jsx
+/* harmony import */ var dotenv_config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dotenv/config */ "dotenv/config");
+/* harmony import */ var dotenv_config__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dotenv_config__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! express */ "express");
+/* harmony import */ var express__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(express__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-router */ "./node_modules/react-router/dist/development/index.js");
+/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-dom/server */ "react-dom/server");
+/* harmony import */ var react_dom_server__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_dom_server__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _App__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../App */ "./src/App.jsx");
+/* harmony import */ var _loadable_server__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @loadable/server */ "./node_modules/@loadable/server/dist/cjs/loadable-server.cjs.js");
+/* harmony import */ var _emotion_react__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @emotion/react */ "./node_modules/@emotion/react/dist/emotion-react.cjs.js");
+/* harmony import */ var _emotion__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./emotion */ "./src/server/emotion.ts");
+/* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! http-proxy-middleware */ "http-proxy-middleware");
+/* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__);
+/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
+/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
+/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
+/* harmony import */ var _cssPipeline__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./cssPipeline */ "./src/server/cssPipeline.ts");
+/* harmony import */ var _highScoreRoute__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./highScoreRoute */ "./src/server/highScoreRoute.ts");
+/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
+/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
 
@@ -17791,129 +17915,114 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// helpers
 
 
 
-const app = express__WEBPACK_IMPORTED_MODULE_3___default()();
+
+
+const app = express__WEBPACK_IMPORTED_MODULE_4___default()();
+app.use(express__WEBPACK_IMPORTED_MODULE_4___default().json()); // parse JSON body
+
 const IS_DEV = "development" !== 'production';
-const HOST = '172.20.10.13';
-const DEV_HOST_FOR_ASSETS = '172.20.10.13';
+const HOST = '192.168.1.104';
+const DEV_HOST_FOR_ASSETS = '192.168.1.104';
 const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
 const {
   BUILD_DIR,
   STATS_FILE,
   ASSET_MANIFEST
-} = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.resolveStatsFile)();
+} = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.resolveStatsFile)();
+
+/** -----------------------------
+ * ✅ API routes (MOUNT FIRST)
+ * ----------------------------- */
+app.use('/api', _highScoreRoute__WEBPACK_IMPORTED_MODULE_17__["default"]);
 
 /** -----------------------------
  * Static assets
  * ----------------------------- */
-app.use(express__WEBPACK_IMPORTED_MODULE_3___default()["static"](path__WEBPACK_IMPORTED_MODULE_0___default().join(process.cwd(), 'public'), {
+app.use(express__WEBPACK_IMPORTED_MODULE_4___default()["static"](path__WEBPACK_IMPORTED_MODULE_1___default().join(process.cwd(), 'public'), {
   maxAge: '1y',
   index: false
 }));
 if (IS_DEV) {
-  app.use('/static', (0,http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__.createProxyMiddleware)({
+  app.use('/static', (0,http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__.createProxyMiddleware)({
     target: DEV_ASSETS_ORIGIN,
     changeOrigin: true,
     ws: true
   }));
-  app.use('/sockjs-node', (0,http_proxy_middleware__WEBPACK_IMPORTED_MODULE_10__.createProxyMiddleware)({
+  app.use('/sockjs-node', (0,http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__.createProxyMiddleware)({
     target: DEV_ASSETS_ORIGIN,
     changeOrigin: true,
     ws: true
   }));
-}
-if (!IS_DEV) {
-  app.use('/static', express__WEBPACK_IMPORTED_MODULE_3___default()["static"](path__WEBPACK_IMPORTED_MODULE_0___default().join(BUILD_DIR, 'static'), {
+} else {
+  app.use('/static', express__WEBPACK_IMPORTED_MODULE_4___default()["static"](path__WEBPACK_IMPORTED_MODULE_1___default().join(BUILD_DIR, 'static'), {
     maxAge: '1y',
     index: false
   }));
-  app.use(express__WEBPACK_IMPORTED_MODULE_3___default()["static"](BUILD_DIR, {
+  app.use(express__WEBPACK_IMPORTED_MODULE_4___default()["static"](BUILD_DIR, {
     index: false
   }));
 }
 
 /** -----------------------------
- * SSR catch-all
+ * SSR catch-all (MOUNT LAST)
  * ----------------------------- */
 app.get('/*', async (req, res) => {
-  // 0) seed per request
   const {
     seed
-  } = (0,_seed__WEBPACK_IMPORTED_MODULE_15__.getEphemeralSeed)();
-
-  // 1) SSR payload
-  const ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_12__.prepareSsrData)(seed);
-  if (!fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(STATS_FILE)) {
-    res.status(500).send('<pre>Missing build artifacts. Run `npm run build` (prod) or `npm run dev:ssr` (dev) to generate loadable-stats.json.</pre>');
+  } = (0,_seed__WEBPACK_IMPORTED_MODULE_18__.getEphemeralSeed)();
+  const ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_13__.prepareSsrData)(seed);
+  if (!fs__WEBPACK_IMPORTED_MODULE_2___default().existsSync(STATS_FILE)) {
+    res.status(500).send('<pre>Missing build artifacts. Run `npm run build` or `npm run dev:ssr`.</pre>');
     return;
   }
-
-  // 2) loadable
-  const extractor = new _loadable_server__WEBPACK_IMPORTED_MODULE_7__.ChunkExtractor({
+  const extractor = new _loadable_server__WEBPACK_IMPORTED_MODULE_8__.ChunkExtractor({
     statsFile: STATS_FILE,
     publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/'
   });
-
-  // 3) emotion
   const {
     cache,
     extractCriticalToChunks,
     constructStyleTagsFromChunks
-  } = (0,_emotion__WEBPACK_IMPORTED_MODULE_9__.createEmotion)();
-
-  // 4) providers
-  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_8__.CacheProvider, {
+  } = (0,_emotion__WEBPACK_IMPORTED_MODULE_10__.createEmotion)();
+  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_9__.CacheProvider, {
     value: cache,
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_11__.SsrDataProvider, {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_12__.SsrDataProvider, {
       value: ssrPayload,
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_4__.StaticRouter, {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_5__.StaticRouter, {
         location: req.url,
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_App__WEBPACK_IMPORTED_MODULE_6__["default"], {})
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_App__WEBPACK_IMPORTED_MODULE_7__["default"], {})
       })
     })
   }));
-
-  // 5) emotion critical CSS
-  const prerender = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_5__.renderToString)(jsx);
+  const prerender = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_6__.renderToString)(jsx);
   const emotionChunks = extractCriticalToChunks(prerender);
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks);
-
-  // 6) manifest/icons
-  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
+  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
   const iconSvg = '/favicon.svg';
-
-  // 7) fonts
-  const fontsCss = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.readFontCss)();
-
-  // 8) preload first media (depends on ssrPayload)
+  const fontsCss = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.readFontCss)();
   const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
   const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
-  const preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_16__.buildPreloadLinks)(firstData);
+  const preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.buildPreloadLinks)(firstData);
 
-  // 8.5) per-first-project critical CSS (compute here)
+  // --- Build project critical CSS with the same PostCSS prefixer as client
   let extraCriticalCss = '';
   if (firstKey) {
-    const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_13__.ssrRegistry[firstKey];
+    const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_14__.ssrRegistry[firstKey];
     const files = desc?.criticalCssFiles || [];
     if (files.length > 0) {
-      const ROOT = process.cwd();
-      const readSafe = p => {
-        try {
-          return fs__WEBPACK_IMPORTED_MODULE_1___default().readFileSync(path__WEBPACK_IMPORTED_MODULE_0___default().resolve(ROOT, p), 'utf8');
-        } catch {
-          return '';
-        }
-      };
-      extraCriticalCss = files.map(relPath => (0,_html__WEBPACK_IMPORTED_MODULE_14__.prefixCss)(readSafe(relPath))).filter(Boolean).join('\n/* --- separator --- */\n');
+      try {
+        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_16__.buildCriticalCss)(files); // ⬅️ same prefix logic as client
+      } catch (err) {
+        console.error('[SSR] buildCriticalCss failed:', err);
+        extraCriticalCss = '';
+      }
     }
   }
-
-  // 9) HTML
-  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_14__.buildHtmlOpen)({
+  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlOpen)({
     IS_DEV,
     routePath: req.path,
     iconSvg,
@@ -17925,12 +18034,10 @@ app.get('/*', async (req, res) => {
     emotionStyleTags,
     extraCriticalCss
   });
-  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_14__.buildHtmlClose)(ssrPayload, extractor.getScriptTags());
-
-  // 10) stream
+  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlClose)(ssrPayload, extractor.getScriptTags());
   let didError = false;
   const ABORT_MS = IS_DEV ? 30000 : 10000;
-  const stream = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_5__.renderToPipeableStream)(jsx, {
+  const stream = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_6__.renderToPipeableStream)(jsx, {
     onShellReady() {
       res.statusCode = didError ? 500 : 200;
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -18008,6 +18115,31 @@ async function prepareSsrData(seed) {
     preloadLinks
   };
 }
+
+/***/ }),
+
+/***/ "./src/server/sanityWrite.ts":
+/*!***********************************!*\
+  !*** ./src/server/sanityWrite.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   writeClient: () => (/* binding */ writeClient)
+/* harmony export */ });
+/* harmony import */ var _sanity_client__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @sanity/client */ "@sanity/client");
+/* harmony import */ var _sanity_client__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_sanity_client__WEBPACK_IMPORTED_MODULE_0__);
+// src/server/sanityWrite.ts
+
+const writeClient = (0,_sanity_client__WEBPACK_IMPORTED_MODULE_0__.createClient)({
+  projectId: 'uyghamp6',
+  dataset: 'production',
+  apiVersion: '2023-01-01',
+  useCdn: false,
+  token: process.env.SANITY_WRITE_TOKEN
+});
 
 /***/ }),
 
@@ -18192,6 +18324,83 @@ const dynamicSSR = {
     return links;
   },
   criticalCssFiles: ['src/styles/block-type-a.css']
+};
+
+/***/ }),
+
+/***/ "./src/ssr/projects/game.ssr.tsx":
+/*!***************************************!*\
+  !*** ./src/ssr/projects/game.ssr.tsx ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   gameSSR: () => (/* binding */ gameSSR)
+/* harmony export */ });
+/* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+
+
+const gameSSR = {
+  // Server fetch: just the coin doc for SSR onboarding
+  fetch: async () => await (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__.getProjectData)('rock-coin'),
+  // Server render: mirror the lazy onboarding DOM/classes exactly
+  render: coin => {
+    const coinUrl = coin?.image?.asset?.url;
+    const alt = coin?.alt ?? 'Loading';
+
+    // src/ssr/projects/game.ssr.tsx (render)
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("section", {
+      tabIndex: -1,
+      className: "block-type-g ingame",
+      style: {
+        position: 'relative'
+      },
+      "data-ssr-shell": "block-game",
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "block-g-onboarding tooltip-block-g",
+        "aria-live": "polite",
+        style: {
+          display: 'flex',
+          alignItems: 'center'
+        },
+        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+          className: "coin",
+          style: {
+            pointerEvents: 'none'
+          },
+          children: coinUrl ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
+            src: coinUrl,
+            alt: alt,
+            decoding: "async",
+            loading: "eager",
+            draggable: false,
+            style: {
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain'
+            }
+          }) : null
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h1", {
+          className: "onboarding-text",
+          style: {
+            pointerEvents: 'none'
+          },
+          children: "Loading\u2026"
+        })]
+      })
+    });
+  },
+  // Preload the coin so it’s painted ASAP
+  buildPreloads: coin => coin?.image?.asset?.url ? [`<link rel="preload" as="image" href="${coin.image.asset.url}">`] : [],
+  // Inline critical CSS file for the first fold
+  criticalCssFiles: ['src/styles/block-type-g.css']
 };
 
 /***/ }),
@@ -18414,7 +18623,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _projects_rotary_ssr__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./projects/rotary.ssr */ "./src/ssr/projects/rotary.ssr.tsx");
 /* harmony import */ var _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./projects/dataviz.ssr */ "./src/ssr/projects/dataviz.ssr.tsx");
 /* harmony import */ var _projects_dynamic_ssr__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./projects/dynamic.ssr */ "./src/ssr/projects/dynamic.ssr.tsx");
+/* harmony import */ var _projects_game_ssr__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./projects/game.ssr */ "./src/ssr/projects/game.ssr.tsx");
 // src/ssr/registry.ts
+
 
 
 
@@ -18424,8 +18635,8 @@ const ssrRegistry = {
   scoop: _projects_scoop_ssr__WEBPACK_IMPORTED_MODULE_0__.scoopSSR,
   rotary: _projects_rotary_ssr__WEBPACK_IMPORTED_MODULE_1__.rotarySSR,
   dataviz: _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__.datavizSSR,
-  dynamic: _projects_dynamic_ssr__WEBPACK_IMPORTED_MODULE_3__.dynamicSSR
-  // game: undefined,
+  dynamic: _projects_dynamic_ssr__WEBPACK_IMPORTED_MODULE_3__.dynamicSSR,
+  game: _projects_game_ssr__WEBPACK_IMPORTED_MODULE_4__.gameSSR
   // dynamic: undefined,
 };
 
@@ -18459,18 +18670,18 @@ __webpack_require__.r(__webpack_exports__);
 // ----- Async loaders for non-dynamic projects
 
 const componentMap = {
-  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
-  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
-  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx"))
+  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
+  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
+  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx"))
 };
 
 // ----- Split loaders for dynamic (frame & shadow)
 const dynamicLoaders = {
   frame: () => __webpack_require__.e(/*! import() | dynamic-frame */ "dynamic-frame").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/frame */ "./src/components/dynamic-app/frame.tsx")),
-  shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
+  shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
 };
 const gameLoaders = {
-  components: () => __webpack_require__.e(/*! import() | components */ "components").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
+  components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-a410e1"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
   game: () => Promise.all(/*! import() | game */[__webpack_require__.e("src_components_rock-escapade_game-canvas_tsx"), __webpack_require__.e("game")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx"))
 };
 
@@ -18485,15 +18696,15 @@ const toComponent = p => p;
 const baseProjects = [{
   key: 'scoop',
   title: 'Ice Cream Scoop',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
 }, {
   key: 'rotary',
   title: 'Rotary Lamp',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
 }, {
   key: 'dataviz',
   title: 'Data Visualization',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
 }, {
   key: 'game',
   title: 'Evade the Rock',
@@ -18553,6 +18764,16 @@ function useProjectLoader(key) {
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), " ", (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {}), "          "]
+          })
+        };
+      };
+    }
+    if (key === 'game') {
+      return async () => {
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-a410e1"), __webpack_require__.e("src_ssr_projects_game_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/game.enhancer */ "./src/ssr/projects/game.enhancer.tsx"))).default;
+        return {
+          default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+            children: [desc.render(data), " ", (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {}), "         "]
           })
         };
       };
@@ -18641,6 +18862,10 @@ const queries = {
   }`,
   'dynamic-frame': `*[_type == "svgAsset" && title in ["Laptop","Tablet","Phone"]]{
     title, file{ asset->{ url } }
+  }`,
+  'rock-coin': `*[_type=="imageDemanded" && title=="coin"][0]{
+    alt,
+    image{ asset->{ url } }
   }`
   // add others as I go
 };
@@ -18706,14 +18931,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _sanity_client__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @sanity/client */ "@sanity/client");
 /* harmony import */ var _sanity_client__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_sanity_client__WEBPACK_IMPORTED_MODULE_0__);
-// src/utils/sanity.ts
+// utils/sanity.ts
 
 const client = (0,_sanity_client__WEBPACK_IMPORTED_MODULE_0__.createClient)({
   projectId: 'uyghamp6',
   dataset: 'production',
   apiVersion: '2023-01-01',
-  token: process.env.SANITY_WRITE_TOKEN,
-  useCdn: false
+  useCdn: true
 });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (client);
 
@@ -18834,6 +19058,17 @@ module.exports = require("@sanity/client");
 
 "use strict";
 module.exports = require("cookie");
+
+/***/ }),
+
+/***/ "dotenv/config":
+/*!********************************!*\
+  !*** external "dotenv/config" ***!
+  \********************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("dotenv/config");
 
 /***/ }),
 
@@ -18999,6 +19234,28 @@ module.exports = require("node:path");
 
 "use strict";
 module.exports = require("path");
+
+/***/ }),
+
+/***/ "postcss":
+/*!**************************!*\
+  !*** external "postcss" ***!
+  \**************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("postcss");
+
+/***/ }),
+
+/***/ "postcss-prefix-selector":
+/*!******************************************!*\
+  !*** external "postcss-prefix-selector" ***!
+  \******************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("postcss-prefix-selector");
 
 /***/ }),
 

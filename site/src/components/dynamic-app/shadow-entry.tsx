@@ -1,12 +1,8 @@
-// src/components/dynamic-app/shadow-entry.tsx
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import DynamicAppInbound from '../../dynamic-app/dynamic-app-shadow.jsx';
 
-type Props = {
-  /** The outer block element id, e.g. "block-dynamic" */
-  blockId: string;
-};
+type Props = { blockId: string };
 
 const ShadowEntry: React.FC<Props> = ({ blockId }) => {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -26,25 +22,31 @@ const ShadowEntry: React.FC<Props> = ({ blockId }) => {
       return false;
     };
 
-    // First try immediately
     if (tryFind()) return;
 
-    // Watch for it
     const observer = new MutationObserver(() => {
-      if (tryFind()) {
-        observer.disconnect();
-      }
+      if (tryFind()) observer.disconnect();
     });
     observer.observe(container, { childList: true, subtree: true });
-
     return () => observer.disconnect();
   }, [blockId]);
 
+  // NEW: announce mount/unmount of the embedded scroll container to the outer controller
+  useEffect(() => {
+    if (!target) return;
+
+    const detail = { el: target, blockId };
+    const mountedEvt = new CustomEvent('embedded-app:mounted', { detail });
+    window.dispatchEvent(mountedEvt);
+
+    return () => {
+      const unmountedEvt = new CustomEvent('embedded-app:unmounted', { detail });
+      window.dispatchEvent(unmountedEvt);
+    };
+  }, [target, blockId]);
+
   if (!target) return null;
-  return ReactDOM.createPortal(
-    <DynamicAppInbound onFocusChange={() => {}} />,
-    target
-  );
+  return ReactDOM.createPortal(<DynamicAppInbound onFocusChange={() => {}} />, target);
 };
 
 export default ShadowEntry;

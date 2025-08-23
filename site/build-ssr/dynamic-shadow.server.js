@@ -19,7 +19,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _dynamic_app_dynamic_app_shadow_jsx__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/components/dynamic-app/shadow-entry.tsx
 
 
 
@@ -40,15 +39,9 @@ const ShadowEntry = ({
       }
       return false;
     };
-
-    // First try immediately
     if (tryFind()) return;
-
-    // Watch for it
     const observer = new MutationObserver(() => {
-      if (tryFind()) {
-        observer.disconnect();
-      }
+      if (tryFind()) observer.disconnect();
     });
     observer.observe(container, {
       childList: true,
@@ -56,6 +49,25 @@ const ShadowEntry = ({
     });
     return () => observer.disconnect();
   }, [blockId]);
+
+  // NEW: announce mount/unmount of the embedded scroll container to the outer controller
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!target) return;
+    const detail = {
+      el: target,
+      blockId
+    };
+    const mountedEvt = new CustomEvent('embedded-app:mounted', {
+      detail
+    });
+    window.dispatchEvent(mountedEvt);
+    return () => {
+      const unmountedEvt = new CustomEvent('embedded-app:unmounted', {
+        detail
+      });
+      window.dispatchEvent(unmountedEvt);
+    };
+  }, [target, blockId]);
   if (!target) return null;
   return /*#__PURE__*/react_dom__WEBPACK_IMPORTED_MODULE_1___default().createPortal((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_dynamic_app_dynamic_app_shadow_jsx__WEBPACK_IMPORTED_MODULE_2__["default"], {
     onFocusChange: () => {}

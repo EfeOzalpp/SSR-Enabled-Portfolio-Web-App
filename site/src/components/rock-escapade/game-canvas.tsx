@@ -350,12 +350,12 @@ export default function GameCanvas({
           lastDemoFlag = demo;
 
           if (pauseHiddenRef.current && !visibleRef.current) {
-            p.background(25);
+            p.background(28);
             return;
           }
 
           const delta = p.deltaTime / 16.67;
-          p.background(25);
+          p.background(28);
 
           if (!demo && overlayRef.current) {
             movingUp = movingDown = movingLeft = movingRight = false;
@@ -403,7 +403,7 @@ export default function GameCanvas({
             }
             prevGameOver = gameOver;
 
-            if (gameOver) { p.background(25, 180); return; }
+            if (gameOver) { p.background(28, 180); return; }
             drawCooldownRing();
           } else {
             gameOver = false; // demo never ends
@@ -877,5 +877,5 @@ export default function GameCanvas({
     };
   }, []); // run once
 
-  return <div className="evade-the-rock" ref={hostRef} style={{ width: '100%', height: '100%' }} />;
+  return <div className="evade-the-rock" ref={hostRef} style={{ width: '100vw', height: '100dvh' }} />;
 }

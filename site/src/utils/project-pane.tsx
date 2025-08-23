@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import LazyInView from './content-utility/lazy-in-view';
 import LazyViewMount from './content-utility/lazy-view-mount';
-import LoadingScreen from './content-utility/loading';
+import LoadingScreen from './loading/loading';
 import { useProjectLoader } from './content-utility/component-loader';
 import { useSsrData } from './context-providers/ssr-data-context';
 import { ssrRegistry } from '../ssr/registry';
@@ -65,12 +65,23 @@ export function ProjectPane({
               <LazyViewMount
                 load={() => import('../components/dynamic-app/shadow-entry')}
                 fallback={null}
-                eager={false}
-                eagerThreshold={0.2}
-                mountThreshold={0.3}
-                allowIdle={true}
-                observeTargetId={blockId}
-                rootMargin="0px 0px -15% 0px"
+                mountMode="idle" // no IO mount - unmount
+                
+                /* Mount/Unmount hysteresis */
+                enterThreshold={0.2}
+                exitThreshold={0.05}
+                unmountDelayMs={150}
+
+                /* Preload chunk early so re-mounts are instant (but don't render yet) */
+                preloadOnIdle
+                preloadIdleTimeout={2000}
+                preloadOnFirstIO
+
+                /* IO config */
+                observeTargetId={blockId}   // or remove to observe the placeholder itself
+                rootMargin="0px"
+                placeholderMinHeight={360}
+
                 componentProps={{ blockId }}
               />
             )}

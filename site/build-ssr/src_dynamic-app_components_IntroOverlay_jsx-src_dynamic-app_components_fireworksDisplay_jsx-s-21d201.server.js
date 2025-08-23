@@ -333,8 +333,8 @@ const FireworksDisplay = ({
             this.targetY = p.random(p.height * 0.05, p.height * 0.3);
           } else {
             // For screens larger than 1024px, make the explosion lower on the screen
-            this.targetX = p.random(p.width * 0.4, p.width * 0.6);
-            this.targetY = p.random(p.height * 0.05, p.height * 0.5);
+            this.targetX = p.random(p.width * 0.3, p.width * 0.7);
+            this.targetY = p.random(p.height * 0.1, p.height * 0.5);
           }
           this.col = col;
           this.type = type;
@@ -517,7 +517,7 @@ const FireworksDisplay = ({
       hiddenDurationRef.current = 0;
       lastFireworkTime = 0;
       let fireworkToggle = true; // Starts with BLINKING
-      let nextFireworkDelay = p.random(2000, 5000); // Random delay between 2000ms and 5000ms
+      let nextFireworkDelay = p.random(3000, 7000); // Random delay between 2000ms and 5000ms
 
       p.draw = () => {
         if (isRealMobileRef.current) {
@@ -1275,34 +1275,80 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _utils_context_providers_style_injector_ts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/context-providers/style-injector.ts */ "./src/utils/context-providers/style-injector.ts");
-/* harmony import */ var _styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../styles/dynamic-app/title.css?raw */ "./src/styles/dynamic-app/title.css?raw");
-/* harmony import */ var _styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// TitleDivider component
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils_context_providers_style_injector_ts__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/context-providers/style-injector.ts */ "./src/utils/context-providers/style-injector.ts");
+/* harmony import */ var _styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../styles/dynamic-app/title.css?raw */ "./src/styles/dynamic-app/title.css?raw");
+/* harmony import */ var _styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// TitleDivider component (no flicker on enter/leave)
 
 
 
+
+const isTriplet = v => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'string');
 const TitleDivider = ({
   svgIcon,
   movingTextColors,
   pauseAnimation
 }) => {
-  const [color1, color2, color3] = movingTextColors || ['#70c6b0', '#5670b5', '#50b0c5'];
-  (0,_utils_context_providers_style_injector_ts__WEBPACK_IMPORTED_MODULE_0__.useStyleInjection)((_styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_1___default()), 'dynamic-app-style-title');
+  (0,_utils_context_providers_style_injector_ts__WEBPACK_IMPORTED_MODULE_1__.useStyleInjection)((_styles_dynamic_app_title_css_raw__WEBPACK_IMPORTED_MODULE_2___default()), 'dynamic-app-style-title');
 
-  // Adjust hex brightness
-  const adjustBrightness = (hex, multiplier) => {
+  // ----- visibility of this component -----
+  const rootRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setIsVisible(!!entry.isIntersecting), {
+      threshold: 0.01
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // ----- stable palette that only changes when visible -----
+  const defaultTriplet = ['#70c6b0', '#5670b5', '#50b0c5'];
+  const incoming = isTriplet(movingTextColors) ? movingTextColors : defaultTriplet;
+  const [stableColors, setStableColors] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(incoming);
+  const pendingRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // shallow compare helper
+  const sameTriplet = (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+
+  // When palette prop changes: apply immediately if visible, else stash it.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!isTriplet(incoming)) return;
+    if (isVisible) {
+      setStableColors(prev => sameTriplet(prev, incoming) ? prev : incoming);
+      pendingRef.current = null;
+    } else {
+      // hold for later to avoid flicker while hidden
+      pendingRef.current = incoming;
+    }
+  }, [incoming, isVisible]);
+
+  // When we become visible, commit any pending palette once.
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (isVisible && pendingRef.current && !sameTriplet(stableColors, pendingRef.current)) {
+      setStableColors(pendingRef.current);
+      pendingRef.current = null;
+    }
+  }, [isVisible, stableColors]);
+
+  // ----- brightness adjust + smooth transition -----
+  const adjustBrightness = (hex, mul) => {
+    if (!/^#[0-9a-f]{6}$/i.test(hex)) return hex;
     let r = parseInt(hex.slice(1, 3), 16);
     let g = parseInt(hex.slice(3, 5), 16);
     let b = parseInt(hex.slice(5, 7), 16);
-    r = Math.min(255, Math.max(0, Math.floor(r * multiplier)));
-    g = Math.min(255, Math.max(0, Math.floor(g * multiplier)));
-    b = Math.min(255, Math.max(0, Math.floor(b * multiplier)));
+    r = Math.min(255, Math.max(0, Math.floor(r * mul)));
+    g = Math.min(255, Math.max(0, Math.floor(g * mul)));
+    b = Math.min(255, Math.max(0, Math.floor(b * mul)));
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
-  const colors = [adjustBrightness(color1, 1.05), adjustBrightness(color2, 1.25), adjustBrightness(color3, 1.1)];
-  const textSegments = [{
+  const colors = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => [adjustBrightness(stableColors[0], 1.05), adjustBrightness(stableColors[1], 1.25), adjustBrightness(stableColors[2], 1.10)], [stableColors]);
+  const textSegments = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => [{
     text: 'Institute Gallery',
     suffix: ''
   }, {
@@ -1311,39 +1357,40 @@ const TitleDivider = ({
   }, {
     text: 'Dyn',
     suffix: 'mic Media'
-  }];
-
-  // Generate moving text spans
-  const renderMovingContent = (repeatCount = 2) => {
-    return [...Array(repeatCount)].flatMap((_, repeatIndex) => textSegments.map((segment, i) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
-      className: "moving-text",
-      style: {
-        color: colors[i]
-      },
-      children: [segment.text, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
-        className: "logo-container",
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
-          className: "svg-icon",
-          style: {
-            fill: colors[i]
-          },
-          dangerouslySetInnerHTML: {
-            __html: svgIcon
-          }
-        })
-      }), segment.suffix]
-    }, `${repeatIndex}-${i}`)));
-  };
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+  }], []);
+  const renderMovingContent = (repeatCount = 2) => [...Array(repeatCount)].flatMap((_, repeatIndex) => textSegments.map((segment, i) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("span", {
+    className: "moving-text",
+    style: {
+      color: colors[i],
+      transition: 'color 180ms linear'
+    },
+    children: [segment.text, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+      className: "logo-container",
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+        className: "svg-icon"
+        // If your injected SVG respects currentColor, you could instead set color here.
+        ,
+        style: {
+          fill: colors[i],
+          transition: 'fill 180ms linear'
+        },
+        dangerouslySetInnerHTML: {
+          __html: svgIcon
+        }
+      })
+    }), segment.suffix]
+  }, `${repeatIndex}-${i}`)));
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
     className: "title-container",
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    ref: rootRef,
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
       className: "static-title",
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h1", {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h1", {
         children: "MassArt 2024"
       })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
       className: `moving-title ${pauseAnimation ? 'paused' : ''}`,
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h1", {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h1", {
         className: "title-with-icon moving-text-wrapper",
         children: renderMovingContent()
       })
@@ -1876,7 +1923,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _video_observer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./video-observer */ "./src/utils/media-providers/video-observer.tsx");
-/* harmony import */ var _content_utility_loading__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../content-utility/loading */ "./src/utils/content-utility/loading.tsx");
+/* harmony import */ var _loading_loading__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../loading/loading */ "./src/utils/loading/loading.tsx");
 /* harmony import */ var _image_builder__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./image-builder */ "./src/utils/media-providers/image-builder.ts");
 /* harmony import */ var _image_upgrade_manager__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./image-upgrade-manager */ "./src/utils/media-providers/image-upgrade-manager.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
@@ -2037,7 +2084,7 @@ const MediaLoader = ({
       },
       children: [!loaded && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
         className: "absolute inset-0 z-10",
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_content_utility_loading__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_2__["default"], {
           isFullScreen: false
         })
       }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("img", {
@@ -2077,7 +2124,7 @@ const MediaLoader = ({
     },
     children: [!loaded && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
       className: "absolute inset-0 z-10",
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_content_utility_loading__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_2__["default"], {
         isFullScreen: false
       })
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("video", {

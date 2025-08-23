@@ -1,0 +1,58 @@
+/* src/styles/loading-hub.css */
+.loading-hub {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  justify-content: start;
+  padding: 16px 12px;
+  /* Let your existing prefixer scope this under #efe-portfolio on SSR */
+}
+
+.loading-hub__spinner {
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: rgba(255,255,255,0.9);
+  animation: loadinghub-spin 0.9s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,0.15));
+}
+
+@keyframes loadinghub-spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-hub__copy {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.loading-hub__line {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: .2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: .95;
+}
+
+.loading-hub__progress {
+  font-variant-numeric: tabular-nums;
+  opacity: .75;
+}
+
+/* per-block accenting (opt-in) */
+.loading-hub.--rotary .loading-hub__spinner { border-top-color: rgba(204, 85, 41, 1); }
+.loading-hub.--game   .loading-hub__spinner { border-top-color: rgba(101, 86, 175, 1); }
+.loading-hub.--scoop  .loading-hub__spinner { border-top-color: rgba(234, 103, 97, 1); }
+.loading-hub.--dataviz .loading-hub__spinner { border-top-color: rgba(153, 199, 7, 1); }
+
+/* screen-reader only helper */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}

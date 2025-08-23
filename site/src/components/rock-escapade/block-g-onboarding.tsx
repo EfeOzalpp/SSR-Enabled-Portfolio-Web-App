@@ -4,25 +4,38 @@ import onboardingAnimation from '../../svg/coin.json';
 import { useProjectVisibility } from '../../utils/context-providers/project-context';
 import { useTooltipInit } from '../../utils/tooltip/tooltipInit';
 
-const BlockGOnboarding = ({ onStart, resetTrigger }) => {
+type Props = {
+  onStart?: () => void;
+  resetTrigger?: number;
+  label?: string;          // NEW
+  ctaEnabled?: boolean;    // NEW
+};
+
+const BlockGOnboarding: React.FC<Props> = ({
+  onStart,
+  resetTrigger,
+  label = 'Click Here to Play!',
+  ctaEnabled = true,
+}) => {
   const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const lottieRef = useRef(null);
-  const containerRef = useRef(null);
-  const lottieInstance = useRef(null);
+  const lottieRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const lottieInstance = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null);
+
   useTooltipInit();
   const {
     focusedProjectKey,
     scrollContainerRef,
     previousScrollY,
     setPreviousScrollY,
-    setFocusedProjectKey
+    setFocusedProjectKey,
   } = useProjectVisibility();
 
   const handleClick = () => {
+    if (!ctaEnabled) return; // gate until ready
     if (focusedProjectKey) {
       setPreviousScrollY(window.scrollY);
-
       setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
@@ -31,12 +44,11 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
         }
       }, 0);
     }
-    
-    if (onStart) onStart();
+    onStart?.();
     setIsFadingOut(true);
   };
 
-  // Restore scroll position when exiting focus mode
+  // Restore scroll pos on exit from focus mode
   useEffect(() => {
     if (!focusedProjectKey && previousScrollY !== null) {
       window.scrollTo({ top: previousScrollY, behavior: 'auto' });
@@ -45,37 +57,33 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
   }, [focusedProjectKey]);
 
   const initializeLottie = () => {
-    if (lottieRef.current) {
-      if (lottieInstance.current) {
-        lottieInstance.current.destroy();
-      }
-
-      lottieInstance.current = lottie.loadAnimation({
-        container: lottieRef.current,
-        renderer: 'svg',
-        loop: false,
-        autoplay: false,
-        animationData: onboardingAnimation,
-      });
-
-      lottieInstance.current.addEventListener('complete', () => {
-        lottieInstance.current.playSegments([41, lottieInstance.current.totalFrames], true);
-        lottieInstance.current.loop = true;
-      });
-    }
+    if (!lottieRef.current) return;
+    // reset any prior
+    lottieInstance.current?.destroy();
+    lottieInstance.current = lottie.loadAnimation({
+      container: lottieRef.current,
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      animationData: onboardingAnimation,
+    });
+    lottieInstance.current.addEventListener('complete', () => {
+      if (!lottieInstance.current) return;
+      lottieInstance.current.playSegments([41, lottieInstance.current.totalFrames], true);
+      lottieInstance.current.loop = true;
+    });
   };
 
   const destroyLottie = () => {
-    if (lottieInstance.current) {
-      lottieInstance.current.destroy();
-      lottieInstance.current = null;
-    }
+    lottieInstance.current?.destroy();
+    lottieInstance.current = null;
   };
 
+  // IO mount/unmount of the Lottie — ONLY depends on resetTrigger (not on label/ctaEnabled)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             initializeLottie();
             if (lottieInstance.current) {
@@ -90,22 +98,18 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
       { threshold: 0.1 }
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+    if (containerRef.current) observer.observe(containerRef.current);
 
     return () => {
       observer.disconnect();
       destroyLottie();
     };
-  }, [resetTrigger]);
+  }, [resetTrigger]); // ← label/ctaEnabled intentionally omitted
 
   useEffect(() => {
     if (isFadingOut) {
-      const timeout = setTimeout(() => {
-        setVisible(false);
-      }, 300);
-      return () => clearTimeout(timeout);
+      const t = setTimeout(() => setVisible(false), 300);
+      return () => clearTimeout(t);
     }
   }, [isFadingOut]);
 
@@ -122,6 +126,7 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
     <div
       className="block-g-onboarding tooltip-block-g"
       ref={containerRef}
+      aria-busy={!ctaEnabled}
       style={{
         opacity: isFadingOut ? 0 : 1,
         transition: 'opacity 0.3s ease',
@@ -132,16 +137,16 @@ const BlockGOnboarding = ({ onStart, resetTrigger }) => {
       <div
         ref={lottieRef}
         className="coin"
-        onClick={handleClick} // 👈 Only clickable here
-        style={{ pointerEvents: 'auto' }}
-      ></div>
-
+        onClick={handleClick}
+        style={{ pointerEvents: ctaEnabled ? 'auto' : 'none', cursor: ctaEnabled ? 'pointer' : 'default' }}
+      />
       <h1
         className="onboarding-text"
-        onClick={handleClick} // 👈 And here
-        style={{ pointerEvents: 'auto' }}
+        onClick={handleClick}
+        aria-disabled={!ctaEnabled}
+        style={{ pointerEvents: ctaEnabled ? 'auto' : 'none', cursor: ctaEnabled ? 'pointer' : 'default' }}
       >
-        Click Here to Play!
+        {label}
       </h1>
     </div>
   );

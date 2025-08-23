@@ -18,7 +18,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_navigation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/navigation */ "./src/dynamic-app/components/navigation.jsx");
 /* harmony import */ var _components_title__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/title */ "./src/dynamic-app/components/title.jsx");
 /* harmony import */ var _components_sortBy__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./components/sortBy */ "./src/dynamic-app/components/sortBy.jsx");
-/* harmony import */ var _utils_content_utility_loading_tsx__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/content-utility/loading.tsx */ "./src/utils/content-utility/loading.tsx");
+/* harmony import */ var _utils_loading_loading__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/loading/loading */ "./src/utils/loading/loading.tsx");
 /* harmony import */ var _components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./components/fireworksDisplay */ "./src/dynamic-app/components/fireworksDisplay.jsx");
 /* harmony import */ var _components_pauseButton__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/pauseButton */ "./src/dynamic-app/components/pauseButton.jsx");
 /* harmony import */ var _components_footer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./components/footer */ "./src/dynamic-app/components/footer.jsx");
@@ -35,7 +35,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../styles/loading-overlay.css?raw */ "./src/styles/loading-overlay.css?raw");
 /* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(_styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_16__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// DynamicTheme émbéd.jsx
+// DynamicTheme émbéd.jsx (with guarded alt observer)
 
 
 
@@ -63,11 +63,20 @@ function DynamicTheme() {
   const [isLoading, setIsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const [pauseAnimation, setPauseAnimation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [showNavigation, setShowNavigation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const toggleFireworksRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const scrollContainerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const shadowRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const [showFireworks, setShowFireworks] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true); // rémové firéwork to savé héadroom whén not in viéw 
 
+  /** @type {React.MutableRefObject<((enabled:boolean)=>void)|null>} */
+  const toggleFireworksRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  /** @type {React.MutableRefObject<HTMLElement|null>} */
+  const scrollContainerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  /** @type {React.MutableRefObject<HTMLElement|null>} */
+  const shadowRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // Derived fireworks mount flag (visibility && !paused)
+  const [showFireworks, setShowFireworks] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+
+  // Track host visibility for guarding alt updates
+  const [isHostVisible, setIsHostVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const hostVisibleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const {
     getShadowRoot,
     injectStyle
@@ -78,7 +87,7 @@ function DynamicTheme() {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const timeout = setTimeout(() => {
       setIsLoading(false);
-      setShowNavigation(true); // runs when DOM is ready
+      setShowNavigation(true);
     }, 200);
     return () => clearTimeout(timeout);
   }, []);
@@ -88,84 +97,116 @@ function DynamicTheme() {
         const iconMapping = icons.reduce((acc, icon) => {
           acc[icon.title] = icon.icon;
           return acc;
-        }, {});
+        }, /** @type {Record<string,string>} */{});
         setSvgIcons(iconMapping);
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 200);
+        setTimeout(() => setIsLoading(false), 200);
       });
     }, 400);
   }, []);
+
+  /** @type {React.MutableRefObject<Document|ShadowRoot|null>} */
   const observerRoot = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
     observerRoot.current = root;
   }, [getShadowRoot]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!isLoading && sortedImages.length > 0) {
-      const root = observerRoot.current;
-      (0,_lib_setupAltObserver__WEBPACK_IMPORTED_MODULE_10__["default"])(handleActivate, handleDeactivate, root);
-    }
-  }, [sortedImages, pauseAnimation, isLoading]);
-  const handleSetToggleFireworks = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(toggleFunction => {
-    toggleFireworksRef.current = toggleFunction;
-  }, []);
-  const handlePauseToggle = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(isEnabled => {
-    if (toggleFireworksRef.current) {
-      toggleFireworksRef.current(isEnabled);
-    }
-    setPauseAnimation(!isEnabled);
-  }, []);
-  const handleActivate = alt1 => {
+
+  // ------ ALT color logic (unchanged helpers) ------
+  const handleActivate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(alt1 => {
     const colors = _lib_colorString_ts__WEBPACK_IMPORTED_MODULE_12__.colorMapping[alt1];
     if (colors && colors[0] !== activeColor) {
       setActiveColor(colors[2]);
       setMovingTextColors([colors[0], colors[1], colors[3]]);
       setLastKnownColor(colors[2]);
     }
-  };
-  const handleDeactivate = alt1 => {
+  }, [activeColor]);
+  const handleDeactivate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     if (activeColor !== lastKnownColor) {
       setActiveColor(lastKnownColor);
     }
-  };
+  }, [activeColor, lastKnownColor]);
 
-  // résizé
+  // ------ Guarded alt observer: only while host is visible; dedup events; cleanup properly ------
+  const currentAltRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (isLoading || sortedImages.length === 0) return;
+    const root = observerRoot.current;
+    if (!root) return;
+    const guardedActivate = alt1 => {
+      if (!hostVisibleRef.current) return; // ignore when section not visible
+      if (currentAltRef.current === alt1) return; // ignore duplicate activate
+      currentAltRef.current = alt1;
+      handleActivate(alt1);
+    };
+    const guardedDeactivate = alt1 => {
+      if (!hostVisibleRef.current) return; // ignore when section not visible
+      if (currentAltRef.current !== alt1) return; // only deactivate if it was the active one
+      handleDeactivate(alt1);
+    };
+    const cleanup = (0,_lib_setupAltObserver__WEBPACK_IMPORTED_MODULE_10__["default"])(guardedActivate, guardedDeactivate, root);
+    return typeof cleanup === 'function' ? cleanup : undefined;
+    // NOTE: don't include pauseAnimation here; pausing shouldn't rebuild the observer
+  }, [isLoading, sortedImages, handleActivate, handleDeactivate]);
+
+  // ------ Pause button bridge ------
+  const handleSetToggleFireworks = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(toggleFunction => {
+    toggleFireworksRef.current = toggleFunction;
+  }, []);
+  const handlePauseToggle = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(isEnabled => {
+    // sync internal engine immediately, if mounted
+    if (toggleFireworksRef.current) toggleFireworksRef.current(isEnabled);
+    setPauseAnimation(!isEnabled);
+  }, []);
+
+  // ------ Resize (as you had) ------
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!shadowRef.current) return;
     const observer = new ResizeObserver(() => {
       console.log('[🔁 Resize observed]', shadowRef.current?.getBoundingClientRect());
-      // Optionally trigger reflows / state updates
     });
     observer.observe(shadowRef.current);
     return () => observer.disconnect();
   }, []);
 
-  // Remove firework when not in view
+  // ------ Host visibility controls fireworks AND gates alt updates ------
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    // Directly select the container by ID
     const container = document.querySelector('#block-dynamic');
     if (!container) {
       console.warn('[FireworkObserver] #block-dynamic not found in DOM');
       return;
     }
-
-    // IntersectionObserver setup
-    const observer = new IntersectionObserver(([entry]) => {
-      const isVisible = entry.isIntersecting;
-      setShowFireworks(prev => prev !== isVisible ? isVisible : prev);
+    const io = new IntersectionObserver(([entry]) => {
+      const visible = !!entry.isIntersecting;
+      hostVisibleRef.current = visible;
+      setIsHostVisible(visible);
+      const desired = visible && !pauseAnimation; // respect Pause
+      setShowFireworks(prev => prev !== desired ? desired : prev);
+      if (toggleFireworksRef.current) toggleFireworksRef.current(desired);
     }, {
       threshold: 0.3,
-      // ~30% visible before toggling
-      root: null // null means observe relative to the viewport
+      root: null
     });
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, []);
+    io.observe(container);
+
+    // Run once immediately
+    const rect = container.getBoundingClientRect();
+    const visibleNow = rect.top < window.innerHeight && rect.bottom > 0;
+    hostVisibleRef.current = visibleNow;
+    setIsHostVisible(visibleNow);
+    const initialDesired = visibleNow && !pauseAnimation;
+    setShowFireworks(prev => prev !== initialDesired ? initialDesired : prev);
+    if (toggleFireworksRef.current) toggleFireworksRef.current(initialDesired);
+    return () => io.disconnect();
+  }, [pauseAnimation]);
+
+  // Keep internal engine synced when pause toggles
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (toggleFireworksRef.current) toggleFireworksRef.current(!pauseAnimation && isHostVisible);
+  }, [pauseAnimation, isHostVisible]);
   const cardRefs = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)([]);
   cardRefs.current = sortedImages.map((_, i) => cardRefs.current[i] ?? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef());
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-    children: isLoading ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_utils_content_utility_loading_tsx__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    children: isLoading ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_utils_loading_loading__WEBPACK_IMPORTED_MODULE_4__["default"], {
       isFullScreen: false
     }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
       className: "homePage-container",
@@ -477,7 +518,7 @@ function useIntersectionTransform(ref, getShadowRoot, pauseAnimation, getScrollR
       } else if (width > 1025) {
         if (percentage > 0.6 && percentage <= 1) {
           imageContainerTransform = 'translate(1em, 1em)';
-          imageContainer2Transform = 'translate(0em, -28.4em)';
+          imageContainer2Transform = 'translate(0em, -29.2em)';
           imageContainerZIndex = '1';
           imageContainer2ZIndex = '5';
         } else if (percentage > 0.3 && percentage <= 0.6) {

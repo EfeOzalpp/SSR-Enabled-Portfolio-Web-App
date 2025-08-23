@@ -92,7 +92,7 @@ const DynamicEnhancer = () => {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!shouldMountShadow) return;
     let alive = true;
-    Promise.all(/*! import() */[__webpack_require__.e("src_utils_content-utility_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx")).then(m => {
+    Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx")).then(m => {
       if (alive) setShadowInbound(() => m.default);
     }).catch(err => console.warn('[DynamicEnhancer] shadow import failed:', err));
     return () => {

@@ -1,25 +1,13 @@
-import client from '../../utils/sanity';
-
-type HS = { _id: string; _rev: string; score: number };
-const ID = 'highscore';
-
-// Cast once to keep TS happy across client versions
-const c: any = client;
-
-export async function updateHighScore(newScore: number) {
+export async function updateHighScore(score: number) {
   try {
-    await c.createIfNotExists({_id: ID, _type: 'highScore', score: 0});
-    const doc: HS | null = await c.getDocument(ID);
-    const current = doc?.score ?? 0;
-    if (newScore <= current) return current;
-
-    const updated: HS = await c
-      .patch(ID)
-      .ifRevisionId(doc!._rev)
-      .set({score: newScore})
-      .commit();
-
-    return updated?.score ?? newScore;
+    const res = await fetch('/api/highscore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data.highScore as number;
   } catch (err) {
     console.error('[HS] update failed:', err);
     return null;
