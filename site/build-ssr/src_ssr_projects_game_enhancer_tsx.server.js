@@ -18,8 +18,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
 /* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _svg_coin_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/coin.json */ "./src/svg/coin.json");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/loading/loading-hub */ "./src/utils/loading/loading-hub.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/components/rock-escapade/block-g-onboarding-inner.tsx
+
 
 
 
@@ -31,7 +33,9 @@ const BlockGOnboardingInner = ({
   startAtFrame = 0,
   loopFromFrame = 41,
   debug = false,
-  label = 'Click Here to Play!'
+  label = 'Click Here to Play!',
+  ctaEnabled = false,
+  loadingLines = ["Loading engine…", "Creating game canvas…", "Configuring frame loop…", "Setting up input controls…", "Applying display settings…", "Initializing game state…", "Spawning player…", "Almost ready…"]
 }) => {
   const hostRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const animRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
@@ -139,15 +143,31 @@ const BlockGOnboardingInner = ({
     };
     // Only re-init when these truly need to change:
   }, [startAtFrame, loopFromFrame, debug]);
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
       ref: hostRef,
       className: "coin",
       onClick: onClick,
       style: {
         pointerEvents: 'auto'
       }
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h1", {
+    }), !ctaEnabled ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h1", {
+        className: "onboarding-text loading-text",
+        style: {
+          pointerEvents: 'none'
+        },
+        children: "Loading Game\u2026"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        className: "loading-hub--game loading-hub--left",
+        keyword: "game",
+        minHeight: 72,
+        lines: loadingLines,
+        ariaLabel: "Loading game"
+      })]
+    }) :
+    // Ready → show CTA
+    (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h1", {
       className: "onboarding-text",
       onClick: onClick,
       style: {
@@ -316,7 +336,7 @@ const GameEnhancer = () => {
       reset: onboardingReset,
       startAtFrame: stableStartAtForThisMount,
       onInnerMount: handleInnerMount,
-      label: stageReady ? 'Click Here to Play!' : 'Loading…',
+      label: stageReady ? 'Click Here to Play!' : 'Loading Game……',
       ctaEnabled: stageReady
     }), onboardingEl), /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(GameStage, {
       blockId: "block-game",
@@ -336,12 +356,14 @@ const OnboardingPortal = ({
   startAtFrame,
   onInnerMount,
   label,
-  ctaEnabled
+  ctaEnabled,
+  loadingLines
 }) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_components_rock_escapade_block_g_onboarding_inner__WEBPACK_IMPORTED_MODULE_3__["default"], {
   startAtFrame: startAtFrame,
   onMount: onInnerMount,
   label: label,
-  ctaEnabled: ctaEnabled
+  ctaEnabled: ctaEnabled,
+  loadingLines: loadingLines
 }, reset);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GameEnhancer);
 
@@ -549,11 +571,8 @@ const GameStage = ({
       })]
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
       load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
-      fallback: null
-      /* Mount/Unmount hysteresis */,
-      enterThreshold: 0.2,
-      exitThreshold: 0.05,
-      unmountDelayMs: 150
+      fallback: null,
+      mountMode: "idle"
       /* Preload the chunk early so re-mounts are instant */,
       preloadOnIdle: true,
       preloadIdleTimeout: 2000,

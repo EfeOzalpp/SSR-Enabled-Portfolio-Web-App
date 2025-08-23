@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
+import LoadingHub from '../../utils/loading/loading-hub';
 
 type InnerProps = {
   onClick?: () => void;
@@ -10,8 +11,12 @@ type InnerProps = {
   startAtFrame?: number;
   loopFromFrame?: number;
   debug?: boolean;
+  /** CTA label once stage is ready */
   label?: string;
+  /** When false, we show LoadingHub + "Loading…" text instead of the CTA */
   ctaEnabled?: boolean;
+  /** Optional per-game loading lines to rotate through */
+  loadingLines?: string[];
 };
 
 type Phase = 'intro' | 'tail';
@@ -24,6 +29,17 @@ const BlockGOnboardingInner: React.FC<InnerProps> = ({
   loopFromFrame = 41,
   debug = false,
   label = 'Click Here to Play!',
+  ctaEnabled = false,
+  loadingLines = [
+    "Loading engine…",
+    "Creating game canvas…",
+    "Configuring frame loop…",
+    "Setting up input controls…",
+    "Applying display settings…",
+    "Initializing game state…",
+    "Spawning player…",
+    "Almost ready…"
+  ],
 }) => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const animRef = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null);
@@ -127,10 +143,29 @@ const BlockGOnboardingInner: React.FC<InnerProps> = ({
 
   return (
     <>
+      {/* Coin lottie host (clickable only when the enhancer enables pointer events) */}
       <div ref={hostRef} className="coin" onClick={onClick} style={{ pointerEvents: 'auto' }} />
-      <h1 className="onboarding-text" onClick={onClick} style={{ pointerEvents: 'auto' }}>
-        {label}
-      </h1>
+
+      {/* Not ready → show LoadingHub + classic "Loading…" headline */}
+      {!ctaEnabled ? (
+        <>
+          <h1 className="onboarding-text loading-text" style={{ pointerEvents: 'none' }}>
+            Loading Game…
+          </h1>
+          <LoadingHub
+            className="loading-hub--game loading-hub--left"
+            keyword="game"
+            minHeight={72}
+            lines={loadingLines}
+            ariaLabel="Loading game"
+          />
+        </>
+      ) : (
+        // Ready → show CTA
+        <h1 className="onboarding-text" onClick={onClick} style={{ pointerEvents: 'auto' }}>
+          {label}
+        </h1>
+      )}
     </>
   );
 };

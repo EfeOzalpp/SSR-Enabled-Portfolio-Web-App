@@ -44,7 +44,6 @@ export const dynamicSSR: SsrDescriptor = {
             </picture>
           )}
           <div className="screen-overlay" />
-          <div id="dynamic-overlay-loader" className="soft-loader"><div className="spinner" /></div>
         </div>
       </section>
     );

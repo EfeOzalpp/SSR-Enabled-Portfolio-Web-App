@@ -140,7 +140,7 @@ const GameEnhancer: React.FC = () => {
           reset={onboardingReset}
           startAtFrame={stableStartAtForThisMount} 
           onInnerMount={handleInnerMount}
-          label={stageReady ? 'Click Here to Play!' : 'Loading…'}  
+          label={stageReady ? 'Click Here to Play!' : 'Loading Game……'}  
           ctaEnabled={stageReady}                                   
         />,
         onboardingEl
@@ -167,10 +167,11 @@ const GameEnhancer: React.FC = () => {
     onInnerMount: () => void;
     label: string;
     ctaEnabled: boolean;
+    loadingLines?: string[];
   };
 
   const OnboardingPortal: React.FC<OnboardingPortalProps> = ({
-    reset, startAtFrame, onInnerMount, label, ctaEnabled
+    reset, startAtFrame, onInnerMount, label, ctaEnabled, loadingLines
   }) => (
     <BlockGOnboarding
       key={reset}
@@ -178,6 +179,7 @@ const GameEnhancer: React.FC = () => {
       onMount={onInnerMount}
       label={label}
       ctaEnabled={ctaEnabled}
+      loadingLines={loadingLines}
     />
   );
 
@@ -406,10 +408,7 @@ const GameStage: React.FC<{
       <LazyViewMount
         load={() => import('../../components/rock-escapade/game-canvas')}
         fallback={null}
-        /* Mount/Unmount hysteresis */
-        enterThreshold={0.2}
-        exitThreshold={0.05}
-        unmountDelayMs={150}
+        mountMode = 'idle'
         /* Preload the chunk early so re-mounts are instant */
         preloadOnIdle
         preloadIdleTimeout={2000}

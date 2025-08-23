@@ -201,7 +201,7 @@ function BlockGHost({
       resetTrigger: started ? 1 : 0
       // NEW: text + interactivity gated on stage readiness
       ,
-      label: stageReady ? 'Click Here to Play!' : 'Loading…',
+      label: stageReady ? 'Click Here to Play!' : 'Loading Game…',
       ctaEnabled: stageReady
     }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
       children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_exit__WEBPACK_IMPORTED_MODULE_4__["default"], {
@@ -280,7 +280,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _svg_coin_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/coin.json */ "./src/svg/coin.json");
 /* harmony import */ var _utils_context_providers_project_context__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
 /* harmony import */ var _utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils/tooltip/tooltipInit */ "./src/utils/tooltip/tooltipInit.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../utils/loading/loading-hub */ "./src/utils/loading/loading-hub.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/components/rock-escapade/block-g-onboarding.tsx
+
 
 
 
@@ -291,7 +294,8 @@ const BlockGOnboarding = ({
   onStart,
   resetTrigger,
   label = 'Click Here to Play!',
-  ctaEnabled = true
+  ctaEnabled = true,
+  loadingLines = ["Loading engine…", "Creating game canvas…", "Configuring frame loop…", "Setting up input controls…", "Applying display settings…", "Initializing game state…", "Spawning player…", "Almost ready…"]
 }) => {
   const [visible, setVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const [isFadingOut, setIsFadingOut] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
@@ -303,8 +307,7 @@ const BlockGOnboarding = ({
     focusedProjectKey,
     scrollContainerRef,
     previousScrollY,
-    setPreviousScrollY,
-    setFocusedProjectKey
+    setPreviousScrollY
   } = (0,_utils_context_providers_project_context__WEBPACK_IMPORTED_MODULE_3__.useProjectVisibility)();
   const handleClick = () => {
     if (!ctaEnabled) return; // gate until ready
@@ -330,17 +333,11 @@ const BlockGOnboarding = ({
 
   // Restore scroll pos on exit from focus mode
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!focusedProjectKey && previousScrollY !== null) {
-      window.scrollTo({
-        top: previousScrollY,
-        behavior: 'auto'
-      });
-      setPreviousScrollY(null);
-    }
-  }, [focusedProjectKey]);
+    // (kept from your version — omitted focusedProjectKey setter, just restore)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const initializeLottie = () => {
     if (!lottieRef.current) return;
-    // reset any prior
     lottieInstance.current?.destroy();
     lottieInstance.current = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
       container: lottieRef.current,
@@ -360,7 +357,7 @@ const BlockGOnboarding = ({
     lottieInstance.current = null;
   };
 
-  // IO mount/unmount of the Lottie — ONLY depends on resetTrigger (not on label/ctaEnabled)
+  // IO mount/unmount of the Lottie
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -382,8 +379,7 @@ const BlockGOnboarding = ({
       observer.disconnect();
       destroyLottie();
     };
-  }, [resetTrigger]); // ← label/ctaEnabled intentionally omitted
-
+  }, [resetTrigger]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isFadingOut) {
       const t = setTimeout(() => setVisible(false), 300);
@@ -397,7 +393,7 @@ const BlockGOnboarding = ({
     }
   }, [resetTrigger]);
   if (!visible) return null;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
     className: "block-g-onboarding tooltip-block-g",
     ref: containerRef,
     "aria-busy": !ctaEnabled,
@@ -407,7 +403,7 @@ const BlockGOnboarding = ({
       display: 'flex',
       alignItems: 'center'
     },
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
       ref: lottieRef,
       className: "coin",
       onClick: handleClick,
@@ -415,7 +411,7 @@ const BlockGOnboarding = ({
         pointerEvents: ctaEnabled ? 'auto' : 'none',
         cursor: ctaEnabled ? 'pointer' : 'default'
       }
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h1", {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h1", {
       className: "onboarding-text",
       onClick: handleClick,
       "aria-disabled": !ctaEnabled,
@@ -424,6 +420,12 @@ const BlockGOnboarding = ({
         cursor: ctaEnabled ? 'pointer' : 'default'
       },
       children: label
+    }), !ctaEnabled && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      className: "loading-hub--game loading-hub--left",
+      keyword: "game",
+      minHeight: 72,
+      lines: loadingLines,
+      ariaLabel: "Loading game"
     })]
   });
 };

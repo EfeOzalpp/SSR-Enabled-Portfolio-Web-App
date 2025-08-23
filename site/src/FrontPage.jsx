@@ -6,22 +6,24 @@ import { TitleProvider } from './utils/title/title-context.tsx';
 import ScrollController from './utils/scroll-controller.tsx';
 import { ProjectVisibilityProvider } from './utils/context-providers/project-context.tsx';
 
-// NavMenu will NOT render on the server; only after hydration on the client.
-// Fallback is null to keep SSR markup identical.
+// NavMenu is client-only; SSR markup stays identical.
 const NavMenu = loadable(() => import('./components/nav-menu.tsx'), {
   ssr: false,
   fallback: null,
 });
 
 function Frontpage() {
-  // UX helpers (safe on both SSR/CSR; no DOM read until effect)
   useEffect(() => {
+    // --- Clear prehydrate flag ASAP after hydration ---
+    const root = document.getElementById('landing');
+    // next paint is fine; ensures initial CSS applied once
+    requestAnimationFrame(() => root?.removeAttribute('data-prehydrate'));
+
+    // UX helpers (safe on both SSR/CSR; no DOM read until effect)
     const preventPinchZoom = (event) => {
       const tag = event?.target?.tagName?.toLowerCase?.() || '';
       if (tag === 'video') return;
-      if ('touches' in event && event.touches?.length > 1) {
-        event.preventDefault();
-      }
+      if ('touches' in event && event.touches?.length > 1) event.preventDefault();
     };
 
     const preventGesture = (e) => {
@@ -45,8 +47,12 @@ function Frontpage() {
 
   return (
     <ProjectVisibilityProvider>
-      <div className="HereGoesNothing" id="landing" style={{ position: 'relative' }}>
-        {/* NavMenu is client-only now */}
+      <div
+        className="HereGoesNothing"
+        id="landing"
+        data-prehydrate         
+        style={{ position: 'relative' }}
+      >
         <NavMenu />
         <TitleProvider>
           <ViewProject />

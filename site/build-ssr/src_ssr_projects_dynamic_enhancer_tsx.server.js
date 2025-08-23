@@ -1,4 +1,3 @@
-"use strict";
 exports.id = "src_ssr_projects_dynamic_enhancer_tsx";
 exports.ids = ["src_ssr_projects_dynamic_enhancer_tsx"];
 exports.modules = {
@@ -9,6 +8,7 @@ exports.modules = {
   \***********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -19,8 +19,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _utils_content_utility_dynamic_overlay__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/content-utility/dynamic-overlay */ "./src/utils/content-utility/dynamic-overlay.ts");
 /* harmony import */ var _utils_content_utility_real_mobile__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/content-utility/real-mobile */ "./src/utils/content-utility/real-mobile.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils/loading/loading-hub */ "./src/utils/loading/loading-hub.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/ssr/projects/dynamic.enhancer.tsx
+
 
 
 
@@ -100,26 +102,42 @@ const DynamicEnhancer = () => {
     };
   }, [shouldMountShadow]);
 
-  // hide SSR loader when ready
+  // manage loader visibility
+  const [showLoader, setShowLoader] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const loader = document.getElementById('dynamic-overlay-loader');
-    const onHydrated = () => {
-      if (loader) loader.style.display = 'none';
-    };
+    const onHydrated = () => setShowLoader(false);
     window.addEventListener('dynamic-app:hydrated', onHydrated);
-    if (ShadowInbound && overlayEl) requestAnimationFrame(() => {
-      if (loader) loader.style.display = 'none';
-    });
     return () => window.removeEventListener('dynamic-app:hydrated', onHydrated);
-  }, [ShadowInbound, overlayEl]);
-  if (!overlayEl || !ShadowInbound || !shouldMountShadow) return null;
-  const handleReady = () => window.dispatchEvent(new CustomEvent('dynamic-app:hydrated'));
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(ShadowInbound, {
-    onFocusChange: () => {},
-    onReady: handleReady
+  }, []);
+  if (!overlayEl) return null;
+  const handleReady = () => {
+    setShowLoader(false);
+    window.dispatchEvent(new CustomEvent('dynamic-app:hydrated'));
+  };
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
+    children: [showLoader && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_4__["default"], {
+      keyword: "dynamic",
+      lines: ["Mounting dynamic app…", "Loading interactive media…", "Almost ready…"],
+      minHeight: 200,
+      cycleMs: 1500,
+      animMs: 800
+    }), ShadowInbound && shouldMountShadow && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(ShadowInbound, {
+      onFocusChange: () => {},
+      onReady: handleReady
+    })]
   }), overlayEl);
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DynamicEnhancer);
+
+/***/ }),
+
+/***/ "./src/styles/loading-hub.css":
+/*!************************************!*\
+  !*** ./src/styles/loading-hub.css ***!
+  \************************************/
+/***/ (() => {
+
+
 
 /***/ }),
 
@@ -129,6 +147,7 @@ const DynamicEnhancer = () => {
   \******************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   useDynamicOverlay: () => (/* binding */ useDynamicOverlay)
@@ -221,6 +240,7 @@ function useDynamicOverlay(frameRef) {
   \**************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   useRealMobileViewport: () => (/* binding */ useRealMobileViewport)
@@ -259,6 +279,91 @@ function useRealMobileViewport() {
     };
   }, []);
   return isRealMobile;
+}
+
+/***/ }),
+
+/***/ "./src/utils/loading/loading-hub.tsx":
+/*!*******************************************!*\
+  !*** ./src/utils/loading/loading-hub.tsx ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ LoadingHub)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _styles_loading_hub_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../styles/loading-hub.css */ "./src/styles/loading-hub.css");
+/* harmony import */ var _styles_loading_hub_css__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_styles_loading_hub_css__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+
+
+function LoadingHub({
+  keyword,
+  lines = ['Loading…'],
+  minHeight = 160,
+  className = '',
+  ariaLabel = 'Loading',
+  progress = null,
+  cycleMs = 1400,
+  animMs = 900
+}) {
+  const [lineIndex, setLineIndex] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+
+  // rotate through provided lines (no-op if only one)
+  const hasMultiple = lines.length > 1;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!hasMultiple) return;
+    const t = setInterval(() => {
+      setLineIndex(i => (i + 1) % lines.length);
+    }, cycleMs);
+    return () => clearInterval(t);
+  }, [hasMultiple, lines.length, cycleMs]);
+
+  // Avoid reflow: lock container height
+  const style = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const h = typeof minHeight === 'number' ? `${minHeight}px` : minHeight ?? 'auto';
+    return {
+      minHeight: h
+    };
+  }, [minHeight]);
+
+  // SR-only progressive percent
+  const srRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (progress == null || !srRef.current) return;
+    srRef.current.textContent = `${Math.round(progress)}%`;
+  }, [progress]);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    className: `loading-hub loading-hub--text ${className || ''}`,
+    style: style,
+    role: "status",
+    "aria-live": "polite",
+    "aria-label": ariaLabel,
+    "data-keyword": keyword || undefined
+    // expose anim timing to CSS
+    ,
+    "data-anim-ms": animMs,
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "loading-hub__copy",
+      "aria-hidden": false,
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
+        className: "loading-hub__line",
+        children: lines[lineIndex]
+      }, lineIndex), progress != null && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "loading-hub__progress",
+        "aria-hidden": "true",
+        children: [Math.round(progress), "%"]
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+        className: "sr-only",
+        ref: srRef
+      })]
+    })
+  });
 }
 
 /***/ })

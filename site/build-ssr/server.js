@@ -18302,12 +18302,6 @@ const dynamicSSR = {
           })]
         }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
           className: "screen-overlay"
-        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-          id: "dynamic-overlay-loader",
-          className: "soft-loader",
-          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-            className: "spinner"
-          })
         })]
       })
     });
@@ -18340,21 +18334,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   gameSSR: () => (/* binding */ gameSSR)
 /* harmony export */ });
 /* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/projects/game.ssr.tsx
+
 
 
 
 const gameSSR = {
-  // Server fetch: just the coin doc for SSR onboarding
   fetch: async () => await (0,_utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__.getProjectData)('rock-coin'),
-  // Server render: mirror the lazy onboarding DOM/classes exactly
   render: coin => {
-    const coinUrl = coin?.image?.asset?.url;
     const alt = coin?.alt ?? 'Loading';
 
-    // src/ssr/projects/game.ssr.tsx (render)
+    // Build responsive URLs
+    const mediumUrl = coin?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(coin.image) : undefined;
+    const highUrl = coin?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(coin.image, 512, 512, 80) // coin doesn’t need 2k res
+    : undefined;
     return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("section", {
       tabIndex: -1,
       className: "block-type-g ingame",
@@ -18374,8 +18369,11 @@ const gameSSR = {
           style: {
             pointerEvents: 'none'
           },
-          children: coinUrl ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
-            src: coinUrl,
+          children: mediumUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
+            src: mediumUrl,
+            ...(highUrl ? {
+              'data-src-full': highUrl
+            } : {}),
             alt: alt,
             decoding: "async",
             loading: "eager",
@@ -18386,20 +18384,18 @@ const gameSSR = {
               height: '100%',
               objectFit: 'contain'
             }
-          }) : null
+          })
         }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h1", {
           className: "onboarding-text",
           style: {
             pointerEvents: 'none'
           },
-          children: "Loading\u2026"
+          children: "Loading Game\u2026"
         })]
       })
     });
   },
-  // Preload the coin so it’s painted ASAP
-  buildPreloads: coin => coin?.image?.asset?.url ? [`<link rel="preload" as="image" href="${coin.image.asset.url}">`] : [],
-  // Inline critical CSS file for the first fold
+  buildPreloads: coin => coin?.image ? [`<link rel="preload" as="image" href="${(0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(coin.image)}">`] : [],
   criticalCssFiles: ['src/styles/block-type-g.css']
 };
 
@@ -18681,7 +18677,7 @@ const dynamicLoaders = {
   shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
 };
 const gameLoaders = {
-  components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-a410e1"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
+  components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
   game: () => Promise.all(/*! import() | game */[__webpack_require__.e("src_components_rock-escapade_game-canvas_tsx"), __webpack_require__.e("game")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx"))
 };
 
@@ -18770,7 +18766,7 @@ function useProjectLoader(key) {
     }
     if (key === 'game') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-a410e1"), __webpack_require__.e("src_ssr_projects_game_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/game.enhancer */ "./src/ssr/projects/game.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"), __webpack_require__.e("src_ssr_projects_game_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/game.enhancer */ "./src/ssr/projects/game.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), " ", (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {}), "         "]

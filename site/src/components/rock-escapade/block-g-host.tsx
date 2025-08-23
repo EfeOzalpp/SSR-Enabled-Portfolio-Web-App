@@ -168,7 +168,7 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
           onStart={onStart}
           resetTrigger={started ? 1 : 0}
           // NEW: text + interactivity gated on stage readiness
-          label={stageReady ? 'Click Here to Play!' : 'Loading…'}
+          label={stageReady ? 'Click Here to Play!' : 'Loading Game…'}
           ctaEnabled={stageReady}
         />
       )}

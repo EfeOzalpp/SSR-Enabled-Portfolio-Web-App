@@ -2,13 +2,10 @@
 import { useEffect, useRef, useState, Suspense, type ComponentType } from 'react';
 
 type Props = {
-  load: () => Promise<{ default: ComponentType<any> }>;
+  load?: () => Promise<{ default: ComponentType<any> }>; // <- optional now
   fallback?: React.ReactNode;
-  /** SSR HTML to paint immediately (e.g., img/video). */
   serverRender?: React.ReactNode;
-  /** For the first block, start loading immediately on client. */
   eager?: boolean;
-  /** Also allow mounting when the page is idle (timeout 2s). */
   allowIdle?: boolean;
 };
 
@@ -30,13 +27,12 @@ const LazyInView = ({
 }: Props) => {
   const isServer = !hasWindow;
 
-  // SSR should show immediately, on client we delay unless eager or idle
   const [isVisible, setIsVisible] = useState<boolean>(isServer || eager);
   const [Component, setComponent] = useState<ComponentType | null>(null);
   const ref = useRef<HTMLDivElement | null>(null);
   const idleId = useRef<any>(null);
 
-  // Observe visibility (if not eager)
+  // IO
   useEffect(() => {
     if (isServer || eager) return;
 
@@ -67,10 +63,10 @@ const LazyInView = ({
     };
   }, [isServer, eager, isVisible, allowIdle]);
 
-  // Load component when visible
+  // only call load if provided
   useEffect(() => {
     if (isServer) return;
-    if (!isVisible || Component) return;
+    if (!isVisible || Component || !load) return;
 
     let cancelled = false;
     load().then((mod) => {

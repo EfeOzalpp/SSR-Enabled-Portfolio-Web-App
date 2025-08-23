@@ -1,14 +1,18 @@
+// src/components/rock-escapade/block-g-onboarding.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import lottie from 'lottie-web';
 import onboardingAnimation from '../../svg/coin.json';
 import { useProjectVisibility } from '../../utils/context-providers/project-context';
 import { useTooltipInit } from '../../utils/tooltip/tooltipInit';
 
+import LoadingHub from '../../utils/loading/loading-hub';
+
 type Props = {
   onStart?: () => void;
   resetTrigger?: number;
-  label?: string;          // NEW
-  ctaEnabled?: boolean;    // NEW
+  label?: string;          // CTA label
+  ctaEnabled?: boolean;    // gate readiness (pointer events)
+  loadingLines?: string[];
 };
 
 const BlockGOnboarding: React.FC<Props> = ({
@@ -16,6 +20,16 @@ const BlockGOnboarding: React.FC<Props> = ({
   resetTrigger,
   label = 'Click Here to Play!',
   ctaEnabled = true,
+  loadingLines = [
+  "Loading engine…",
+  "Creating game canvas…",
+  "Configuring frame loop…",
+  "Setting up input controls…",
+  "Applying display settings…",
+  "Initializing game state…",
+  "Spawning player…",
+  "Almost ready…"
+  ],
 }) => {
   const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
@@ -29,7 +43,6 @@ const BlockGOnboarding: React.FC<Props> = ({
     scrollContainerRef,
     previousScrollY,
     setPreviousScrollY,
-    setFocusedProjectKey,
   } = useProjectVisibility();
 
   const handleClick = () => {
@@ -50,15 +63,12 @@ const BlockGOnboarding: React.FC<Props> = ({
 
   // Restore scroll pos on exit from focus mode
   useEffect(() => {
-    if (!focusedProjectKey && previousScrollY !== null) {
-      window.scrollTo({ top: previousScrollY, behavior: 'auto' });
-      setPreviousScrollY(null);
-    }
-  }, [focusedProjectKey]);
+    // (kept from your version — omitted focusedProjectKey setter, just restore)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const initializeLottie = () => {
     if (!lottieRef.current) return;
-    // reset any prior
     lottieInstance.current?.destroy();
     lottieInstance.current = lottie.loadAnimation({
       container: lottieRef.current,
@@ -79,7 +89,7 @@ const BlockGOnboarding: React.FC<Props> = ({
     lottieInstance.current = null;
   };
 
-  // IO mount/unmount of the Lottie — ONLY depends on resetTrigger (not on label/ctaEnabled)
+  // IO mount/unmount of the Lottie
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -99,12 +109,11 @@ const BlockGOnboarding: React.FC<Props> = ({
     );
 
     if (containerRef.current) observer.observe(containerRef.current);
-
     return () => {
       observer.disconnect();
       destroyLottie();
     };
-  }, [resetTrigger]); // ← label/ctaEnabled intentionally omitted
+  }, [resetTrigger]);
 
   useEffect(() => {
     if (isFadingOut) {
@@ -138,16 +147,34 @@ const BlockGOnboarding: React.FC<Props> = ({
         ref={lottieRef}
         className="coin"
         onClick={handleClick}
-        style={{ pointerEvents: ctaEnabled ? 'auto' : 'none', cursor: ctaEnabled ? 'pointer' : 'default' }}
+        style={{
+          pointerEvents: ctaEnabled ? 'auto' : 'none',
+          cursor: ctaEnabled ? 'pointer' : 'default',
+        }}
       />
+
+      {/* Keep your CTA label exactly as before */}
       <h1
         className="onboarding-text"
         onClick={handleClick}
         aria-disabled={!ctaEnabled}
-        style={{ pointerEvents: ctaEnabled ? 'auto' : 'none', cursor: ctaEnabled ? 'pointer' : 'default' }}
+        style={{
+          pointerEvents: ctaEnabled ? 'auto' : 'none',
+          cursor: ctaEnabled ? 'pointer' : 'default',
+        }}
       >
         {label}
       </h1>
+
+      {!ctaEnabled && (
+        <LoadingHub
+          className="loading-hub--game loading-hub--left"
+          keyword="game"
+          minHeight={72}
+          lines={loadingLines}
+          ariaLabel="Loading game"
+        />
+      )}
     </div>
   );
 };

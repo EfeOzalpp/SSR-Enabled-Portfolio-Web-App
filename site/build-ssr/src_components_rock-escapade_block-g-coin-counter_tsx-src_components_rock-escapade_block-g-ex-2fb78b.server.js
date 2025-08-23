@@ -1,5 +1,5 @@
-exports.id = "src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-a410e1";
-exports.ids = ["src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-a410e1"];
+exports.id = "src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b";
+exports.ids = ["src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"];
 exports.modules = {
 
 /***/ "./src/components/rock-escapade/block-g-coin-counter.tsx":
@@ -533,6 +533,16 @@ const GameOverController = ({
 
 /***/ }),
 
+/***/ "./src/styles/loading-hub.css":
+/*!************************************!*\
+  !*** ./src/styles/loading-hub.css ***!
+  \************************************/
+/***/ (() => {
+
+
+
+/***/ }),
+
 /***/ "./src/svg/coin.json":
 /*!***************************!*\
   !*** ./src/svg/coin.json ***!
@@ -842,8 +852,93 @@ function useRealMobileViewport() {
   return isRealMobile;
 }
 
+/***/ }),
+
+/***/ "./src/utils/loading/loading-hub.tsx":
+/*!*******************************************!*\
+  !*** ./src/utils/loading/loading-hub.tsx ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ LoadingHub)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _styles_loading_hub_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../styles/loading-hub.css */ "./src/styles/loading-hub.css");
+/* harmony import */ var _styles_loading_hub_css__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_styles_loading_hub_css__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+
+
+function LoadingHub({
+  keyword,
+  lines = ['Loading…'],
+  minHeight = 160,
+  className = '',
+  ariaLabel = 'Loading',
+  progress = null,
+  cycleMs = 1400,
+  animMs = 900
+}) {
+  const [lineIndex, setLineIndex] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+
+  // rotate through provided lines (no-op if only one)
+  const hasMultiple = lines.length > 1;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!hasMultiple) return;
+    const t = setInterval(() => {
+      setLineIndex(i => (i + 1) % lines.length);
+    }, cycleMs);
+    return () => clearInterval(t);
+  }, [hasMultiple, lines.length, cycleMs]);
+
+  // Avoid reflow: lock container height
+  const style = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const h = typeof minHeight === 'number' ? `${minHeight}px` : minHeight ?? 'auto';
+    return {
+      minHeight: h
+    };
+  }, [minHeight]);
+
+  // SR-only progressive percent
+  const srRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (progress == null || !srRef.current) return;
+    srRef.current.textContent = `${Math.round(progress)}%`;
+  }, [progress]);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    className: `loading-hub loading-hub--text ${className || ''}`,
+    style: style,
+    role: "status",
+    "aria-live": "polite",
+    "aria-label": ariaLabel,
+    "data-keyword": keyword || undefined
+    // expose anim timing to CSS
+    ,
+    "data-anim-ms": animMs,
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "loading-hub__copy",
+      "aria-hidden": false,
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
+        className: "loading-hub__line",
+        children: lines[lineIndex]
+      }, lineIndex), progress != null && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "loading-hub__progress",
+        "aria-hidden": "true",
+        children: [Math.round(progress), "%"]
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+        className: "sr-only",
+        ref: srRef
+      })]
+    })
+  });
+}
+
 /***/ })
 
 };
 ;
-//# sourceMappingURL=src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-a410e1.server.js.map
+//# sourceMappingURL=src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b.server.js.map

@@ -176,6 +176,7 @@ button.view-project-btn {
 }
 
 @media (min-width: 1025px) {
+  [data-prehydrate] .view-project-btn {padding: 28px 120px 0px 120px;} 
   .view-project-arrow {width: 3.2em !important;}
   .github-lottie, .linkedin-lottie { width: 2.6em !important;}
   .title-lottie { width: 11.8em !important;}

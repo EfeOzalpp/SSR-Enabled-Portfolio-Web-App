@@ -29,8 +29,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// NavMenu will NOT render on the server; only after hydration on the client.
-// Fallback is null to keep SSR markup identical.
+// NavMenu is client-only; SSR markup stays identical.
 
 const NavMenu = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])({
   resolved: {},
@@ -77,14 +76,17 @@ const NavMenu = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])(
   fallback: null
 });
 function Frontpage() {
-  // UX helpers (safe on both SSR/CSR; no DOM read until effect)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    // --- Clear prehydrate flag ASAP after hydration ---
+    const root = document.getElementById('landing');
+    // next paint is fine; ensures initial CSS applied once
+    requestAnimationFrame(() => root?.removeAttribute('data-prehydrate'));
+
+    // UX helpers (safe on both SSR/CSR; no DOM read until effect)
     const preventPinchZoom = event => {
       const tag = event?.target?.tagName?.toLowerCase?.() || '';
       if (tag === 'video') return;
-      if ('touches' in event && event.touches?.length > 1) {
-        event.preventDefault();
-      }
+      if ('touches' in event && event.touches?.length > 1) event.preventDefault();
     };
     const preventGesture = e => {
       const tag = e?.target?.tagName?.toLowerCase?.() || '';
@@ -108,6 +110,7 @@ function Frontpage() {
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
       className: "HereGoesNothing",
       id: "landing",
+      "data-prehydrate": true,
       style: {
         position: 'relative'
       },
@@ -217,14 +220,12 @@ const LazyInView = ({
   allowIdle = false
 }) => {
   const isServer = !hasWindow;
-
-  // SSR should show immediately, on client we delay unless eager or idle
   const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(isServer || eager);
   const [Component, setComponent] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const ref = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // Observe visibility (if not eager)
+  // IO
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isServer || eager) return;
     const io = new IntersectionObserver(([entry]) => {
@@ -257,10 +258,10 @@ const LazyInView = ({
     };
   }, [isServer, eager, isVisible, allowIdle]);
 
-  // Load component when visible
+  // only call load if provided
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isServer) return;
-    if (!isVisible || Component) return;
+    if (!isVisible || Component || !load) return;
     let cancelled = false;
     load().then(mod => {
       if (!cancelled) setComponent(() => mod.default);
@@ -663,12 +664,15 @@ function ProjectPane({
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     setIsHydrated(true);
   }, []);
-  const fallbackNode = !payload && isHydrated ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
-    isFullScreen: false
-  }) : null;
   const serverRender = payload && desc?.render ? desc.render(payload.data ?? payload) : null;
   const isDynamic = item.key === 'dynamic';
   const isGame = item.key === 'game';
+  const usesCustomLoader = isDynamic || isGame;
+
+  // Generic loader only for non-custom blocks (dynamic/game have their own UX)
+  const fallbackNode = !payload && isHydrated && !usesCustomLoader ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    isFullScreen: false
+  }) : null;
   const blockId = `block-${item.key}`;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
     id: blockId,
@@ -687,40 +691,28 @@ function ProjectPane({
       },
       children: isDynamic ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
         children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
-          load: load,
-          fallback: fallbackNode,
-          serverRender: hasSSR ? null : serverRender,
+          load: load
+          // no generic fallback; SSR frame is already visible
+          ,
+          serverRender: serverRender,
           eager: isFirst,
           allowIdle: true
         }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
           load: () => Promise.all(/*! import() */[__webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_utils_content-utility_real-mobile_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
-          fallback: null,
-          mountMode: "idle" // no IO mount - unmount
-
-          /* Mount/Unmount hysteresis */,
-          enterThreshold: 0.2,
-          exitThreshold: 0.05,
-          unmountDelayMs: 150
-
-          /* Preload chunk early so re-mounts are instant (but don't render yet) */,
+          mountMode: "idle"
+          /* Preload so re-mounts are instant */,
           preloadOnIdle: true,
           preloadIdleTimeout: 2000,
           preloadOnFirstIO: true
-
           /* IO config */,
-          observeTargetId: blockId // or remove to observe the placeholder itself
-          ,
+          observeTargetId: blockId,
           rootMargin: "0px",
-          placeholderMinHeight: 360,
-          componentProps: {
-            blockId
-          }
+          placeholderMinHeight: 360
+          /* No props required; the shadow app finds its overlay */
         })]
       }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
         children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
-          load: load // BlockGHost
-          ,
-          fallback: fallbackNode,
+          load: load,
           serverRender: serverRender,
           eager: isFirst,
           allowIdle: true
@@ -1164,7 +1156,7 @@ const ViewProject = () => {
   const isLink = currentProject?.isLink;
   const getBackgroundColor = () => {
     const colorInfo = _content_utility_color_map__WEBPACK_IMPORTED_MODULE_6__.projectColors[activeTitle];
-    if (!colorInfo) return 'rgba(240, 240, 240, 0.7)';
+    if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
     const alpha = hovered ? 1 : colorInfo.defaultAlpha ?? 0.6;
     return `rgba(${colorInfo.rgb}, ${alpha})`;
   };

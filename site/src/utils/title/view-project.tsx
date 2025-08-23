@@ -33,7 +33,7 @@ const ViewProject = () => {
 
   const getBackgroundColor = () => {
     const colorInfo = projectColors[activeTitle];
-    if (!colorInfo) return 'rgba(240, 240, 240, 0.7)';
+    if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
     const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.6);
     return `rgba(${colorInfo.rgb}, ${alpha})`;
   };

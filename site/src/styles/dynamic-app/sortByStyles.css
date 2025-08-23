@@ -131,7 +131,7 @@ div.option.selected:hover {scale: 1; transform: translateX(0px);}
 #shadow-dynamic-app .lottie-container {width: 2.6em; height: 2.6em; z-index: 100;}
 
 #shadow-dynamic-app .sort-by-container {transform: scale(0.8);}
-#shadow-dynamic-app .sort-by-divider {padding-left: 8.8em; padding-right: 8.8em; padding-bottom: 0.8em; padding-top: 3.6em;}
+#shadow-dynamic-app .sort-by-divider {padding-left: 8.8em; padding-right: 8.8em; padding-bottom: 1.6em; padding-top: 4em;}
 #shadow-dynamic-app .sort-container2, #shadow-dynamic-app .sort-container  {min-width: 176px;} 
 #shadow-dynamic-app .custom-arrow {top: 50%;}
 #shadow-dynamic-app .pause-button-wrapper {padding-left: 12.8em; padding-top: 2.4em;}

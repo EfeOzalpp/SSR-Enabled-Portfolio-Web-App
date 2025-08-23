@@ -3,6 +3,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useDynamicOverlay } from '../../utils/content-utility/dynamic-overlay';
 import { useRealMobileViewport } from '../../utils/content-utility/real-mobile';
+import LoadingHub from '../../utils/loading/loading-hub';
 
 type ShadowInboundProps = { onFocusChange?: (f: boolean) => void; onReady?: () => void };
 type ShadowInboundType = React.ComponentType<ShadowInboundProps>;
@@ -85,19 +86,43 @@ const DynamicEnhancer: React.FC = () => {
     return () => { alive = false; };
   }, [shouldMountShadow]);
 
-  // hide SSR loader when ready
+  // manage loader visibility
+  const [showLoader, setShowLoader] = useState(true);
+
   useEffect(() => {
-    const loader = document.getElementById('dynamic-overlay-loader');
-    const onHydrated = () => { if (loader) loader.style.display = 'none'; };
+    const onHydrated = () => setShowLoader(false);
     window.addEventListener('dynamic-app:hydrated', onHydrated as EventListener);
-    if (ShadowInbound && overlayEl) requestAnimationFrame(() => { if (loader) loader.style.display = 'none'; });
     return () => window.removeEventListener('dynamic-app:hydrated', onHydrated as EventListener);
-  }, [ShadowInbound, overlayEl]);
+  }, []);
 
-  if (!overlayEl || !ShadowInbound || !shouldMountShadow) return null;
+  if (!overlayEl) return null;
 
-  const handleReady = () => window.dispatchEvent(new CustomEvent('dynamic-app:hydrated'));
-  return createPortal(<ShadowInbound onFocusChange={() => {}} onReady={handleReady} />, overlayEl);
+  const handleReady = () => {
+    setShowLoader(false);
+    window.dispatchEvent(new CustomEvent('dynamic-app:hydrated'));
+  };
+
+  return createPortal(
+    <>
+      {showLoader && (
+        <LoadingHub
+          keyword="dynamic"
+          lines={[
+            "Mounting dynamic app…",
+            "Loading interactive media…",
+            "Almost ready…"
+          ]}
+          minHeight={200}
+          cycleMs={1500}
+          animMs={800}
+        />
+      )}
+      {ShadowInbound && shouldMountShadow && (
+        <ShadowInbound onFocusChange={() => {}} onReady={handleReady} />
+      )}
+    </>,
+    overlayEl
+  );
 };
 
 export default DynamicEnhancer;
