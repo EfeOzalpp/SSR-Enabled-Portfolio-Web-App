@@ -252,6 +252,8 @@ const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["defaul
     // removed by dead control flow
 {}
   }
+}, {
+  ssr: false
 });
 function DynamicThemeRoute() {
   // If your server provided preloaded data, push it into the shared cache

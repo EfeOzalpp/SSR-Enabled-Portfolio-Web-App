@@ -133,58 +133,8 @@ function DynamicTheme() {
     observer.observe(fireworkContainer);
     return () => observer.disconnect();
   }, []);
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.Fragment, {
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("title", {
-      children: "DMI - Dynamic Theme"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      name: "description",
-      content: "Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2025 curation."
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      name: "keywords",
-      content: "Innovation, Art, Technology, Science, Culture, Exhibition, Installation, Display, Projects"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      name: "theme-color",
-      content: "#1e1e1f"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("link", {
-      rel: "icon",
-      href: "/freshmedia-icon.svg",
-      type: "image/svg+xml"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("link", {
-      rel: "shortcut icon",
-      type: "image/svg+xml",
-      href: "/freshmedia-icon.svg"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("link", {
-      rel: "apple-touch-icon",
-      sizes: "180x180",
-      href: "/freshmedia-icon.svg"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      property: "og:title",
-      content: "DMI MassArt - Fresh Media 2025"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      property: "og:description",
-      content: "Fresh Media is a Dynamic Media Institute at MassArt tradition! This is the 2025 curation."
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      property: "og:type",
-      content: "website"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      property: "og:image",
-      content: "https://www.example.com/image-path/og-image.jpg"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      property: "og:url",
-      content: "https://www.example.com/page-url/"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      name: "twitter:card",
-      content: "summary_large_image"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      name: "twitter:title",
-      content: "DMI MassArt - Fresh Media 2025"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      name: "twitter:description",
-      content: "Fresh Media is a Dynamic Media Institute at MassArt tradition! This is the 2025 curation."
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("meta", {
-      name: "twitter:image",
-      content: "https://www.example.com/image-path/twitter-image.jpg"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.Fragment, {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)("div", {
       className: "dynamic-app",
       ref: dynamicAppRef,
       children: isLoading ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_18__.jsx)(_utils_loading_loading__WEBPACK_IMPORTED_MODULE_5__["default"], {
@@ -261,7 +211,7 @@ function DynamicTheme() {
           })
         })]
       })
-    })]
+    })
   });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DynamicTheme);

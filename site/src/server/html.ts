@@ -1,37 +1,27 @@
-// src/server/html.ts
 import fs from 'node:fs';
 import path from 'node:path';
 
 function readTextSafe(p: string) {
-  try {
-    return fs.readFileSync(p, 'utf8');
-  } catch {
-    return '';
-  }
+  try { return fs.readFileSync(p, 'utf8'); } catch { return ''; }
 }
 
-/**
- * Scopes CSS to a prefix (default: #efe-portfolio).
- * - Recursively prefixes selectors inside @media blocks.
- * - Skips @keyframes and @font-face (they remain global).
- * - Leaves html/body/:root and allowlisted selectors unprefixed.
- * - Preserves comma-separated selectors.
- */
+function readFirst(paths: string[]): string {
+  for (const p of paths) {
+    const txt = readTextSafe(p);
+    if (txt) return txt;
+  }
+  return '';
+}
+
+/** Prefix helper (unchanged) */
 export function prefixCss(css: string, prefix = '#efe-portfolio') {
-  // 1) Recursively process @media blocks so their inner selectors get prefixed.
   css = css.replace(/@media[^{]+\{([\s\S]*?)\}/g, (full, inner) => {
     const prefixedInner = prefixCss(inner, prefix);
     return full.replace(inner, prefixedInner);
   });
 
-  // 2) Keep @keyframes and @font-face as-is (global).
-  //    We just avoid touching those blocks by targeting only non-at-rule selectors below.
-
-  // 3) Prefix top-level rules (not starting with '@'), preserving comma lists.
   return css.replace(/(^|\})\s*([^{@}][^{]*)\{/g, (m, brace, selector) => {
     const sel = selector.trim();
-
-    // Allowlist selectors that should remain global
     if (
       sel.startsWith('html') ||
       sel.startsWith('body') ||
@@ -42,18 +32,13 @@ export function prefixCss(css: string, prefix = '#efe-portfolio') {
     ) {
       return `${brace} ${sel}{`;
     }
-
-    // Prefix each comma-separated selector
     const parts = sel.split(',').map(s => s.trim()).filter(Boolean);
     const prefixed = parts.map(s => `${prefix} ${s}`).join(', ');
     return `${brace} ${prefixed}{`;
   });
 }
 
-/**
- * Finds WOFF2 URLs in provided font CSS strings and returns <link rel="preload"> tags.
- * This opts to preload a small set (first few, unique) to keep head lightweight.
- */
+/** Build limited font preloads from the blocks actually emitted */
 function buildFontPreloads(fontCssBlocks: string[], limit = 4): string[] {
   const urlRegex = /url\((['"]?)([^)]+?\.woff2)\1\)/g;
   const urls: string[] = [];
@@ -66,10 +51,26 @@ function buildFontPreloads(fontCssBlocks: string[], limit = 4): string[] {
     }
     if (urls.length >= limit) break;
   }
-  return urls.map(
-    (href) =>
-      `<link rel="preload" as="font" href="${href}" type="font/woff2" crossorigin>`
-  );
+  return urls.map(href => `<link rel="preload" as="font" href="${href}" type="font/woff2" crossorigin>`);
+}
+
+/* Per-route head */
+export function buildRouteHead(routePath: string) {
+  if (routePath.startsWith('/dynamic-theme')) {
+    return `
+      <title>DMI - Dynamic Theme</title>
+      <meta name="description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
+      <meta name="keywords" content="Innovation, Art, Technology, Science, Culture, Exhibition, Installation, Display, Projects">
+      <meta name="theme-color" content="#1e1e1f">
+      <meta property="og:title" content="DMI MassArt - Fresh Media 2025">
+      <meta property="og:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
+      <meta property="og:type" content="website">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="DMI MassArt - Fresh Media 2024">
+      <meta name="twitter:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
+    `;
+  }
+  return '';
 }
 
 export function buildHtmlOpen(opts: {
@@ -87,70 +88,79 @@ export function buildHtmlOpen(opts: {
   extractorLinkTags: string;
   extractorStyleTags: string;
   emotionStyleTags: string;
-  /** any extra critical CSS to inline (already prefixed) */
   extraCriticalCss?: string;
 }) {
   const {
-    IS_DEV,
-    routePath,
-    iconSvg,
-    iconIco,
-    preloadLinks,
-    fontsCss,
-    extractorLinkTags,
-    extractorStyleTags,
-    emotionStyleTags,
-    extraCriticalCss = '',
+    IS_DEV, routePath, iconSvg, iconIco, preloadLinks,
+    fontsCss, extractorLinkTags, extractorStyleTags,
+    emotionStyleTags, extraCriticalCss = '',
   } = opts;
 
   const ROOT = process.cwd();
-  const cssTheme = readTextSafe(
-    path.resolve(ROOT, 'src/styles/font+theme.css')
-  );
-  const cssBlocks = readTextSafe(
-    path.resolve(ROOT, 'src/styles/general-block.css')
-  );
+  const cssTheme  = readTextSafe(path.resolve(ROOT, 'src/styles/font+theme.css'));
+  const cssBlocks = readTextSafe(path.resolve(ROOT, 'src/styles/general-block.css'));
 
-  // 1) App-level critical CSS only for landing routes (keeps HEAD lean)
+  // App-level critical CSS only for landing routes
   let appCriticalCss = '';
   if (routePath === '/' || routePath === '/home') {
-    appCriticalCss =
-      prefixCss(cssTheme) +
-      '\n/* --- separator --- */\n' +
-      prefixCss(cssBlocks);
+    appCriticalCss = prefixCss(cssTheme) + '\n' + prefixCss(cssBlocks);
   }
 
-  // 2) Always inline project critical CSS when provided
-  const projectCriticalCss = extraCriticalCss
-    ? '\n/* --- project critical --- */\n' + extraCriticalCss
-    : '';
+  const projectCriticalCss = extraCriticalCss ? '\n' + extraCriticalCss : '';
 
-  // 3) Decide html class for homepage font sizing
   const htmlClass =
-    routePath === '/' || routePath === '/home' ? 'font-small' : '';
+    routePath.startsWith('/dynamic-theme') ? 'route-dynamic' :
+    (routePath === '/' || routePath === '/home') ? 'font-small' :
+    '';
 
-  // Build font preloads from inlined font CSS (limit to keep HEAD lean)
-  const fontPreloadLinks = buildFontPreloads(
-    [
-      fontsCss.rubikCss,
-      fontsCss.orbitronCss,
-      fontsCss.poppinsCss,
-      fontsCss.epilogueCss,
-    ],
-    4
-  ).join('\n');
+  const routeHead = buildRouteHead(routePath);
+  const injectDefaultSiteHead = routeHead === '';
+  const defaultTitle = `<title>Efe Ozalp - Portfolio</title>`;
+  const defaultDesc  = `<meta name="description" content="web engineering, 3D modeling, visual design portfolio of Efe Ozalp" />`;
+
+  const isDynamicTheme = routePath.startsWith('/dynamic-theme');
+  const v = IS_DEV ? `?v=${Date.now()}` : '';
+  const iconLinks = isDynamicTheme
+    ? `<link rel="icon" href="${iconSvg}${v}" type="image/svg+xml" sizes="any">`
+    : `<link rel="icon" href="${iconIco}${v}" sizes="any">`;
+  const appleTouch = isDynamicTheme
+    ? `<link rel="apple-touch-icon" sizes="180x180" href="/freshmedia-icon.png${v}">`
+    : `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png${v}">`;
+
+  // Inline Dynamic Theme UIcards.css only on /dynamic-theme (no prefix)
+  let dynamicThemeInlineCss = '';
+  if (isDynamicTheme) {
+    const uiCardsCss = readFirst([
+      path.resolve(ROOT, 'src/dynamic-app/styles/UIcards.css'),
+      path.resolve(ROOT, 'src/styles/dynamic-app/UIcards.css'),
+    ]);
+    if (uiCardsCss) {
+      dynamicThemeInlineCss = `<style id="critical-dynamic-ui-cards">${uiCardsCss}</style>`;
+    }
+  }
+
+  // FONTS: use whatever was passed (index.jsx trims Poppins/Epilogue for dynamic)
+  const fontBlocks = [
+    fontsCss.rubikCss,
+    fontsCss.orbitronCss,
+    fontsCss.poppinsCss,
+    fontsCss.epilogueCss,
+  ].filter(Boolean);
+
+  const fontPreloadLinks = buildFontPreloads(fontBlocks, 4).join('\n');
 
   return `<!doctype html>
 <html lang="en" class="${htmlClass}">
 <head>
 <meta charSet="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Efe Ozalp - Portfolio</title>
-<meta name="description" content="web engineering, 3D modeling, visual design portfolio of Efe Ozalp" />
+${injectDefaultSiteHead ? defaultTitle : ''}
+${injectDefaultSiteHead ? defaultDesc  : ''}
 ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)+":3000"</script>` : ''}
-<link rel="icon" href="${iconSvg}" type="image/svg+xml" />
-<link rel="icon" href="${iconIco}" sizes="any" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+${iconLinks}
+${appleTouch}
+
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.sanity.io">
@@ -158,10 +168,7 @@ ${(preloadLinks || []).join('\n')}
 ${fontPreloadLinks}
 
 <style>
-${fontsCss.rubikCss}
-${fontsCss.orbitronCss}
-${fontsCss.poppinsCss}
-${fontsCss.epilogueCss}
+${fontBlocks.join('\n')}
 </style>
 
 ${extractorLinkTags}
@@ -170,16 +177,16 @@ ${(appCriticalCss || projectCriticalCss)
   ? `<style id="critical-inline-app-css">${appCriticalCss}${projectCriticalCss}</style>`
   : ''}
 ${emotionStyleTags}
+
+${dynamicThemeInlineCss}
+${routeHead}
 </head>
 <body>
 <div id="root">`;
 }
 
 export function buildHtmlClose(ssrPayload: any, scriptTags: string) {
-  // write the SSR payload safely
-  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(
-    ssrPayload
-  ).replace(/</g, '\\u003c')}</script>`;
+  const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
 ${scriptTags}
 </body></html>`;

@@ -81,7 +81,7 @@ export default function useIntersectionTransform(
       } else if (width > 1025) {
         if (percentage > 0.6 && percentage <= 1) {
           imageContainerTransform = 'translate(1em, 1em)';
-          imageContainer2Transform = 'translate(0em, -29.2em)';
+          imageContainer2Transform = 'translate(0em, -28.8em)';
           imageContainerZIndex = '1';
           imageContainer2ZIndex = '5';
         } else if (percentage > 0.3 && percentage <= 0.6) {

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+// pull from preloader (images only)
 import { getPreloadedDynamicApp, ensureImagesPreload } from '../preload-dynamic-app';
 import { useStyleInjection } from '../../utils/context-providers/style-injector';
 import sortByCss from '../../styles/dynamic-app/sortByStyles.css?raw';
@@ -40,18 +41,10 @@ function SortBy({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState('random');
 
-  // --- Initial snapshot (no state set on mount) ---
-  const initialImages = (() => {
-    try {
-      const cached = getPreloadedDynamicApp();
-      return Array.isArray(cached.images) ? cached.images : [];
-    } catch {
-      return [];
-    }
-  })();
-
-  // Base dataset (starts from snapshot; fetch only if empty)
-  const [baseItems, setBaseItems] = useState(initialImages);
+  // Base dataset from preload
+  const [baseItems, setBaseItems] = useState([]);
+  // Derived list shown in UI
+  const [items, setItems] = useState([]);
 
   const dropdownRef = useRef(null);
 
@@ -84,27 +77,28 @@ function SortBy({
     return () => root.removeEventListener?.('mousedown', handleClickOutside);
   }, [getRoot]);
 
-  // If snapshot was empty, ensure preload once
+  // 1) Get images from preload cache (or ensure preload if empty)
   useEffect(() => {
-    if (baseItems.length > 0) return;
     let cancelled = false;
-    ensureImagesPreload()
-      .then((images) => { if (!cancelled) setBaseItems(images || []); })
-      .catch(() => { if (!cancelled) setBaseItems([]); });
+    const cached = getPreloadedDynamicApp();
+
+    if (cached.images?.length) {
+      if (!cancelled) setBaseItems(cached.images);
+    } else {
+      ensureImagesPreload()
+        .then((images) => { if (!cancelled) setBaseItems(images || []); })
+        .catch(() => { if (!cancelled) setBaseItems([]); });
+    }
+
     return () => { cancelled = true; };
-  }, [baseItems.length]);
+  }, []);
 
-  // Derived list (no extra state)
-  const items = useMemo(() => localSort(baseItems, selectedValue), [baseItems, selectedValue]);
-
-  // Notify parent only when derived list reference changes meaningfully
-  const lastSentRef = useRef(null);
+  // 2) Derive items whenever base or sort option changes (no network here)
   useEffect(() => {
-    if (!onFetchItems) return;
-    if (lastSentRef.current === items) return;
-    lastSentRef.current = items;
-    onFetchItems(items);
-  }, [items, onFetchItems]);
+    const derived = localSort(baseItems, selectedValue);
+    setItems(derived);
+    onFetchItems?.(derived);
+  }, [baseItems, selectedValue, onFetchItems]);
 
   // Responsive index logic for color sampling
   const [screenWidth, setScreenWidth] = useState(

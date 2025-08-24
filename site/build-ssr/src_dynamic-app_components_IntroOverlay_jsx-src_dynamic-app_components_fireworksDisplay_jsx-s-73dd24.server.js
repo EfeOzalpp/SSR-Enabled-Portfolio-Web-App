@@ -1127,6 +1127,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _styles_dynamic_app_sortByStyles_css_raw__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_sortByStyles_css_raw__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
+// pull from preloader (images only)
 
 
 
@@ -1170,18 +1171,10 @@ function SortBy({
   const [isOpen, setIsOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [selectedValue, setSelectedValue] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('random');
 
-  // --- Initial snapshot (no state set on mount) ---
-  const initialImages = (() => {
-    try {
-      const cached = (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_1__.getPreloadedDynamicApp)();
-      return Array.isArray(cached.images) ? cached.images : [];
-    } catch {
-      return [];
-    }
-  })();
-
-  // Base dataset (starts from snapshot; fetch only if empty)
-  const [baseItems, setBaseItems] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialImages);
+  // Base dataset from preload
+  const [baseItems, setBaseItems] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  // Derived list shown in UI
+  const [items, setItems] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const dropdownRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
   // inject CSS into shadow root (or document)
@@ -1206,31 +1199,30 @@ function SortBy({
     return () => root.removeEventListener?.('mousedown', handleClickOutside);
   }, [getRoot]);
 
-  // If snapshot was empty, ensure preload once
+  // 1) Get images from preload cache (or ensure preload if empty)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (baseItems.length > 0) return;
     let cancelled = false;
-    (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_1__.ensureImagesPreload)().then(images => {
-      if (!cancelled) setBaseItems(images || []);
-    }).catch(() => {
-      if (!cancelled) setBaseItems([]);
-    });
+    const cached = (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_1__.getPreloadedDynamicApp)();
+    if (cached.images?.length) {
+      if (!cancelled) setBaseItems(cached.images);
+    } else {
+      (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_1__.ensureImagesPreload)().then(images => {
+        if (!cancelled) setBaseItems(images || []);
+      }).catch(() => {
+        if (!cancelled) setBaseItems([]);
+      });
+    }
     return () => {
       cancelled = true;
     };
-  }, [baseItems.length]);
+  }, []);
 
-  // Derived list (no extra state)
-  const items = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => localSort(baseItems, selectedValue), [baseItems, selectedValue]);
-
-  // Notify parent only when derived list reference changes meaningfully
-  const lastSentRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  // 2) Derive items whenever base or sort option changes (no network here)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!onFetchItems) return;
-    if (lastSentRef.current === items) return;
-    lastSentRef.current = items;
-    onFetchItems(items);
-  }, [items, onFetchItems]);
+    const derived = localSort(baseItems, selectedValue);
+    setItems(derived);
+    onFetchItems?.(derived);
+  }, [baseItems, selectedValue, onFetchItems]);
 
   // Responsive index logic for color sampling
   const [screenWidth, setScreenWidth] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(typeof window !== 'undefined' ? window.innerWidth : 1200);
@@ -1687,20 +1679,50 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// shadowRootContext.tsx
+// src/utils/context-providers/shadow-root-context.tsx
 
 
-const supportsConstructed = 'adoptedStyleSheets' in Document.prototype && 'replaceSync' in CSSStyleSheet.prototype;
+const hasDOM = typeof document !== 'undefined';
+const hasConstructedSheets = hasDOM && typeof globalThis.Document !== 'undefined' && 'adoptedStyleSheets' in Document.prototype && typeof globalThis.CSSStyleSheet !== 'undefined' && 'replaceSync' in CSSStyleSheet.prototype;
+const isShadowRoot = node => typeof globalThis.ShadowRoot !== 'undefined' && node instanceof globalThis.ShadowRoot;
 const ShadowRootContext = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)(null);
+let warnedOnce = false;
 const useShadowRoot = () => {
   const ctx = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(ShadowRootContext);
   if (!ctx) {
-    console.warn('useShadowRoot called outside provider');
+    if (!warnedOnce) {
+      // Dev-friendly, harmless in prod too; only once.
+      console.warn('useShadowRoot called outside provider; falling back to document.');
+      warnedOnce = true;
+    }
+    const injectStyle = (css, id) => {
+      if (!hasDOM) return;
+      const existing = document.head.querySelector(`style[data-style-id="${id}"]`);
+      if (existing) return;
+      const style = document.createElement('style');
+      style.dataset.styleId = id;
+      style.textContent = css;
+      document.head.appendChild(style);
+    };
+    const injectLink = (href, id) => {
+      if (!hasDOM) return;
+      const selector = id ? `link[data-style-id="${id}"]` : `link[rel="stylesheet"][href="${href}"]`;
+      if (document.head.querySelector(selector)) return;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      if (id) link.dataset.styleId = id;
+      document.head.appendChild(link);
+    };
+    const removeStyle = id => {
+      if (!hasDOM) return;
+      document.head.querySelector(`style[data-style-id="${id}"]`)?.remove();
+    };
     return {
       getShadowRoot: () => null,
-      injectStyle: () => {},
-      injectLink: () => {},
-      removeStyle: () => {}
+      injectStyle,
+      injectLink,
+      removeStyle
     };
   }
   return ctx;
@@ -1709,12 +1731,25 @@ function ShadowRootProvider({
   getShadowRoot,
   children
 }) {
-  // Cache Constructed Stylesheets by ID per shadow root provider
+  // Cache constructed sheets per ID (per provider)
   const sheetCacheRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(new Map());
   const injectStyle = (css, id) => {
     const root = getShadowRoot();
-    if (!(root instanceof ShadowRoot)) return;
-    if (supportsConstructed) {
+
+    // If no shadow root, gracefully inject into document.head
+    if (!isShadowRoot(root)) {
+      if (!hasDOM) return;
+      const existing = document.head.querySelector(`style[data-style-id="${id}"]`);
+      if (existing) return;
+      const style = document.createElement('style');
+      style.dataset.styleId = id;
+      style.textContent = css;
+      document.head.appendChild(style);
+      return;
+    }
+
+    // Shadow root path
+    if (hasConstructedSheets) {
       let sheet = sheetCacheRef.current.get(id);
       if (!sheet) {
         sheet = new CSSStyleSheet();
@@ -1727,7 +1762,7 @@ function ShadowRootProvider({
       return;
     }
 
-    // Fallback: DOM-based <style> with ID dedupe
+    // Fallback <style> in shadow root
     if (root.querySelector(`style[data-style-id="${id}"]`)) return;
     const style = document.createElement('style');
     style.textContent = css;
@@ -1736,11 +1771,23 @@ function ShadowRootProvider({
   };
   const injectLink = (href, id) => {
     const root = getShadowRoot();
-    if (!(root instanceof ShadowRoot)) return;
 
-    // Note: adoptedStyleSheets can't attach external CSS; keep <link> for that.
-    if (id && root.querySelector(`link[data-style-id="${id}"]`)) return;
-    if (!id && Array.from(root.querySelectorAll('link[rel="stylesheet"]')).some(l => l.href === href)) return;
+    // If no shadow root, use document.head
+    if (!isShadowRoot(root)) {
+      if (!hasDOM) return;
+      const selector = id ? `link[data-style-id="${id}"]` : `link[rel="stylesheet"][href="${href}"]`;
+      if (document.head.querySelector(selector)) return;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      if (id) link.dataset.styleId = id;
+      document.head.appendChild(link);
+      return;
+    }
+
+    // Shadow root link injection
+    const selector = id ? `link[data-style-id="${id}"]` : `link[rel="stylesheet"][href="${href}"]`;
+    if (root.querySelector(selector)) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = href;
@@ -1749,8 +1796,14 @@ function ShadowRootProvider({
   };
   const removeStyle = id => {
     const root = getShadowRoot();
-    if (!(root instanceof ShadowRoot)) return;
-    if (supportsConstructed) {
+
+    // Remove from doc head if no shadow root
+    if (!isShadowRoot(root)) {
+      if (!hasDOM) return;
+      document.head.querySelector(`style[data-style-id="${id}"]`)?.remove();
+      return;
+    }
+    if (hasConstructedSheets) {
       const sheet = sheetCacheRef.current.get(id);
       if (sheet) {
         root.adoptedStyleSheets = root.adoptedStyleSheets.filter(s => s !== sheet);

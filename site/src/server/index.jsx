@@ -14,7 +14,7 @@ import { SsrDataProvider } from '../utils/context-providers/ssr-data-context'
 import { prepareSsrData } from './prepareSsrData'
 import { ssrRegistry } from '../ssr/registry'
 import { buildHtmlOpen, buildHtmlClose } from './html'
-import { buildCriticalCss } from './cssPipeline'      
+import { buildCriticalCss } from './cssPipeline'
 
 import highScoreRoute from './highScoreRoute'
 import { getEphemeralSeed } from './seed'
@@ -26,7 +26,7 @@ import {
 } from './assets'
 
 const app = express()
-app.use(express.json()) // parse JSON body
+app.use(express.json())
 
 const IS_DEV = process.env.NODE_ENV !== 'production'
 const HOST = '192.168.1.104'
@@ -35,14 +35,10 @@ const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`
 
 const { BUILD_DIR, STATS_FILE, ASSET_MANIFEST } = resolveStatsFile()
 
-/** -----------------------------
- * API routes (MOUNT FIRST)
- * ----------------------------- */
+/** API routes */
 app.use('/api', highScoreRoute)
 
-/** -----------------------------
- * Static assets
- * ----------------------------- */
+/** Static assets */
 app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1y', index: false }))
 
 if (IS_DEV) {
@@ -53,19 +49,27 @@ if (IS_DEV) {
   app.use(express.static(BUILD_DIR, { index: false }))
 }
 
-/** -----------------------------
- * SSR catch-all (MOUNT LAST)
- * ----------------------------- */
+/** SSR catch-all */
 app.get('/*', async (req, res) => {
-  const { seed } = getEphemeralSeed()
-  const ssrPayload = await prepareSsrData(seed)
+  const isDynamicTheme = req.path.startsWith('/dynamic-theme')
 
   if (!fs.existsSync(STATS_FILE)) {
     res.status(500).send('<pre>Missing build artifacts. Run `npm run build` or `npm run dev:ssr`.</pre>')
     return
   }
 
-  const extractor = new ChunkExtractor({ statsFile: STATS_FILE, publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/' })
+  // Seed + preload data: only for NON-dynamic routes
+  let ssrPayload = { seed: null, preloaded: {}, preloadLinks: [] }
+  if (!isDynamicTheme) {
+    const { seed } = getEphemeralSeed()
+    ssrPayload = await prepareSsrData(seed)
+  }
+
+  const extractor = new ChunkExtractor({
+    statsFile: STATS_FILE,
+    publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/',
+  })
+
   const { cache, extractCriticalToChunks, constructStyleTagsFromChunks } = createEmotion()
 
   const jsx = extractor.collectChunks(
@@ -83,28 +87,49 @@ app.get('/*', async (req, res) => {
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks)
 
   const manifest = loadManifestIfAny(IS_DEV, ASSET_MANIFEST)
+
+  // Icons (html builder chooses which to emit)
+  const iconSvg = '/freshmedia-icon.svg'
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico'
-  const iconSvg = '/favicon.svg'
-  const fontsCss = readFontCss()
 
-  const firstKey = Object.keys(ssrPayload.preloaded || {})[0]
-  const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null
-  const preloadLinks = buildPreloadLinks(firstData)
+  // Fonts: build once, then keep only Rubik + Orbitron on /dynamic-theme
+  const allFonts = readFontCss()
+  const fontsCss = isDynamicTheme
+    ? { rubikCss: allFonts.rubikCss, orbitronCss: allFonts.orbitronCss, poppinsCss: '', epilogueCss: '' }
+    : allFonts
 
-  // --- Build project critical CSS with the same PostCSS prefixer as client
+  // Preloads: only for NON-dynamic routes
+  let preloadLinks = []
+  if (!isDynamicTheme) {
+    const firstKey = Object.keys(ssrPayload.preloaded || {})[0]
+    const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null
+    preloadLinks = buildPreloadLinks(firstData)
+  }
+
+  // Project critical CSS: only for NON-dynamic routes
   let extraCriticalCss = ''
-  if (firstKey) {
-    const desc = ssrRegistry[firstKey]
-    const files = desc?.criticalCssFiles || []
-    if (files.length > 0) {
-      try {
-        extraCriticalCss = await buildCriticalCss(files) // ⬅️ same prefix logic as client
-      } catch (err) {
-        console.error('[SSR] buildCriticalCss failed:', err)
-        extraCriticalCss = ''
+  if (!isDynamicTheme) {
+    const firstKey = Object.keys(ssrPayload.preloaded || {})[0]
+    if (firstKey) {
+      const desc = ssrRegistry[firstKey]
+      const files = desc?.criticalCssFiles || []
+      if (files.length > 0) {
+        try {
+          extraCriticalCss = await buildCriticalCss(files)
+        } catch (err) {
+          console.error('[SSR] buildCriticalCss failed:', err)
+          extraCriticalCss = ''
+        }
       }
     }
   }
+
+  // Filter CRA/Loadable CSS on /dynamic-theme
+  const rawLinkTags = extractor.getLinkTags()
+  const extractorLinkTags = isDynamicTheme
+    ? rawLinkTags.replace(/<link[^>]+rel=["']stylesheet["'][^>]*>/g, '')
+    : rawLinkTags
+  const extractorStyleTags = isDynamicTheme ? '' : extractor.getStyleTags()
 
   const htmlOpen = buildHtmlOpen({
     IS_DEV,
@@ -113,8 +138,8 @@ app.get('/*', async (req, res) => {
     iconIco,
     preloadLinks,
     fontsCss,
-    extractorLinkTags: extractor.getLinkTags(),
-    extractorStyleTags: extractor.getStyleTags(),
+    extractorLinkTags,
+    extractorStyleTags,
     emotionStyleTags,
     extraCriticalCss,
   })

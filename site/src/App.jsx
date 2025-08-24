@@ -1,7 +1,8 @@
+// src/App.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import loadable from '@loadable/component';
-import scopedShell from './ScopedShell';
+import ScopedShell from './ScopedShell'; // use PascalCase for components
 
 const Frontpage = loadable(() => import('./FrontPage.jsx'));
 const DynamicThemeRoute = loadable(() => import('./dynamic-app/ssr-app/dynamic-theme.route.jsx'));
@@ -9,12 +10,24 @@ const DynamicThemeRoute = loadable(() => import('./dynamic-app/ssr-app/dynamic-t
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={React.createElement(scopedShell, null, <Frontpage />)} />
-      <Route path="/home" element={React.createElement(scopedShell, null, <Frontpage />)} />
       <Route
-        path="/dynamic-theme"
-        element={React.createElement(scopedShell, null, <DynamicThemeRoute />)}
+        path="/"
+        element={
+          <ScopedShell>
+            <Frontpage />
+          </ScopedShell>
+        }
       />
+      <Route
+        path="/home"
+        element={
+          <ScopedShell>
+            <Frontpage />
+          </ScopedShell>
+        }
+      />
+      {/* No ScopedShell here to avoid #efe-portfolio wrapper */}
+      <Route path="/dynamic-theme/*" element={<DynamicThemeRoute />} />
     </Routes>
   );
 }

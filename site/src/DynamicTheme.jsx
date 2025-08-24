@@ -110,45 +110,6 @@ function DynamicTheme() {
 
   return (
     <>
-      {/* React 19: metadata directly in JSX, hoisted to <head> */}
-      <title>DMI - Dynamic Theme</title>
-      <meta
-        name="description"
-        content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2025 curation."
-      />
-      <meta
-        name="keywords"
-        content="Innovation, Art, Technology, Science, Culture, Exhibition, Installation, Display, Projects"
-      />
-      <meta name="theme-color" content="#1e1e1f" />
-      <link rel="icon" href="/freshmedia-icon.svg" type="image/svg+xml" />
-      <link rel="shortcut icon" type="image/svg+xml" href="/freshmedia-icon.svg" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/freshmedia-icon.svg" />
-      <meta property="og:title" content="DMI MassArt - Fresh Media 2025" />
-      <meta
-        property="og:description"
-        content="Fresh Media is a Dynamic Media Institute at MassArt tradition! This is the 2025 curation."
-      />
-      <meta property="og:type" content="website" />
-      <meta
-        property="og:image"
-        content="https://www.example.com/image-path/og-image.jpg"
-      />
-      <meta
-        property="og:url"
-        content="https://www.example.com/page-url/"
-      />
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="DMI MassArt - Fresh Media 2025" />
-      <meta
-        name="twitter:description"
-        content="Fresh Media is a Dynamic Media Institute at MassArt tradition! This is the 2025 curation."
-      />
-      <meta
-        name="twitter:image"
-        content="https://www.example.com/image-path/twitter-image.jpg"
-      />
-
       <div className="dynamic-app" ref={dynamicAppRef}>
         {isLoading ? (
           <LoadingScreen isFullScreen={true} />

@@ -4,7 +4,7 @@ import { useSsrData } from '../../utils/context-providers/ssr-data-context';
 import { primeFromSSR } from '..//preload-dynamic-app';
 
 // Load the existing client page (no SSR false flag here)
-const DynamicTheme = loadable(() => import('../../DynamicTheme.jsx'));
+const DynamicTheme = loadable(() => import('../../DynamicTheme.jsx') , { ssr: false });
 
 export default function DynamicThemeRoute() {
   // If your server provided preloaded data, push it into the shared cache

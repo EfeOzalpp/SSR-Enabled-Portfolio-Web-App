@@ -17372,10 +17372,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _loadable_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @loadable/component */ "./node_modules/@loadable/component/dist/cjs/loadable.cjs.js");
 /* harmony import */ var _ScopedShell__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ScopedShell */ "./src/ScopedShell.jsx");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/App.jsx
 
 
 
-
+ // use PascalCase for components
 
 const Frontpage = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"])({
   resolved: {},
@@ -17463,13 +17464,17 @@ function App() {
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Routes, {
     children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
       path: "/",
-      element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {}))
+      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {})
+      })
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
       path: "/home",
-      element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {}))
+      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {})
+      })
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
-      path: "/dynamic-theme",
-      element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(DynamicThemeRoute, {}))
+      path: "/dynamic-theme/*",
+      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(DynamicThemeRoute, {})
     })]
   });
 }
@@ -17716,13 +17721,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   buildHtmlClose: () => (/* binding */ buildHtmlClose),
 /* harmony export */   buildHtmlOpen: () => (/* binding */ buildHtmlOpen),
+/* harmony export */   buildRouteHead: () => (/* binding */ buildRouteHead),
 /* harmony export */   prefixCss: () => (/* binding */ prefixCss)
 /* harmony export */ });
 /* harmony import */ var node_fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node:fs */ "node:fs");
 /* harmony import */ var node_fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_fs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! node:path */ "node:path");
 /* harmony import */ var node_path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(node_path__WEBPACK_IMPORTED_MODULE_1__);
-// src/server/html.ts
 
 
 function readTextSafe(p) {
@@ -17732,44 +17737,32 @@ function readTextSafe(p) {
     return '';
   }
 }
+function readFirst(paths) {
+  for (const p of paths) {
+    const txt = readTextSafe(p);
+    if (txt) return txt;
+  }
+  return '';
+}
 
-/**
- * Scopes CSS to a prefix (default: #efe-portfolio).
- * - Recursively prefixes selectors inside @media blocks.
- * - Skips @keyframes and @font-face (they remain global).
- * - Leaves html/body/:root and allowlisted selectors unprefixed.
- * - Preserves comma-separated selectors.
- */
+/** Prefix helper (unchanged) */
 function prefixCss(css, prefix = '#efe-portfolio') {
-  // 1) Recursively process @media blocks so their inner selectors get prefixed.
   css = css.replace(/@media[^{]+\{([\s\S]*?)\}/g, (full, inner) => {
     const prefixedInner = prefixCss(inner, prefix);
     return full.replace(inner, prefixedInner);
   });
-
-  // 2) Keep @keyframes and @font-face as-is (global).
-  //    We just avoid touching those blocks by targeting only non-at-rule selectors below.
-
-  // 3) Prefix top-level rules (not starting with '@'), preserving comma lists.
   return css.replace(/(^|\})\s*([^{@}][^{]*)\{/g, (m, brace, selector) => {
     const sel = selector.trim();
-
-    // Allowlist selectors that should remain global
     if (sel.startsWith('html') || sel.startsWith('body') || sel.startsWith(':root') || sel.includes('#dynamic-theme') || sel.includes('#shadow-dynamic-app') || sel.includes('::slotted')) {
       return `${brace} ${sel}{`;
     }
-
-    // Prefix each comma-separated selector
     const parts = sel.split(',').map(s => s.trim()).filter(Boolean);
     const prefixed = parts.map(s => `${prefix} ${s}`).join(', ');
     return `${brace} ${prefixed}{`;
   });
 }
 
-/**
- * Finds WOFF2 URLs in provided font CSS strings and returns <link rel="preload"> tags.
- * This opts to preload a small set (first few, unique) to keep head lightweight.
- */
+/** Build limited font preloads from the blocks actually emitted */
 function buildFontPreloads(fontCssBlocks, limit = 4) {
   const urlRegex = /url\((['"]?)([^)]+?\.woff2)\1\)/g;
   const urls = [];
@@ -17783,6 +17776,25 @@ function buildFontPreloads(fontCssBlocks, limit = 4) {
     if (urls.length >= limit) break;
   }
   return urls.map(href => `<link rel="preload" as="font" href="${href}" type="font/woff2" crossorigin>`);
+}
+
+/* Per-route head */
+function buildRouteHead(routePath) {
+  if (routePath.startsWith('/dynamic-theme')) {
+    return `
+      <title>DMI - Dynamic Theme</title>
+      <meta name="description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
+      <meta name="keywords" content="Innovation, Art, Technology, Science, Culture, Exhibition, Installation, Display, Projects">
+      <meta name="theme-color" content="#1e1e1f">
+      <meta property="og:title" content="DMI MassArt - Fresh Media 2025">
+      <meta property="og:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
+      <meta property="og:type" content="website">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="DMI MassArt - Fresh Media 2024">
+      <meta name="twitter:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
+    `;
+  }
+  return '';
 }
 function buildHtmlOpen(opts) {
   const {
@@ -17801,31 +17813,46 @@ function buildHtmlOpen(opts) {
   const cssTheme = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/font+theme.css'));
   const cssBlocks = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/general-block.css'));
 
-  // 1) App-level critical CSS only for landing routes (keeps HEAD lean)
+  // App-level critical CSS only for landing routes
   let appCriticalCss = '';
   if (routePath === '/' || routePath === '/home') {
-    appCriticalCss = prefixCss(cssTheme) + '\n/* --- separator --- */\n' + prefixCss(cssBlocks);
+    appCriticalCss = prefixCss(cssTheme) + '\n' + prefixCss(cssBlocks);
+  }
+  const projectCriticalCss = extraCriticalCss ? '\n' + extraCriticalCss : '';
+  const htmlClass = routePath.startsWith('/dynamic-theme') ? 'route-dynamic' : routePath === '/' || routePath === '/home' ? 'font-small' : '';
+  const routeHead = buildRouteHead(routePath);
+  const injectDefaultSiteHead = routeHead === '';
+  const defaultTitle = `<title>Efe Ozalp - Portfolio</title>`;
+  const defaultDesc = `<meta name="description" content="web engineering, 3D modeling, visual design portfolio of Efe Ozalp" />`;
+  const isDynamicTheme = routePath.startsWith('/dynamic-theme');
+  const v = IS_DEV ? `?v=${Date.now()}` : '';
+  const iconLinks = isDynamicTheme ? `<link rel="icon" href="${iconSvg}${v}" type="image/svg+xml" sizes="any">` : `<link rel="icon" href="${iconIco}${v}" sizes="any">`;
+  const appleTouch = isDynamicTheme ? `<link rel="apple-touch-icon" sizes="180x180" href="/freshmedia-icon.png${v}">` : `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png${v}">`;
+
+  // Inline Dynamic Theme UIcards.css only on /dynamic-theme (no prefix)
+  let dynamicThemeInlineCss = '';
+  if (isDynamicTheme) {
+    const uiCardsCss = readFirst([node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/dynamic-app/styles/UIcards.css'), node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/dynamic-app/UIcards.css')]);
+    if (uiCardsCss) {
+      dynamicThemeInlineCss = `<style id="critical-dynamic-ui-cards">${uiCardsCss}</style>`;
+    }
   }
 
-  // 2) Always inline project critical CSS when provided
-  const projectCriticalCss = extraCriticalCss ? '\n/* --- project critical --- */\n' + extraCriticalCss : '';
-
-  // 3) Decide html class for homepage font sizing
-  const htmlClass = routePath === '/' || routePath === '/home' ? 'font-small' : '';
-
-  // Build font preloads from inlined font CSS (limit to keep HEAD lean)
-  const fontPreloadLinks = buildFontPreloads([fontsCss.rubikCss, fontsCss.orbitronCss, fontsCss.poppinsCss, fontsCss.epilogueCss], 4).join('\n');
+  // FONTS: use whatever was passed (index.jsx trims Poppins/Epilogue for dynamic)
+  const fontBlocks = [fontsCss.rubikCss, fontsCss.orbitronCss, fontsCss.poppinsCss, fontsCss.epilogueCss].filter(Boolean);
+  const fontPreloadLinks = buildFontPreloads(fontBlocks, 4).join('\n');
   return `<!doctype html>
 <html lang="en" class="${htmlClass}">
 <head>
 <meta charSet="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Efe Ozalp - Portfolio</title>
-<meta name="description" content="web engineering, 3D modeling, visual design portfolio of Efe Ozalp" />
+${injectDefaultSiteHead ? defaultTitle : ''}
+${injectDefaultSiteHead ? defaultDesc : ''}
 ${IS_DEV ? `<script>window.__ASSET_ORIGIN__="http://"+(window.location.hostname)+":3000"</script>` : ''}
-<link rel="icon" href="${iconSvg}" type="image/svg+xml" />
-<link rel="icon" href="${iconIco}" sizes="any" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+${iconLinks}
+${appleTouch}
+
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.sanity.io">
@@ -17833,22 +17860,21 @@ ${(preloadLinks || []).join('\n')}
 ${fontPreloadLinks}
 
 <style>
-${fontsCss.rubikCss}
-${fontsCss.orbitronCss}
-${fontsCss.poppinsCss}
-${fontsCss.epilogueCss}
+${fontBlocks.join('\n')}
 </style>
 
 ${extractorLinkTags}
 ${extractorStyleTags}
 ${appCriticalCss || projectCriticalCss ? `<style id="critical-inline-app-css">${appCriticalCss}${projectCriticalCss}</style>` : ''}
 ${emotionStyleTags}
+
+${dynamicThemeInlineCss}
+${routeHead}
 </head>
 <body>
 <div id="root">`;
 }
 function buildHtmlClose(ssrPayload, scriptTags) {
-  // write the SSR payload safely
   const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
 ${scriptTags}
@@ -17915,8 +17941,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const app = express__WEBPACK_IMPORTED_MODULE_4___default()();
-app.use(express__WEBPACK_IMPORTED_MODULE_4___default().json()); // parse JSON body
-
+app.use(express__WEBPACK_IMPORTED_MODULE_4___default().json());
 const IS_DEV = "development" !== 'production';
 const HOST = '192.168.1.104';
 const DEV_HOST_FOR_ASSETS = '192.168.1.104';
@@ -17927,14 +17952,10 @@ const {
   ASSET_MANIFEST
 } = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.resolveStatsFile)();
 
-/** -----------------------------
- * API routes (MOUNT FIRST)
- * ----------------------------- */
+/** API routes */
 app.use('/api', _highScoreRoute__WEBPACK_IMPORTED_MODULE_17__["default"]);
 
-/** -----------------------------
- * Static assets
- * ----------------------------- */
+/** Static assets */
 app.use(express__WEBPACK_IMPORTED_MODULE_4___default()["static"](path__WEBPACK_IMPORTED_MODULE_1___default().join(process.cwd(), 'public'), {
   maxAge: '1y',
   index: false
@@ -17960,17 +17981,25 @@ if (IS_DEV) {
   }));
 }
 
-/** -----------------------------
- * SSR catch-all (MOUNT LAST)
- * ----------------------------- */
+/** SSR catch-all */
 app.get('/*', async (req, res) => {
-  const {
-    seed
-  } = (0,_seed__WEBPACK_IMPORTED_MODULE_18__.getEphemeralSeed)();
-  const ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_13__.prepareSsrData)(seed);
+  const isDynamicTheme = req.path.startsWith('/dynamic-theme');
   if (!fs__WEBPACK_IMPORTED_MODULE_2___default().existsSync(STATS_FILE)) {
     res.status(500).send('<pre>Missing build artifacts. Run `npm run build` or `npm run dev:ssr`.</pre>');
     return;
+  }
+
+  // Seed + preload data: only for NON-dynamic routes
+  let ssrPayload = {
+    seed: null,
+    preloaded: {},
+    preloadLinks: []
+  };
+  if (!isDynamicTheme) {
+    const {
+      seed
+    } = (0,_seed__WEBPACK_IMPORTED_MODULE_18__.getEphemeralSeed)();
+    ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_13__.prepareSsrData)(seed);
   }
   const extractor = new _loadable_server__WEBPACK_IMPORTED_MODULE_8__.ChunkExtractor({
     statsFile: STATS_FILE,
@@ -17995,27 +18024,50 @@ app.get('/*', async (req, res) => {
   const emotionChunks = extractCriticalToChunks(prerender);
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks);
   const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
-  const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
-  const iconSvg = '/favicon.svg';
-  const fontsCss = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.readFontCss)();
-  const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
-  const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
-  const preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.buildPreloadLinks)(firstData);
 
-  // --- Build project critical CSS with the same PostCSS prefixer as client
+  // Icons (html builder chooses which to emit)
+  const iconSvg = '/freshmedia-icon.svg';
+  const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
+
+  // Fonts: build once, then keep only Rubik + Orbitron on /dynamic-theme
+  const allFonts = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.readFontCss)();
+  const fontsCss = isDynamicTheme ? {
+    rubikCss: allFonts.rubikCss,
+    orbitronCss: allFonts.orbitronCss,
+    poppinsCss: '',
+    epilogueCss: ''
+  } : allFonts;
+
+  // Preloads: only for NON-dynamic routes
+  let preloadLinks = [];
+  if (!isDynamicTheme) {
+    const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
+    const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
+    preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.buildPreloadLinks)(firstData);
+  }
+
+  // Project critical CSS: only for NON-dynamic routes
   let extraCriticalCss = '';
-  if (firstKey) {
-    const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_14__.ssrRegistry[firstKey];
-    const files = desc?.criticalCssFiles || [];
-    if (files.length > 0) {
-      try {
-        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_16__.buildCriticalCss)(files); // ⬅️ same prefix logic as client
-      } catch (err) {
-        console.error('[SSR] buildCriticalCss failed:', err);
-        extraCriticalCss = '';
+  if (!isDynamicTheme) {
+    const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
+    if (firstKey) {
+      const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_14__.ssrRegistry[firstKey];
+      const files = desc?.criticalCssFiles || [];
+      if (files.length > 0) {
+        try {
+          extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_16__.buildCriticalCss)(files);
+        } catch (err) {
+          console.error('[SSR] buildCriticalCss failed:', err);
+          extraCriticalCss = '';
+        }
       }
     }
   }
+
+  // Filter CRA/Loadable CSS on /dynamic-theme
+  const rawLinkTags = extractor.getLinkTags();
+  const extractorLinkTags = isDynamicTheme ? rawLinkTags.replace(/<link[^>]+rel=["']stylesheet["'][^>]*>/g, '') : rawLinkTags;
+  const extractorStyleTags = isDynamicTheme ? '' : extractor.getStyleTags();
   const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlOpen)({
     IS_DEV,
     routePath: req.path,
@@ -18023,8 +18075,8 @@ app.get('/*', async (req, res) => {
     iconIco,
     preloadLinks,
     fontsCss,
-    extractorLinkTags: extractor.getLinkTags(),
-    extractorStyleTags: extractor.getStyleTags(),
+    extractorLinkTags,
+    extractorStyleTags,
     emotionStyleTags,
     extraCriticalCss
   });
