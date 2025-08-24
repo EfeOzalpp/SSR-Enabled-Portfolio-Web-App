@@ -230,21 +230,19 @@ function BlockGHost({
       })]
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_9__["default"], {
       load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ./game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
-      fallback: null
-      // Hysteresis: easy enter, generous exit
+      fallback: null,
+      mountMode: "io",
+      observeTargetId: blockId,
+      rootMargin: "0px",
+      enterThreshold: 0.2 // start showing after ~20% visible
       ,
-      enterThreshold: 0.2,
-      exitThreshold: 0.05,
-      unmountDelayMs: 150
-      // Preloading
+      exitThreshold: 0.05 // consider out-of-view at/below 5%
+      ,
+      unmountDelayMs: 150 // ms! small delay to avoid micro-jitter
       ,
       preloadOnIdle: true,
       preloadIdleTimeout: 2000,
-      preloadOnFirstIO: true
-      // IO config
-      // root={yourScrollContainerEl} // pass this if you scroll inside a custom container
-      ,
-      rootMargin: "0px",
+      preloadOnFirstIO: true,
       placeholderMinHeight: 360,
       componentProps: {
         onReady: handleReady,

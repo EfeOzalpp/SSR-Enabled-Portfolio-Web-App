@@ -1,6 +1,6 @@
 "use strict";
-exports.id = "dynamic-shadow";
-exports.ids = ["dynamic-shadow"];
+exports.id = "src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977";
+exports.ids = ["src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977"];
 exports.modules = {
 
 /***/ "./src/components/dynamic-app/shadow-entry.tsx":
@@ -322,4 +322,4 @@ function useRealMobileViewport() {
 
 };
 ;
-//# sourceMappingURL=dynamic-shadow.server.js.map
+//# sourceMappingURL=src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977.server.js.map

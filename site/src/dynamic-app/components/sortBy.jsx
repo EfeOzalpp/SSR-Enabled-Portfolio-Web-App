@@ -1,29 +1,61 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import fetchImages from '../lib/fetchUser';
-import { useStyleInjection } from '../../utils/context-providers/style-injector.ts'; 
+import { getPreloadedDynamicApp, ensureImagesPreload } from '../preload-dynamic-app';
+import { useStyleInjection } from '../../utils/context-providers/style-injector';
 import sortByCss from '../../styles/dynamic-app/sortByStyles.css?raw';
 
 const options = [
-  { value: 'random', label: 'Randomized' },
+  { value: 'random',   label: 'Randomized' },
   { value: 'titleAsc', label: 'A to Z' },
-  { value: 'titleDesc', label: 'Z to A' },
+  { value: 'titleDesc',label: 'Z to A' },
 ];
 
-const shuffleArray = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
+const shuffleArray = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return shuffled;
+  return a;
 };
 
-function SortBy({ onFetchItems, customArrowIcon, colorMapping, getRoot = () => document }) {
+function localSort(data, mode) {
+  if (!Array.isArray(data)) return [];
+  switch (mode) {
+    case 'titleAsc':
+      return [...data].sort((a, b) => (a?.title || '').localeCompare(b?.title || ''));
+    case 'titleDesc':
+      return [...data].sort((a, b) => (b?.title || '').localeCompare(a?.title || ''));
+    case 'random':
+    default:
+      return shuffleArray(data);
+  }
+}
+
+function SortBy({
+  onFetchItems,
+  customArrowIcon,
+  colorMapping,
+  getRoot = () => document,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState('random');
-  const [items, setItems] = useState([]);
+
+  // --- Initial snapshot (no state set on mount) ---
+  const initialImages = (() => {
+    try {
+      const cached = getPreloadedDynamicApp();
+      return Array.isArray(cached.images) ? cached.images : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  // Base dataset (starts from snapshot; fetch only if empty)
+  const [baseItems, setBaseItems] = useState(initialImages);
+
   const dropdownRef = useRef(null);
 
+  // inject CSS into shadow root (or document)
   useStyleInjection(sortByCss, 'dynamic-app-style-sortby');
 
   const handleOptionClick = (value) => {
@@ -33,49 +65,63 @@ function SortBy({ onFetchItems, customArrowIcon, colorMapping, getRoot = () => d
 
   const handleClickOutside = (e) => {
     const root = typeof getRoot === 'function' ? getRoot() : document;
-    const pauseButton = root.querySelector('.lottie-container');
+    const pauseButton = root.querySelector?.('.lottie-container');
+    const target = e.target;
     if (
       dropdownRef.current &&
-      !dropdownRef.current.contains(e.target) &&
-      (!pauseButton || !pauseButton.contains(e.target))
+      target &&
+      !dropdownRef.current.contains(target) &&
+      (!pauseButton || !pauseButton.contains(target))
     ) {
       setIsOpen(false);
     }
   };
 
+  // click-outside listener bound to the same root as the UI
   useEffect(() => {
     const root = typeof getRoot === 'function' ? getRoot() : document;
-    root.addEventListener('mousedown', handleClickOutside);
-    return () => root.removeEventListener('mousedown', handleClickOutside);
+    root.addEventListener?.('mousedown', handleClickOutside);
+    return () => root.removeEventListener?.('mousedown', handleClickOutside);
   }, [getRoot]);
 
+  // If snapshot was empty, ensure preload once
   useEffect(() => {
-    const fetchData = async () => {
-      let fetched = await fetchImages(selectedValue);
-      if (selectedValue === 'random') {
-        fetched = shuffleArray(fetched);
-      }
-      setItems(fetched);
-      onFetchItems?.(fetched);
-    };
-    fetchData();
-  }, [selectedValue]);
+    if (baseItems.length > 0) return;
+    let cancelled = false;
+    ensureImagesPreload()
+      .then((images) => { if (!cancelled) setBaseItems(images || []); })
+      .catch(() => { if (!cancelled) setBaseItems([]); });
+    return () => { cancelled = true; };
+  }, [baseItems.length]);
 
-  // Responsive index logic
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  // Derived list (no extra state)
+  const items = useMemo(() => localSort(baseItems, selectedValue), [baseItems, selectedValue]);
+
+  // Notify parent only when derived list reference changes meaningfully
+  const lastSentRef = useRef(null);
+  useEffect(() => {
+    if (!onFetchItems) return;
+    if (lastSentRef.current === items) return;
+    lastSentRef.current = items;
+    onFetchItems(items);
+  }, [items, onFetchItems]);
+
+  // Responsive index logic for color sampling
+  const [screenWidth, setScreenWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1200
+  );
   useEffect(() => {
     const onResize = () => setScreenWidth(window.innerWidth);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
-
   const itemIndex = screenWidth >= 1025 ? 2 : screenWidth >= 768 ? 1 : 0;
 
   const convertHexToRGBA = (hex, alpha) => {
-    const hexWithoutHash = hex.replace('#', '');
-    const r = parseInt(hexWithoutHash.slice(0, 2), 16);
-    const g = parseInt(hexWithoutHash.slice(2, 4), 16);
-    const b = parseInt(hexWithoutHash.slice(4, 6), 16);
+    const h = (hex || '#ffffff').replace('#', '');
+    const r = parseInt(h.slice(0, 2) || 'ff', 16);
+    const g = parseInt(h.slice(2, 4) || 'ff', 16);
+    const b = parseInt(h.slice(4, 6) || 'ff', 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
@@ -110,8 +156,12 @@ function SortBy({ onFetchItems, customArrowIcon, colorMapping, getRoot = () => d
               {customArrowIcon && <div dangerouslySetInnerHTML={{ __html: customArrowIcon }} />}
             </span>
           </div>
+
           {isOpen && (
-            <div className="options-container" style={{ border: `solid 1.6px ${borderItemColor}`, borderTop: 'none' }}>
+            <div
+              className="options-container"
+              style={{ border: `solid 1.6px ${borderItemColor}`, borderTop: 'none' }}
+            >
               {options.map((option) => (
                 <div
                   key={option.value}

@@ -2,6 +2,195 @@ exports.id = "src_ssr_projects_dynamic_enhancer_tsx";
 exports.ids = ["src_ssr_projects_dynamic_enhancer_tsx"];
 exports.modules = {
 
+/***/ "./src/dynamic-app/lib/fetchSVGIcons.js":
+/*!**********************************************!*\
+  !*** ./src/dynamic-app/lib/fetchSVGIcons.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ fetchSVGIcons)
+/* harmony export */ });
+/* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
+/* Fetch SVG icons */
+
+async function fetchSVGIcons() {
+  const query = `*[_type == "svgIcon"]{
+    title,
+    icon,                         // inline SVG string (portable text / string)
+    "url": file.asset->url        // optional file URL if present in schema
+  }`;
+  const icons = await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].fetch(query);
+  return icons;
+}
+
+/***/ }),
+
+/***/ "./src/dynamic-app/lib/fetchUser.js":
+/*!******************************************!*\
+  !*** ./src/dynamic-app/lib/fetchUser.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   fetchImages: () => (/* binding */ fetchImages)
+/* harmony export */ });
+/* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
+// lib/fetchUser.ts
+
+const fetchImages = async (sortOption = 'default') => {
+  let orderClause = '';
+  switch (sortOption) {
+    case 'titleAsc':
+      orderClause = '| order(title asc)';
+      break;
+    case 'titleDesc':
+      orderClause = '| order(title desc)';
+      break;
+    case 'dateAsc':
+      orderClause = '| order(_createdAt asc)';
+      break;
+    case 'dateDesc':
+      orderClause = '| order(_createdAt desc)';
+      break;
+  }
+  const query = `*[_type == "imageAsset"] ${orderClause} {
+    _id,
+    title,
+    description,
+    image1,         // keep full Sanity image object
+    image2,         // same
+    caption1,
+    alt1,
+    alt2,
+    iconName
+  }`;
+  try {
+    const data = await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].fetch(query);
+    return data; // pass raw; AppMedia will render responsively
+  } catch (error) {
+    console.error('Error fetching images', error);
+    return [];
+  }
+};
+
+/***/ }),
+
+/***/ "./src/dynamic-app/preload-dynamic-app.ts":
+/*!************************************************!*\
+  !*** ./src/dynamic-app/preload-dynamic-app.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ensureDynamicPreload: () => (/* binding */ ensureDynamicPreload),
+/* harmony export */   ensureIconsPreload: () => (/* binding */ ensureIconsPreload),
+/* harmony export */   ensureImagesPreload: () => (/* binding */ ensureImagesPreload),
+/* harmony export */   getPreloadedDynamicApp: () => (/* binding */ getPreloadedDynamicApp),
+/* harmony export */   primeFromSSR: () => (/* binding */ primeFromSSR),
+/* harmony export */   whenDynamicPreloadReady: () => (/* binding */ whenDynamicPreloadReady)
+/* harmony export */ });
+/* harmony import */ var _lib_fetchSVGIcons__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib/fetchSVGIcons */ "./src/dynamic-app/lib/fetchSVGIcons.js");
+/* harmony import */ var _lib_fetchUser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./lib/fetchUser */ "./src/dynamic-app/lib/fetchUser.js");
+// src/dynamic-app/preload-dynamic-app.ts
+
+
+let cache = {};
+let inFlight = null;
+function getPreloadedDynamicApp() {
+  return cache;
+}
+function primeFromSSR(data) {
+  if (!data) return;
+  cache = {
+    ...cache,
+    ...data
+  };
+}
+function toIconMap(list) {
+  return list.reduce((acc, it) => {
+    if (!it?.title) return acc;
+    const val = it.icon ?? it.url; // inline SVG takes precedence; else URL
+    if (typeof val === 'string' && val.length > 0) acc[it.title] = val;
+    return acc;
+  }, {});
+}
+
+/** Wait for current preloading (if any), then return cache */
+async function whenDynamicPreloadReady() {
+  if (cache.icons && cache.images) return cache;
+  if (inFlight) {
+    await inFlight;
+    return cache;
+  }
+  return cache;
+}
+async function ensureIconsPreload() {
+  // If a full preloading is in-flight, wait for it instead of double-fetching
+  if (!cache.icons && inFlight) {
+    await inFlight;
+    return cache.icons || {};
+  }
+  if (cache.icons) return cache.icons;
+  let iconsRaw;
+  try {
+    iconsRaw = await (0,_lib_fetchSVGIcons__WEBPACK_IMPORTED_MODULE_0__["default"])();
+  } catch {
+    iconsRaw = [];
+  }
+  const list = Array.isArray(iconsRaw) ? iconsRaw : [];
+  const icons = toIconMap(list);
+  cache.icons = icons;
+  return icons;
+}
+async function ensureImagesPreload() {
+  // If a full preloading is in-flight, wait for it instead of double-fetching
+  if (!cache.images && inFlight) {
+    await inFlight;
+    return cache.images || [];
+  }
+  if (cache.images) return cache.images;
+  let imagesRaw;
+  try {
+    imagesRaw = await (0,_lib_fetchUser__WEBPACK_IMPORTED_MODULE_1__.fetchImages)();
+  } catch {
+    imagesRaw = [];
+  }
+  const images = Array.isArray(imagesRaw) ? imagesRaw : [];
+  cache.images = images;
+  return images;
+}
+
+/** Convenience: ensure both icons + images (with in-flight dedupe) */
+async function ensureDynamicPreload() {
+  if (cache.icons && cache.images) return cache;
+  if (inFlight) return inFlight;
+  inFlight = Promise.all([ensureIconsPreload(), ensureImagesPreload()]).then(([icons, images]) => {
+    cache = {
+      icons,
+      images
+    };
+    return cache;
+  }).finally(() => {
+    inFlight = null;
+  });
+  return inFlight;
+}
+
+// Optional: hydrate from SSR
+
+if (typeof window !== 'undefined' && window.__DYNAMIC_PRELOAD__) {
+  primeFromSSR(window.__DYNAMIC_PRELOAD__);
+}
+
+/***/ }),
+
 /***/ "./src/ssr/projects/dynamic.enhancer.tsx":
 /*!***********************************************!*\
   !*** ./src/ssr/projects/dynamic.enhancer.tsx ***!
@@ -20,11 +209,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_content_utility_dynamic_overlay__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/content-utility/dynamic-overlay */ "./src/utils/content-utility/dynamic-overlay.ts");
 /* harmony import */ var _utils_content_utility_real_mobile__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/content-utility/real-mobile */ "./src/utils/content-utility/real-mobile.ts");
 /* harmony import */ var _utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils/loading/loading-hub */ "./src/utils/loading/loading-hub.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _dynamic_app_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../dynamic-app/preload-dynamic-app */ "./src/dynamic-app/preload-dynamic-app.ts");
+/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/ssr/projects/dynamic.enhancer.tsx
 
 
 
+
+
+
+// add: shared cache/dedupe + URL builder for LQ warm
 
 
 
@@ -39,8 +234,59 @@ function scheduleIdle(cb, timeout = 2000) {
   const t = window.setTimeout(cb, timeout);
   return () => window.clearTimeout(t);
 }
+
+// ---- module-level dedupe so warm only runs once per page load
+let warmedOnce = false;
+function warmDynamicLowQuality(maxUrls = 32) {
+  if (warmedOnce) return;
+  warmedOnce = true;
+  (async () => {
+    try {
+      const {
+        images
+      } = await (0,_dynamic_app_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_5__.ensureDynamicPreload)(); // deduped at source
+      if (!Array.isArray(images) || images.length === 0) return;
+
+      // Collect LQ URLs for both image1 and image2, then cap
+      const urls = [];
+      for (const it of images) {
+        const s1 = it?.image1 ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_6__.urlFor)(it.image1).width(320).quality(35).auto('format').url() : null;
+        const s2 = it?.image2 ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_6__.urlFor)(it.image2).width(320).quality(35).auto('format').url() : null;
+        if (s1) urls.push(s1);
+        if (s2) urls.push(s2);
+        if (urls.length >= maxUrls) break;
+      }
+      const head = document.head;
+      const seen = new Set();
+      for (const src of urls) {
+        if (!src || seen.has(src)) continue;
+        seen.add(src);
+
+        // <link rel="preload" as="image"> (avoid duplicates)
+        if (!document.querySelector(`link[rel="preload"][as="image"][href="${src}"]`)) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = src;
+          link.crossOrigin = 'anonymous';
+          // TS-safe way to hint priority
+          link.setAttribute('fetchpriority', 'low');
+          head.appendChild(link);
+        }
+
+        // Kick actual network regardless of preload support
+        const img = new Image();
+        img.decoding = 'async';
+        img.crossOrigin = 'anonymous';
+        img.src = src;
+      }
+    } catch {
+      /* ignore warm errors */
+    }
+  })();
+}
 const DynamicEnhancer = () => {
-  // locate SSR nodes
+  // ----- find SSR nodes
   const frameRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [overlayEl, setOverlayEl] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
@@ -50,7 +296,7 @@ const DynamicEnhancer = () => {
     setOverlayEl(overlay ?? null);
   }, []);
 
-  // compute overlay sizing
+  // ----- overlay sizing
   const overlaySize = (0,_utils_content_utility_dynamic_overlay__WEBPACK_IMPORTED_MODULE_2__.useDynamicOverlay)(frameRef);
   const isRealMobile = (0,_utils_content_utility_real_mobile__WEBPACK_IMPORTED_MODULE_3__.useRealMobileViewport)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -65,7 +311,38 @@ const DynamicEnhancer = () => {
     }
   }, [overlayEl, overlaySize.width, overlaySize.heightSet1, overlaySize.heightSet2, isRealMobile]);
 
-  // gate mounting of shadow app
+  // ----- prewarm low-quality images (SSR path needs this; client-only path will no-op thanks to warmedOnce)
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    // Gate by visibility with idle fallback, same as mounting
+    const container = document.getElementById('block-dynamic');
+    let cancelIdle = null;
+    let io = null;
+    const run = () => warmDynamicLowQuality(32);
+    if (!container || typeof IntersectionObserver === 'undefined') {
+      // No IO → just warm on idle
+      cancelIdle = scheduleIdle(run, 500);
+    } else {
+      io = new IntersectionObserver(entries => {
+        if (entries[0]?.isIntersecting) {
+          run();
+          io?.disconnect();
+        }
+      }, {
+        root: null,
+        rootMargin: '600px 0px',
+        threshold: 0
+      });
+      io.observe(container);
+      // backstop so we still warm if user never scrolls
+      cancelIdle = scheduleIdle(run, 1200);
+    }
+    return () => {
+      io?.disconnect();
+      cancelIdle?.();
+    };
+  }, []);
+
+  // ----- gate mounting of shadow app
   const [shouldMountShadow, setShouldMountShadow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const container = document.getElementById('block-dynamic');
@@ -89,12 +366,12 @@ const DynamicEnhancer = () => {
     };
   }, []);
 
-  // lazy import + portal
+  // ----- lazy import
   const [ShadowInbound, setShadowInbound] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!shouldMountShadow) return;
     let alive = true;
-    Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx")).then(m => {
+    Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-73dd24"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx")).then(m => {
       if (alive) setShadowInbound(() => m.default);
     }).catch(err => console.warn('[DynamicEnhancer] shadow import failed:', err));
     return () => {
@@ -102,26 +379,57 @@ const DynamicEnhancer = () => {
     };
   }, [shouldMountShadow]);
 
-  // manage loader visibility
-  const [showLoader, setShowLoader] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  // ----- loader visibility
+  const [showLoader, setShowLoader] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false); // start hidden until we begin mount
+  const watchdogRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // when we start mounting, show loader (and arm watchdog)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const onHydrated = () => setShowLoader(false);
+    if (!shouldMountShadow) return;
+    setShowLoader(true);
+    if (watchdogRef.current) window.clearTimeout(watchdogRef.current);
+    watchdogRef.current = window.setTimeout(() => {
+      // fail-safe: hide after 8s even if onReady never fires
+      setShowLoader(false);
+      hideSsrSpinner();
+    }, 8000);
+    return () => {
+      if (watchdogRef.current) {
+        window.clearTimeout(watchdogRef.current);
+        watchdogRef.current = null;
+      }
+    };
+  }, [shouldMountShadow]);
+
+  // listen to global hydrated event (secondary path)
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const onHydrated = () => {
+      setShowLoader(false);
+      hideSsrSpinner();
+    };
     window.addEventListener('dynamic-app:hydrated', onHydrated);
     return () => window.removeEventListener('dynamic-app:hydrated', onHydrated);
   }, []);
+  const hideSsrSpinner = () => {
+    const loader = document.getElementById('dynamic-overlay-loader');
+    if (loader) loader.style.display = 'none';
+  };
   if (!overlayEl) return null;
   const handleReady = () => {
     setShowLoader(false);
+    hideSsrSpinner();
     window.dispatchEvent(new CustomEvent('dynamic-app:hydrated'));
   };
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
-    children: [showLoader && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      keyword: "dynamic",
-      lines: ["Mounting dynamic app…", "Loading interactive media…", "Almost ready…"],
-      minHeight: 200,
-      cycleMs: 1500,
-      animMs: 800
-    }), ShadowInbound && shouldMountShadow && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(ShadowInbound, {
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
+    children: [showLoader && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
+      className: "loading-hub-overlay",
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_utils_loading_loading_hub__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        className: "loading-hub--dynamic loading-hub--center",
+        keyword: "dynamic",
+        lines: ['Measuring app frame…', 'Creating shadow root…', 'Injecting app styles…', 'Loading SVG icons…', 'Mounting app shell…', 'Wiring observers and input…'],
+        minHeight: 72
+      })
+    }), ShadowInbound && shouldMountShadow && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(ShadowInbound, {
       onFocusChange: () => {},
       onReady: handleReady
     })]

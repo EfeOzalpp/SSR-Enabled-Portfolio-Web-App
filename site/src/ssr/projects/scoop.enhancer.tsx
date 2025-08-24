@@ -1,4 +1,4 @@
-// src/sections/ScoopEnhancer.tsx
+// src/ssr/projects/scoop.enhancer.tsx
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import SplitDragHandler from '../../utils/split-controller';
@@ -13,6 +13,9 @@ export default function ScoopEnhancer() {
   useTooltipInit();
 
   useEffect(() => {
+    // Collect all cleanups here so we can add to it anywhere below
+    const cleanup: Array<() => void> = [];
+
     // Remove SSR preset so JS can control layout without specificity fights
     document.getElementById('scoop-ssr')?.classList.remove('ssr-initial-split');
 
@@ -35,28 +38,47 @@ export default function ScoopEnhancer() {
         vid2El.poster = full2;
       }
 
-      // When video has enough data to play, remove poster & play
-      const handleLoaded = () => {
+      // Wait for the FIRST painted frame before removing poster (no black flash)
+      const removePoster = () => {
         vid2El.removeAttribute('poster');
-        setTimeout(() => {
-          vid2El.play().catch((err) => {
-            console.warn('Autoplay failed:', err);
-          });
-        }, 150); // delay for smoother visual transition
       };
-      vid2El.addEventListener('loadeddata', handleLoaded, { once: true });
 
-      // Trigger video fetching only if not already loaded/playing
+      const onPlay = () => {
+        const anyV = vid2El as any;
+        if (typeof anyV.requestVideoFrameCallback === 'function') {
+          anyV.requestVideoFrameCallback(() => removePoster());
+        } else {
+          const onTime = () => {
+            if (vid2El.currentTime > 0 && vid2El.readyState >= 2) {
+              vid2El.removeEventListener('timeupdate', onTime);
+              removePoster();
+            }
+          };
+          vid2El.addEventListener('timeupdate', onTime, { once: true });
+          cleanup.push(() => vid2El.removeEventListener('timeupdate', onTime));
+
+          // Safety backstop
+          const timer = setTimeout(() => {
+            vid2El.removeEventListener('timeupdate', onTime);
+            removePoster();
+          }, 1200);
+          cleanup.push(() => clearTimeout(timer));
+        }
+      };
+
+      vid2El.addEventListener('play', onPlay, { once: true });
+      cleanup.push(() => vid2El.removeEventListener('play', onPlay));
+
+      // Trigger fetch (eager or metadata is fine here)
       if (vid2El.readyState === 0) {
         vid2El.preload = 'auto';
-        try {
-          vid2El.load();
-        } catch {
-          /* ignore */
-        }
+        try { vid2El.load(); } catch {}
       } else {
         vid2El.preload = 'auto';
       }
+
+      // Try to play (muted/inline should allow autoplay)
+      vid2El.play().catch(() => { /* ignored; poster remains until user interacts */ });
     }
 
     // Set mount host
@@ -78,7 +100,13 @@ export default function ScoopEnhancer() {
       });
     };
     window.addEventListener('resize', onResize, { passive: true });
-    return () => window.removeEventListener('resize', onResize);
+    cleanup.push(() => window.removeEventListener('resize', onResize));
+
+    return () => {
+      for (const fn of cleanup) {
+        try { fn(); } catch {}
+      }
+    };
   }, []); // run once
 
   // Keep DOM in sync when split OR orientation changes

@@ -199,20 +199,18 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
           - Preloads chunk on idle & first IO
           - Mounts when in view, unmounts when out of view
           - Placeholder keeps height so IO can measure */}
-      <LazyViewMount
+<LazyViewMount
         load={() => import('./game-canvas')}
         fallback={null}
-        // Hysteresis: easy enter, generous exit
-        enterThreshold={0.2}
-        exitThreshold={0.05}
-        unmountDelayMs={150}
-        // Preloading
+        mountMode="io"
+        observeTargetId={blockId}
+        rootMargin="0px"
+        enterThreshold={0.2}      // start showing after ~20% visible
+        exitThreshold={0.05}      // consider out-of-view at/below 5%
+        unmountDelayMs={150}      // ms! small delay to avoid micro-jitter
         preloadOnIdle
         preloadIdleTimeout={2000}
         preloadOnFirstIO
-        // IO config
-        // root={yourScrollContainerEl} // pass this if you scroll inside a custom container
-        rootMargin="0px"
         placeholderMinHeight={360}
         componentProps={{
           onReady: handleReady,

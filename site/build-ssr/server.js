@@ -17377,8 +17377,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// Pages
-
 const Frontpage = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"])({
   resolved: {},
   chunkName() {
@@ -17420,10 +17418,10 @@ const Frontpage = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"]
 {}
   }
 });
-const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"])({
+const DynamicThemeRoute = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"])({
   resolved: {},
   chunkName() {
-    return "DynamicTheme-jsx";
+    return "dynamic-app-ssr-app-dynamic-theme-route-jsx";
   },
   isReady(props) {
     const key = this.resolve(props);
@@ -17436,7 +17434,7 @@ const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["defaul
     // removed by dead control flow
 {}
   },
-  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
+  importAsync: () => __webpack_require__.e(/*! import() | dynamic-app-ssr-app-dynamic-theme-route-jsx */ "dynamic-app-ssr-app-dynamic-theme-route-jsx").then(__webpack_require__.bind(__webpack_require__, /*! ./dynamic-app/ssr-app/dynamic-theme.route.jsx */ "./src/dynamic-app/ssr-app/dynamic-theme.route.jsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -17455,28 +17453,24 @@ const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["defaul
   },
   resolve() {
     if (true) {
-      return /*require.resolve*/(/*! ./DynamicTheme.jsx */ "./src/DynamicTheme.jsx");
+      return /*require.resolve*/(/*! ./dynamic-app/ssr-app/dynamic-theme.route.jsx */ "./src/dynamic-app/ssr-app/dynamic-theme.route.jsx");
     }
     // removed by dead control flow
 {}
   }
-}, {
-  ssr: false
 });
 function App() {
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Routes, {
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
-        path: "/",
-        element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {}))
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
-        path: "/home",
-        element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {}))
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
-        path: "/dynamic-theme",
-        element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(DynamicTheme, {})
-      })]
-    })
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Routes, {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+      path: "/",
+      element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {}))
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+      path: "/home",
+      element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {}))
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+      path: "/dynamic-theme",
+      element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], null, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(DynamicThemeRoute, {}))
+    })]
   });
 }
 
@@ -17934,7 +17928,7 @@ const {
 } = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.resolveStatsFile)();
 
 /** -----------------------------
- * ✅ API routes (MOUNT FIRST)
+ * API routes (MOUNT FIRST)
  * ----------------------------- */
 app.use('/api', _highScoreRoute__WEBPACK_IMPORTED_MODULE_17__["default"]);
 
@@ -18666,15 +18660,15 @@ __webpack_require__.r(__webpack_exports__);
 // ----- Async loaders for non-dynamic projects
 
 const componentMap = {
-  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
-  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
-  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx"))
+  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
+  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
+  dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx"))
 };
 
 // ----- Split loaders for dynamic (frame & shadow)
 const dynamicLoaders = {
   frame: () => __webpack_require__.e(/*! import() | dynamic-frame */ "dynamic-frame").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/frame */ "./src/components/dynamic-app/frame.tsx")),
-  shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
+  shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-73dd24"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
 };
 const gameLoaders = {
   components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
@@ -18692,15 +18686,15 @@ const toComponent = p => p;
 const baseProjects = [{
   key: 'scoop',
   title: 'Ice Cream Scoop',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
 }, {
   key: 'rotary',
   title: 'Rotary Lamp',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
 }, {
   key: 'dataviz',
   title: 'Data Visualization',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx")))
 }, {
   key: 'game',
   title: 'Evade the Rock',

@@ -1,4 +1,4 @@
-// src/components/ProjectPane.tsx
+// src/utils/project-pane.tsx
 import React, { useEffect, useState } from 'react';
 import LazyInView from './content-utility/lazy-in-view';
 import LazyViewMount from './content-utility/lazy-view-mount';
@@ -17,7 +17,12 @@ type Props = {
 };
 
 export function ProjectPane({
-  item, viewportHeight, isFocused, isHidden, setRef, isFirst = false,
+  item,
+  viewportHeight,
+  isFocused,
+  isHidden,
+  setRef,
+  isFirst = false,
 }: Props) {
   const load = useProjectLoader(item.key);
   const ssr = useSsrData();
@@ -28,16 +33,18 @@ export function ProjectPane({
   const [isHydrated, setIsHydrated] = useState(false);
   useEffect(() => { setIsHydrated(true); }, []);
 
-  const serverRender = payload && desc?.render ? desc.render((payload as any).data ?? payload) : null;
+  const serverRender =
+    payload && desc?.render ? desc.render((payload as any).data ?? payload) : null;
 
   const isDynamic = item.key === 'dynamic';
   const isGame = item.key === 'game';
   const usesCustomLoader = isDynamic || isGame;
 
-  // Generic loader only for non-custom blocks (dynamic/game have their own UX)
-  const fallbackNode = (!payload && isHydrated && !usesCustomLoader)
-    ? <LoadingScreen isFullScreen={false} />
-    : null;
+  // Generic loader for non-custom blocks
+  const fallbackNode =
+    !payload && isHydrated && !usesCustomLoader ? (
+      <LoadingScreen isFullScreen={false} />
+    ) : null;
 
   const blockId = `block-${item.key}`;
 
@@ -49,51 +56,43 @@ export function ProjectPane({
         height: isHidden ? '0px' : (isFocused ? 'auto' : viewportHeight),
         overflow: isFocused ? 'visible' : 'hidden',
         scrollSnapAlign: isHidden ? 'none' : 'start',
-        opacity: isHidden ? 0 : 1,
-        visibility: isHidden ? 'hidden' : 'visible',
-        pointerEvents: isHidden ? 'none' : 'auto',
       }}
     >
       <div style={{ minHeight: viewportHeight }}>
         {isDynamic ? (
           <>
-            {/* SSR path: useProjectLoader returns Frame + <DynamicEnhancer/>.
-                Client-only path: returns just the Frame. */}
+            {/* 1) Frame (SSR path returns Frame+Enhancer; client-only returns Frame) */}
             <LazyInView
               load={load}
-              // no generic fallback; SSR frame is already visible
               serverRender={serverRender}
               eager={isFirst}
               allowIdle={true}
             />
 
-            {/* If there was no SSR, we must mount the Shadow app ourselves */}
+            {/* 2) Client-only: mount Shadow app (SSR already has the enhancer) */}
             {!hasSSR && (
               <LazyViewMount
                 load={() => import('../components/dynamic-app/shadow-entry')}
                 mountMode="idle"
-                /* Preload so re-mounts are instant */
                 preloadOnIdle
                 preloadIdleTimeout={2000}
                 preloadOnFirstIO
-                /* IO config */
                 observeTargetId={blockId}
                 rootMargin="0px"
                 placeholderMinHeight={360}
-                /* No props required; the shadow app finds its overlay */
+                componentProps={{ blockId }}
               />
             )}
           </>
         ) : isGame ? (
-          <>
-            {/* Game: loader provides SSR shell + GameEnhancer. No generic fallback. */}
-            <LazyInView
-              load={load}
-              serverRender={serverRender}
-              eager={isFirst}
-              allowIdle={true}
-            />
-          </>
+          <LazyInView
+            load={load}
+            serverRender={serverRender}
+            eager={isFirst}
+            allowIdle={true}
+            observeTargetId={blockId}
+            placeholderMinHeight={360}
+          />
         ) : (
           <LazyInView
             load={load}

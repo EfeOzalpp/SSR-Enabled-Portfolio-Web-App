@@ -23,7 +23,7 @@ const ShadowRootContext = createContext<{
 export const useShadowRoot = () => {
   const ctx = useContext(ShadowRootContext);
   if (!ctx) {
-    console.warn('[⚠️] useShadowRoot called outside provider');
+    console.warn('useShadowRoot called outside provider');
     return {
       getShadowRoot: () => null,
       injectStyle: () => {},

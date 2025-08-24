@@ -18,24 +18,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_navigation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/navigation */ "./src/dynamic-app/components/navigation.jsx");
 /* harmony import */ var _components_title__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/title */ "./src/dynamic-app/components/title.jsx");
 /* harmony import */ var _components_sortBy__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./components/sortBy */ "./src/dynamic-app/components/sortBy.jsx");
-/* harmony import */ var _utils_loading_loading__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/loading/loading */ "./src/utils/loading/loading.tsx");
-/* harmony import */ var _components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./components/fireworksDisplay */ "./src/dynamic-app/components/fireworksDisplay.jsx");
-/* harmony import */ var _components_pauseButton__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/pauseButton */ "./src/dynamic-app/components/pauseButton.jsx");
-/* harmony import */ var _components_footer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./components/footer */ "./src/dynamic-app/components/footer.jsx");
-/* harmony import */ var _lib_fetchSVGIcons__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./lib/fetchSVGIcons */ "./src/dynamic-app/lib/fetchSVGIcons.js");
-/* harmony import */ var _lib_observedCard_jsx__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./lib/observedCard.jsx */ "./src/dynamic-app/lib/observedCard.jsx");
-/* harmony import */ var _lib_setupAltObserver__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./lib/setupAltObserver */ "./src/dynamic-app/lib/setupAltObserver.js");
-/* harmony import */ var _components_IntroOverlay__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./components/IntroOverlay */ "./src/dynamic-app/components/IntroOverlay.jsx");
-/* harmony import */ var _lib_colorString_ts__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./lib/colorString.ts */ "./src/dynamic-app/lib/colorString.ts");
-/* harmony import */ var _utils_context_providers_shadow_root_context_tsx__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../utils/context-providers/shadow-root-context.tsx */ "./src/utils/context-providers/shadow-root-context.tsx");
-/* harmony import */ var _styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../styles/dynamic-app/index.css?raw */ "./src/styles/dynamic-app/index.css?raw");
-/* harmony import */ var _styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_14__);
-/* harmony import */ var _styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../styles/dynamic-app/misc.css?raw */ "./src/styles/dynamic-app/misc.css?raw");
-/* harmony import */ var _styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_15__);
-/* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../styles/loading-overlay.css?raw */ "./src/styles/loading-overlay.css?raw");
-/* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(_styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_16__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// DynamicTheme émbéd.jsx (with guarded alt observer)
+/* harmony import */ var _components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./components/fireworksDisplay */ "./src/dynamic-app/components/fireworksDisplay.jsx");
+/* harmony import */ var _components_pauseButton__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./components/pauseButton */ "./src/dynamic-app/components/pauseButton.jsx");
+/* harmony import */ var _components_footer__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/footer */ "./src/dynamic-app/components/footer.jsx");
+/* harmony import */ var _lib_observedCard_jsx__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./lib/observedCard.jsx */ "./src/dynamic-app/lib/observedCard.jsx");
+/* harmony import */ var _lib_setupAltObserver__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./lib/setupAltObserver */ "./src/dynamic-app/lib/setupAltObserver.js");
+/* harmony import */ var _components_IntroOverlay__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./components/IntroOverlay */ "./src/dynamic-app/components/IntroOverlay.jsx");
+/* harmony import */ var _lib_colorString__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./lib/colorString */ "./src/dynamic-app/lib/colorString.ts");
+/* harmony import */ var _utils_context_providers_shadow_root_context__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../utils/context-providers/shadow-root-context */ "./src/utils/context-providers/shadow-root-context.tsx");
+/* harmony import */ var _styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../styles/dynamic-app/index.css?raw */ "./src/styles/dynamic-app/index.css?raw");
+/* harmony import */ var _styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../styles/dynamic-app/misc.css?raw */ "./src/styles/dynamic-app/misc.css?raw");
+/* harmony import */ var _styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../styles/loading-overlay.css?raw */ "./src/styles/loading-overlay.css?raw");
+/* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_14__);
+/* harmony import */ var _preload_dynamic_app__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./preload-dynamic-app */ "./src/dynamic-app/preload-dynamic-app.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
 
@@ -52,9 +50,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// shared preloader (no TS types in this file)
 
 
-function DynamicTheme() {
+function DynamicTheme({
+  onReady
+}) {
   const [sortedImages, setSortedImages] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [svgIcons, setSvgIcons] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
   const [activeColor, setActiveColor] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('#FFFFFF');
@@ -63,57 +64,56 @@ function DynamicTheme() {
   const [isLoading, setIsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const [pauseAnimation, setPauseAnimation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [showNavigation, setShowNavigation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-
-  /** @type {React.MutableRefObject<((enabled:boolean)=>void)|null>} */
   const toggleFireworksRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  /** @type {React.MutableRefObject<HTMLElement|null>} */
   const scrollContainerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  /** @type {React.MutableRefObject<HTMLElement|null>} */
   const shadowRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-
-  // Derived fireworks mount flag (visibility && !paused)
   const [showFireworks, setShowFireworks] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-
-  // Track host visibility for guarding alt updates
   const [isHostVisible, setIsHostVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const hostVisibleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const {
     getShadowRoot,
     injectStyle
-  } = (0,_utils_context_providers_shadow_root_context_tsx__WEBPACK_IMPORTED_MODULE_13__.useShadowRoot)();
+  } = (0,_utils_context_providers_shadow_root_context__WEBPACK_IMPORTED_MODULE_11__.useShadowRoot)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    [(_styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_14___default()), (_styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_15___default()), (_styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_16___default())].forEach(injectStyle);
-  }, []);
+    [(_styles_dynamic_app_index_css_raw__WEBPACK_IMPORTED_MODULE_12___default()), (_styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_13___default()), (_styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_14___default())].forEach(injectStyle);
+  }, [injectStyle]);
+
+  // signal ready on first paint (wrapper de-dupes)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const timeout = setTimeout(() => {
+    const id = requestAnimationFrame(() => {
+      try {
+        onReady?.();
+      } catch {}
+    });
+    return () => cancelAnimationFrame(id);
+  }, [onReady]);
+
+  // Prime from cache, then wait for preload (deduped)
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const snap = (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_15__.getPreloadedDynamicApp)();
+    if (snap.icons) setSvgIcons(snap.icons);
+    if (Array.isArray(snap.images)) setSortedImages(snap.images);
+    let cancelled = false;
+    (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_15__.ensureDynamicPreload)().catch(() => (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_15__.whenDynamicPreloadReady)()).then(cache => {
+      if (cancelled || !cache) return;
+      if (cache.icons) setSvgIcons(cache.icons);
+      if (Array.isArray(cache.images)) setSortedImages(cache.images);
       setIsLoading(false);
       setShowNavigation(true);
-    }, 200);
-    return () => clearTimeout(timeout);
+    }).catch(() => {
+      if (!cancelled) setIsLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setTimeout(() => {
-      (0,_lib_fetchSVGIcons__WEBPACK_IMPORTED_MODULE_8__["default"])().then(icons => {
-        const iconMapping = icons.reduce((acc, icon) => {
-          acc[icon.title] = icon.icon;
-          return acc;
-        }, /** @type {Record<string,string>} */{});
-        setSvgIcons(iconMapping);
-        setTimeout(() => setIsLoading(false), 200);
-      });
-    }, 400);
-  }, []);
-
-  /** @type {React.MutableRefObject<Document|ShadowRoot|null>} */
   const observerRoot = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
     observerRoot.current = root;
   }, [getShadowRoot]);
-
-  // ------ ALT color logic (unchanged helpers) ------
   const handleActivate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(alt1 => {
-    const colors = _lib_colorString_ts__WEBPACK_IMPORTED_MODULE_12__.colorMapping[alt1];
+    const colors = _lib_colorString__WEBPACK_IMPORTED_MODULE_10__.colorMapping?.[alt1];
     if (colors && colors[0] !== activeColor) {
       setActiveColor(colors[2]);
       setMovingTextColors([colors[0], colors[1], colors[3]]);
@@ -121,54 +121,42 @@ function DynamicTheme() {
     }
   }, [activeColor]);
   const handleDeactivate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
-    if (activeColor !== lastKnownColor) {
-      setActiveColor(lastKnownColor);
-    }
+    if (activeColor !== lastKnownColor) setActiveColor(lastKnownColor);
   }, [activeColor, lastKnownColor]);
-
-  // ------ Guarded alt observer: only while host is visible; dedup events; cleanup properly ------
   const currentAltRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isLoading || sortedImages.length === 0) return;
     const root = observerRoot.current;
     if (!root) return;
     const guardedActivate = alt1 => {
-      if (!hostVisibleRef.current) return; // ignore when section not visible
-      if (currentAltRef.current === alt1) return; // ignore duplicate activate
+      if (!hostVisibleRef.current) return;
+      if (currentAltRef.current === alt1) return;
       currentAltRef.current = alt1;
       handleActivate(alt1);
     };
     const guardedDeactivate = alt1 => {
-      if (!hostVisibleRef.current) return; // ignore when section not visible
-      if (currentAltRef.current !== alt1) return; // only deactivate if it was the active one
+      if (!hostVisibleRef.current) return;
+      if (currentAltRef.current !== alt1) return;
       handleDeactivate(alt1);
     };
-    const cleanup = (0,_lib_setupAltObserver__WEBPACK_IMPORTED_MODULE_10__["default"])(guardedActivate, guardedDeactivate, root);
+    const cleanup = (0,_lib_setupAltObserver__WEBPACK_IMPORTED_MODULE_8__["default"])(guardedActivate, guardedDeactivate, root);
     return typeof cleanup === 'function' ? cleanup : undefined;
-    // NOTE: don't include pauseAnimation here; pausing shouldn't rebuild the observer
   }, [isLoading, sortedImages, handleActivate, handleDeactivate]);
-
-  // ------ Pause button bridge ------
-  const handleSetToggleFireworks = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(toggleFunction => {
-    toggleFireworksRef.current = toggleFunction;
+  const handleSetToggleFireworks = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(fn => {
+    toggleFireworksRef.current = fn;
   }, []);
   const handlePauseToggle = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(isEnabled => {
-    // sync internal engine immediately, if mounted
     if (toggleFireworksRef.current) toggleFireworksRef.current(isEnabled);
     setPauseAnimation(!isEnabled);
   }, []);
-
-  // ------ Resize (as you had) ------
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!shadowRef.current) return;
-    const observer = new ResizeObserver(() => {
-      console.log('[🔁 Resize observed]', shadowRef.current?.getBoundingClientRect());
+    const ro = new ResizeObserver(() => {
+      console.log('[Resize observed]', shadowRef.current?.getBoundingClientRect());
     });
-    observer.observe(shadowRef.current);
-    return () => observer.disconnect();
+    ro.observe(shadowRef.current);
+    return () => ro.disconnect();
   }, []);
-
-  // ------ Host visibility controls fireworks AND gates alt updates ------
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const container = document.querySelector('#block-dynamic');
     if (!container) {
@@ -179,16 +167,15 @@ function DynamicTheme() {
       const visible = !!entry.isIntersecting;
       hostVisibleRef.current = visible;
       setIsHostVisible(visible);
-      const desired = visible && !pauseAnimation; // respect Pause
+      const desired = visible && !pauseAnimation;
       setShowFireworks(prev => prev !== desired ? desired : prev);
       if (toggleFireworksRef.current) toggleFireworksRef.current(desired);
     }, {
-      threshold: 0.3,
-      root: null
+      threshold: 0.3
     });
     io.observe(container);
 
-    // Run once immediately
+    // prime immediately
     const rect = container.getBoundingClientRect();
     const visibleNow = rect.top < window.innerHeight && rect.bottom > 0;
     hostVisibleRef.current = visibleNow;
@@ -198,89 +185,86 @@ function DynamicTheme() {
     if (toggleFireworksRef.current) toggleFireworksRef.current(initialDesired);
     return () => io.disconnect();
   }, [pauseAnimation]);
-
-  // Keep internal engine synced when pause toggles
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (toggleFireworksRef.current) toggleFireworksRef.current(!pauseAnimation && isHostVisible);
+    if (toggleFireworksRef.current) {
+      toggleFireworksRef.current(!pauseAnimation && isHostVisible);
+    }
   }, [pauseAnimation, isHostVisible]);
   const cardRefs = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)([]);
   cardRefs.current = sortedImages.map((_, i) => cardRefs.current[i] ?? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef());
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.Fragment, {
-    children: isLoading ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_utils_loading_loading__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      isFullScreen: false
-    }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
-      className: "homePage-container",
-      ref: scrollContainerRef,
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_IntroOverlay__WEBPACK_IMPORTED_MODULE_11__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-        className: "navigation-wrapper",
-        children: showNavigation && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_navigation__WEBPACK_IMPORTED_MODULE_1__["default"], {
-          customArrowIcon2: svgIcons['arrow1'],
-          customArrowIcon: svgIcons['arrow2'],
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+    className: "homePage-container",
+    ref: scrollContainerRef,
+    "aria-busy": isLoading ? 'true' : 'false',
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_IntroOverlay__WEBPACK_IMPORTED_MODULE_9__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+      className: "navigation-wrapper",
+      children: showNavigation && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_navigation__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        customArrowIcon2: svgIcons['arrow1'],
+        customArrowIcon: svgIcons['arrow2'],
+        items: sortedImages,
+        activeColor: activeColor,
+        isInShadow: typeof getShadowRoot === 'function' && getShadowRoot() !== document,
+        scrollLockContainer: scrollContainerRef.current
+      })
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+      className: "firework-wrapper",
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+        className: "firework-divider",
+        children: showFireworks && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_4__["default"], {
+          colorMapping: _lib_colorString__WEBPACK_IMPORTED_MODULE_10__.colorMapping,
           items: sortedImages,
           activeColor: activeColor,
-          isInShadow: typeof getShadowRoot === 'function' && getShadowRoot() !== document,
-          scrollLockContainer: scrollContainerRef.current
+          lastKnownColor: lastKnownColor,
+          onToggleFireworks: handleSetToggleFireworks
         })
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-        className: "firework-wrapper",
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-          className: "firework-divider",
-          children: showFireworks && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_5__["default"], {
-            colorMapping: _lib_colorString_ts__WEBPACK_IMPORTED_MODULE_12__.colorMapping,
-            items: sortedImages,
-            activeColor: activeColor,
-            lastKnownColor: lastKnownColor,
-            onToggleFireworks: handleSetToggleFireworks
+      })
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+      className: "section-divider"
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+      className: "title-divider",
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_title__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        svgIcon: svgIcons['logo-small-1'],
+        movingTextColors: movingTextColors,
+        pauseAnimation: pauseAnimation
+      })
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+      id: "homePage",
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+        className: "no-overflow",
+        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+          className: "pause-button-wrapper",
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_pauseButton__WEBPACK_IMPORTED_MODULE_5__["default"], {
+            toggleP5Animation: handlePauseToggle
           })
-        })
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-        className: "section-divider"
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-        className: "title-divider",
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_title__WEBPACK_IMPORTED_MODULE_2__["default"], {
-          svgIcon: svgIcons['logo-small-1'],
-          movingTextColors: movingTextColors,
-          pauseAnimation: pauseAnimation
-        })
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-        id: "homePage",
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
-          className: "no-overflow",
-          children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-            className: "pause-button-wrapper",
-            children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_pauseButton__WEBPACK_IMPORTED_MODULE_6__["default"], {
-              toggleP5Animation: handlePauseToggle
-            })
-          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
-            className: "sort-by-divider",
-            children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
-              className: "students-heading",
-              children: "Students"
-            }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_sortBy__WEBPACK_IMPORTED_MODULE_3__["default"], {
-              setSortOption: () => {},
-              onFetchItems: setSortedImages,
-              customArrowIcon: svgIcons['arrow2'],
-              colorMapping: _lib_colorString_ts__WEBPACK_IMPORTED_MODULE_12__.colorMapping,
-              getRoot: getShadowRoot
-            })]
-          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-            className: "section-divider2"
-          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
-            className: "UI-card-divider",
-            children: sortedImages.map((data, index) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_lib_observedCard_jsx__WEBPACK_IMPORTED_MODULE_9__["default"], {
-              data: data,
-              index: index,
-              getShadowRoot: getShadowRoot,
-              pauseAnimation: pauseAnimation,
-              customArrowIcon2: svgIcons['arrow1']
-            }, index))
-          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_footer__WEBPACK_IMPORTED_MODULE_7__["default"], {
-            customArrowIcon2: svgIcons['arrow1'],
-            linkArrowIcon: svgIcons['link-icon']
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+          className: "sort-by-divider",
+          children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("h3", {
+            className: "students-heading",
+            children: "Students"
+          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_sortBy__WEBPACK_IMPORTED_MODULE_3__["default"], {
+            setSortOption: () => {},
+            onFetchItems: setSortedImages,
+            customArrowIcon: svgIcons['arrow2'],
+            colorMapping: _lib_colorString__WEBPACK_IMPORTED_MODULE_10__.colorMapping,
+            getRoot: getShadowRoot
           })]
-        })
-      })]
-    })
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+          className: "section-divider2"
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+          className: "UI-card-divider",
+          children: sortedImages.map((data, index) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_lib_observedCard_jsx__WEBPACK_IMPORTED_MODULE_7__["default"], {
+            data: data,
+            index: index,
+            getShadowRoot: getShadowRoot,
+            pauseAnimation: pauseAnimation,
+            customArrowIcon2: svgIcons['arrow1']
+          }, index))
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_footer__WEBPACK_IMPORTED_MODULE_6__["default"], {
+          customArrowIcon2: svgIcons['arrow1'],
+          linkArrowIcon: svgIcons['link-icon']
+        })]
+      })
+    })]
   });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DynamicTheme);
@@ -304,28 +288,43 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _dynamic_app_outgoing_jsx__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dynamic-app-outgoing.jsx */ "./src/dynamic-app/dynamic-app-outgoing.jsx");
 /* harmony import */ var _utils_context_providers_shadow_root_context_tsx__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/context-providers/shadow-root-context.tsx */ "./src/utils/context-providers/shadow-root-context.tsx");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// dynamic app shadow DOM wrappér
+// dynamic app shadow DOM wrapper
 
 
 
 
 
 const DynamicAppInbound = ({
-  onFocusChange
+  onFocusChange,
+  onReady
 }) => {
   const shadowRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [shadowRoot, setShadowRoot] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const ShadowRoot = (react_shadow__WEBPACK_IMPORTED_MODULE_1___default().div);
+
+  // ensure we only ever signal ready once
+  const readySentRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const sendReady = () => {
+    if (readySentRef.current) return;
+    readySentRef.current = true;
+    try {
+      onReady?.();
+    } catch {}
+  };
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setTimeout(() => {
+    const t = setTimeout(() => {
       const root = shadowRef.current?.getRootNode?.();
       if (root && root.host) {
         setShadowRoot(root);
+        // first visual frame -> tell enhancer we’re ready
+        requestAnimationFrame(sendReady);
       } else {
         console.warn('[Not a ShadowRoot]', root);
       }
     }, 0);
-  }, []);
+    return () => clearTimeout(t);
+  }, [onReady]); // safe for HMR
+
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = shadowRef.current;
     if (!el) return;
@@ -378,7 +377,9 @@ const DynamicAppInbound = ({
         id: "shadow-dynamic-app",
         children: shadowRoot ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_utils_context_providers_shadow_root_context_tsx__WEBPACK_IMPORTED_MODULE_3__.ShadowRootProvider, {
           getShadowRoot: () => shadowRoot,
-          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_dynamic_app_outgoing_jsx__WEBPACK_IMPORTED_MODULE_2__["default"], {})
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_dynamic_app_outgoing_jsx__WEBPACK_IMPORTED_MODULE_2__["default"], {
+            onReady: sendReady
+          })
         }) : null
       })
     })

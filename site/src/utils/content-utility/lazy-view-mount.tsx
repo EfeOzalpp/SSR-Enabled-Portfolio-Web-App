@@ -7,28 +7,28 @@ type Props = {
   load: () => Promise<{ default: ComponentType<any> }>;
   fallback?: React.ReactNode;
 
-  /** Mount strategy: via IntersectionObserver ('io'), after idle ('idle'), or immediately ('immediate') */
-  mountMode?: MountMode;            // default 'io'
+  /** Mount strategy */
+  mountMode?: MountMode;            // 'io' | 'idle' | 'immediate' (default 'io')
 
-  /** IO (only used when mountMode === 'io') */
-  enterThreshold?: number;          // default 0.2
-  exitThreshold?: number;           // default 0.05
-  unmountDelayMs?: number;          // default 150
-  root?: Element | null;            // default null (viewport)
+  /** IO config (only when mountMode === 'io') */
+  enterThreshold?: number;          // default 0.2   -> start showing at/after this ratio
+  exitThreshold?: number;           // default 0.05  -> consider out-of-view at/below
+  unmountDelayMs?: number;          // default 150ms -> delay before unmounting after exit
+  root?: Element | null;            // viewport by default
   rootMargin?: string;              // default '0px'
-  observeTargetId?: string;         // default: observe our own placeholder
+  observeTargetId?: string;         // observe specific element; else our own wrapper
 
   /** Preloading */
-  preloadOnIdle?: boolean;          // default true (safe even when mountMode!=='io')
+  preloadOnIdle?: boolean;          // default true
   preloadIdleTimeout?: number;      // default 2000
-  preloadOnFirstIO?: boolean;       // default true (only matters in 'io' mode)
+  preloadOnFirstIO?: boolean;       // default true
 
   /** Layout/UX */
   placeholderMinHeight?: number;    // default 360
-  fadeMs?: number;                  // default 600
+  fadeMs?: number;                  // default 300
   fadeEasing?: string;              // default 'ease'
 
-  /** Forwarded props to the lazy component */
+  /** Forward child props */
   componentProps?: Record<string, any>;
 };
 
@@ -47,7 +47,7 @@ export default function LazyViewMount({
   // strategy
   mountMode = 'io',
 
-  // IO-only
+  // IO
   enterThreshold = 0.2,
   exitThreshold = 0.05,
   unmountDelayMs = 150,
@@ -72,19 +72,25 @@ export default function LazyViewMount({
   const selfRef = useRef<HTMLDivElement | null>(null);
   const [Comp, setComp] = useState<ComponentType | null>(null);
 
-  // mounted vs visible (for fade)
+  // mount/visibility
   const mountedRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
-  const unmountDebounceRef = useRef<number | null>(null);
-  const fadeOutTimerRef = useRef<number | null>(null);
-  const firstIOSeen = useRef(false);
-
-  // preload cache
-  const preloadPromiseRef = useRef<Promise<{ default: ComponentType<any> }> | null>(null);
+  // timers
+  const unmountTimer = useRef<number | null>(null);
+  const fadeTimer = useRef<number | null>(null);
   const idleId = useRef<any>(null);
 
+  // preload promise cache
+  const preloadPromiseRef = useRef<Promise<{ default: ComponentType<any> }> | null>(null);
+
+  // IO edge tracking
+  const lastRatio = useRef<number>(0);
+  const lastIntersecting = useRef<boolean>(false);
+  const firstIOSeen = useRef(false);
+
+  /** Preload once */
   const ensurePreloaded = () => {
     if (!preloadPromiseRef.current) {
       preloadPromiseRef.current = load();
@@ -92,116 +98,111 @@ export default function LazyViewMount({
     return preloadPromiseRef.current;
   };
 
-  const clearUnmountTimers = () => {
-    if (unmountDebounceRef.current != null) {
-      window.clearTimeout(unmountDebounceRef.current);
-      unmountDebounceRef.current = null;
-    }
-    if (fadeOutTimerRef.current != null) {
-      window.clearTimeout(fadeOutTimerRef.current);
-      fadeOutTimerRef.current = null;
-    }
+  const clearTimers = () => {
+    if (unmountTimer.current != null) { window.clearTimeout(unmountTimer.current); unmountTimer.current = null; }
+    if (fadeTimer.current != null)     { window.clearTimeout(fadeTimer.current);   fadeTimer.current = null; }
   };
 
   const mountNow = () => {
     if (mountedRef.current) {
-      if (!isVisible) setIsVisible(true);
+      // already mounted; just ensure visible
+      setIsVisible(true);
       return;
     }
     mountedRef.current = true;
-    const promise = ensurePreloaded();
-    setComp(prev => prev ?? (lazy(() => promise) as unknown as ComponentType));
+    const p = ensurePreloaded();
+    setComp(prev => prev ?? (lazy(() => p) as unknown as ComponentType));
     setIsMounted(true);
+    // next frame -> allow CSS transition
     requestAnimationFrame(() => setIsVisible(true));
   };
 
-  const scheduleUnmount = () => {
+  const unmountSoon = () => {
     if (!mountedRef.current) return;
-    clearUnmountTimers();
-    unmountDebounceRef.current = window.setTimeout(() => {
+    clearTimers();
+    // fade out -> unmount
+    unmountTimer.current = window.setTimeout(() => {
       setIsVisible(false);
-      fadeOutTimerRef.current = window.setTimeout(() => {
+      fadeTimer.current = window.setTimeout(() => {
         setIsMounted(false);
         mountedRef.current = false;
       }, fadeMs);
     }, unmountDelayMs);
   };
 
-  /* Preload on idle (works for all modes) */
+  /** Preload on idle */
   useEffect(() => {
     if (isServer || !preloadOnIdle) return;
     if (idleId.current) cic(idleId.current);
-    idleId.current = ric(() => ensurePreloaded(), { timeout: preloadIdleTimeout });
+    idleId.current = ric(() => { void ensurePreloaded(); }, { timeout: preloadIdleTimeout });
     return () => { if (idleId.current) { cic(idleId.current); idleId.current = null; } };
   }, [isServer, preloadOnIdle, preloadIdleTimeout, load]);
 
-  /* Mount behavior per mode */
+  /** Mount behavior per mode */
   useEffect(() => {
     if (isServer) return;
 
     if (mountMode === 'immediate') {
-      // mount as soon as possible
       mountNow();
       return;
     }
 
     if (mountMode === 'idle') {
-      // after idle (or immediately if idle already passed)
-      let cancel = ric(() => mountNow(), { timeout: preloadIdleTimeout });
-      return () => { if (cancel) cic(cancel); };
+      const id = ric(() => mountNow(), { timeout: preloadIdleTimeout });
+      return () => { if (id) cic(id); };
     }
 
-    // mountMode === 'io'
-    const el =
+    // ---- IO MODE ----
+    const target =
       (observeTargetId ? document.getElementById(observeTargetId) : null) ||
       selfRef.current;
 
-    if (!el) return;
+    if (!target) return;
 
     if (typeof IntersectionObserver === 'undefined') {
+      // no IO support -> just mount
       mountNow();
       return;
     }
 
-  // --- replace the IntersectionObserver callback in lazy-view-mount.tsx ---
-  const thresholds = Array.from(new Set([0, exitThreshold, enterThreshold])).sort((a, b) => a - b);
+    // ensure sensible thresholds (enter > exit)
+    const enter = Math.max(0, Math.min(1, enterThreshold));
+    const exit  = Math.max(0, Math.min(enter, exitThreshold)); // cap at enter
+    const thresholds = Array.from(new Set([0, exit, enter, 1])).sort((a, b) => a - b);
 
-  const io = new IntersectionObserver(
-    ([entry]) => {
-      const ratio = entry.intersectionRatio || 0;
-      const visible = !!entry.isIntersecting;
+    const io = new IntersectionObserver(([entry]) => {
+      const ratio = entry?.intersectionRatio ?? 0;
+      const intersecting = !!entry?.isIntersecting;
 
-      // First IO seen → optional preload
+      // first IO → optional preload
       if (!firstIOSeen.current) {
         firstIOSeen.current = true;
-        if (preloadOnFirstIO) ensurePreloaded();
+        if (preloadOnFirstIO) void ensurePreloaded();
       }
 
-      // Fast-path: on any (re)intersection, mount immediately if not mounted
-      if (visible && !mountedRef.current) {
-        clearUnmountTimers();
+      // Compute edge crossings (prevents jitter in the gray zone)
+      const crossedEnter = lastRatio.current < enter && ratio >= enter;
+      const crossedExit  = lastRatio.current > exit  && ratio <= exit;
+      const becameIntersecting = !lastIntersecting.current && intersecting;
+      const leftIntersecting   = lastIntersecting.current && !intersecting;
+
+      // ENTER: on intersection or crossing the enter threshold
+      if (becameIntersecting || crossedEnter) {
+        clearTimers();
         mountNow();
-        return;
+      }
+      // EXIT: when leaving intersection OR crossing exit threshold
+      else if (leftIntersecting || crossedExit) {
+        unmountSoon();
       }
 
-      // Normal hysteresis:
-      // - If we've reached the "enter" threshold, keep/make visible
-      if (ratio >= enterThreshold) {
-        clearUnmountTimers();
-        if (!mountedRef.current) mountNow();
-        return;
-      }
+      // save last values
+      lastRatio.current = ratio;
+      lastIntersecting.current = intersecting;
+    }, { root, rootMargin, threshold: thresholds });
 
-      // - If we've dropped below exit threshold OR not intersecting at all, schedule unmount
-      if (!visible || ratio <= exitThreshold) {
-        scheduleUnmount();
-      }
-    },
-    { root, rootMargin, threshold: thresholds }
-  );
-
-    io.observe(el);
-    return () => { io.disconnect(); clearUnmountTimers(); };
+    io.observe(target);
+    return () => { io.disconnect(); clearTimers(); };
   }, [
     isServer,
     mountMode,
@@ -210,11 +211,10 @@ export default function LazyViewMount({
     enterThreshold,
     exitThreshold,
     observeTargetId,
-    load,
-    fadeMs,
-    unmountDelayMs,
     preloadIdleTimeout,
     preloadOnFirstIO,
+    fadeMs,
+    unmountDelayMs,
   ]);
 
   const CompAny = Comp as any;
@@ -227,7 +227,7 @@ export default function LazyViewMount({
       {isMounted && CompAny ? (
         <div
           style={{
-            opacity: isVisible ? 1 : 0,
+            opacity: isVisible ? 1 : 0,                 // 1 in view, 0 out of view
             transition: `opacity ${fadeMs}ms ${fadeEasing}`,
             willChange: 'opacity',
           }}

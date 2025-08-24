@@ -39,7 +39,7 @@ export default function DataVisualizationBlock() {
       console.warn('[DataVisualizationBlock] GROQ fetch failed:', err);
       setData(null);
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!data?.mediaOne) return null;
 
@@ -60,17 +60,19 @@ export default function DataVisualizationBlock() {
           width: '100%',
           height: '100%',
           position: 'absolute',
+          inset: 0,
         }}
       >
         <MediaLoader
           type={isVideo ? 'video' : 'image'}
-          src={isVideo ? video! : image}
+          src={isVideo ? (video as VideoSet) : image}
           alt={alt}
           id={isVideo ? 'dataviz-media-video' : 'dataviz-media'}
           {...(highPoster ? { 'data-src-full': highPoster } : {})}
           className="tooltip-data-viz"
           objectPosition="center center"
           style={{ width: '100%', height: '100%' }}
+          // priority // uncomment if this is the hero
         />
       </div>
     </section>

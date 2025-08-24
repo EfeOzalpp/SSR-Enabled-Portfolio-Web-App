@@ -66,8 +66,8 @@ background: linear-gradient(to right, rgba(30, 30, 31, 1) 0%, rgba(30, 30, 31, 0
 /* SVG icon styles for rotation and size */
 #Layer_12 {padding-left: 0.04em; padding-right: 0.04em; margin-top: 0.225em; width: 1.3em;  height: 1.05em; animation: rotate var(--animation-speed, 16s) linear infinite;}
 #shadow-dynamic-app  .moving-title {margin-top: 1.1em; width: 65%;}
-#shadow-dynamic-app #Layer_12 {width: 1.02em; height: 1.02em;}
-#shadow-dynamic-app .moving-text {padding-right: 96px;}
+#shadow-dynamic-app #Layer_12 {width: 1.1em; height: 1.1em;}
+#shadow-dynamic-app .moving-text {padding-right: 72px;}
 #shadow-dynamic-app span.svg-icon {width: 1.04em; font-size: 85% !important;}
 }
 

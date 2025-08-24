@@ -21,7 +21,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/tooltip/tooltipInit */ "./src/utils/tooltip/tooltipInit.ts");
 /* harmony import */ var _logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../logic/apply-split-style */ "./src/ssr/logic/apply-split-style.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/sections/ScoopEnhancer.tsx
+// src/ssr/projects/scoop.enhancer.tsx
 
 
 
@@ -34,6 +34,9 @@ function ScoopEnhancer() {
   const [isPortrait, setIsPortrait] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(window.innerHeight > window.innerWidth);
   (0,_utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__.useTooltipInit)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    // Collect all cleanups here so we can add to it anywhere below
+    const cleanup = [];
+
     // Remove SSR preset so JS can control layout without specificity fights
     document.getElementById('scoop-ssr')?.classList.remove('ssr-initial-split');
 
@@ -55,30 +58,51 @@ function ScoopEnhancer() {
         vid2El.poster = full2;
       }
 
-      // When video has enough data to play, remove poster & play
-      const handleLoaded = () => {
+      // Wait for the FIRST painted frame before removing poster (no black flash)
+      const removePoster = () => {
         vid2El.removeAttribute('poster');
-        setTimeout(() => {
-          vid2El.play().catch(err => {
-            console.warn('Autoplay failed:', err);
-          });
-        }, 150); // delay for smoother visual transition
       };
-      vid2El.addEventListener('loadeddata', handleLoaded, {
+      const onPlay = () => {
+        const anyV = vid2El;
+        if (typeof anyV.requestVideoFrameCallback === 'function') {
+          anyV.requestVideoFrameCallback(() => removePoster());
+        } else {
+          const onTime = () => {
+            if (vid2El.currentTime > 0 && vid2El.readyState >= 2) {
+              vid2El.removeEventListener('timeupdate', onTime);
+              removePoster();
+            }
+          };
+          vid2El.addEventListener('timeupdate', onTime, {
+            once: true
+          });
+          cleanup.push(() => vid2El.removeEventListener('timeupdate', onTime));
+
+          // Safety backstop
+          const timer = setTimeout(() => {
+            vid2El.removeEventListener('timeupdate', onTime);
+            removePoster();
+          }, 1200);
+          cleanup.push(() => clearTimeout(timer));
+        }
+      };
+      vid2El.addEventListener('play', onPlay, {
         once: true
       });
+      cleanup.push(() => vid2El.removeEventListener('play', onPlay));
 
-      // Trigger video fetching only if not already loaded/playing
+      // Trigger fetch (eager or metadata is fine here)
       if (vid2El.readyState === 0) {
         vid2El.preload = 'auto';
         try {
           vid2El.load();
-        } catch {
-          /* ignore */
-        }
+        } catch {}
       } else {
         vid2El.preload = 'auto';
       }
+
+      // Try to play (muted/inline should allow autoplay)
+      vid2El.play().catch(() => {/* ignored; poster remains until user interacts */});
     }
 
     // Set mount host
@@ -102,7 +126,14 @@ function ScoopEnhancer() {
     window.addEventListener('resize', onResize, {
       passive: true
     });
-    return () => window.removeEventListener('resize', onResize);
+    cleanup.push(() => window.removeEventListener('resize', onResize));
+    return () => {
+      for (const fn of cleanup) {
+        try {
+          fn();
+        } catch {}
+      }
+    };
   }, []); // run once
 
   // Keep DOM in sync when split OR orientation changes

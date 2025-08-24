@@ -1,5 +1,5 @@
 /* ========== Base ========== */
-.loading-hub { display:grid; place-items:center; width:360px; text-align:center; }
+.loading-hub { display:grid; place-items:center; text-align:center; }
 .loading-hub__copy { position:relative; overflow:hidden; padding:6px 8px; min-height: 1.8em; width: 100%;}
 
 /* Animated line (slide up + fade) */
@@ -29,7 +29,7 @@
 .loading-hub--right { justify-items:end; text-align:right; }
 
 /* ========== Game-specific absolute placement ========== */
-.loading-hub--game { position:absolute; margin:auto; }
+.loading-hub--game, .loading-hub--dynamic { position:absolute; margin:auto; }
 .loading-hub--game.loading-hub--left { left:0; transform:none; }
 .loading-hub--game.loading-hub--center { left:50%; transform:translateX(-50%); }
 .loading-hub--game.loading-hub--right { right:0; left:auto; transform:none; }
@@ -47,6 +47,8 @@
   .loading-hub--game.loading-hub--left{left:24px;}
   .loading-hub--game.loading-hub--right{right:24px;}
   .loading-hub--game { top: calc(50% - 10em); left:calc(50% - 2.4em) !important;}
+  .loading-hub--dynamic { top: calc(50% - 32px); left:calc(50% - 180px) !important;}
+  .loading-hub { width:360px; }
 }
 
 /* Example per-block theming

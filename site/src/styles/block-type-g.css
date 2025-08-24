@@ -17,7 +17,6 @@ height: 92dvh; width: 100vw; }
   -webkit-user-select: none;
   user-select: none;
 }
-.evade-the-rock, .evade-the-rock canvas { touch-action: none; }
 
 .countdown-display { position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 9999; pointer-events: none; }
 
@@ -202,6 +201,5 @@ body.game-mode-active .nav-menu { z-index: 0 !important; }
 /* Optional: keep pane scroller inert while playing */
 body.game-mode-active .SnappyScrollThingy {
   overflow: hidden !important;
-  pointer-events: none; /* HUD is inside the game block so still interactive */
 }
 

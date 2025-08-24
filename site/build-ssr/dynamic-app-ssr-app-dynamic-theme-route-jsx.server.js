@@ -1,90 +1,7 @@
 "use strict";
-exports.id = "dynamic-shadow";
-exports.ids = ["dynamic-shadow"];
+exports.id = "dynamic-app-ssr-app-dynamic-theme-route-jsx";
+exports.ids = ["dynamic-app-ssr-app-dynamic-theme-route-jsx"];
 exports.modules = {
-
-/***/ "./src/components/dynamic-app/shadow-entry.tsx":
-/*!*****************************************************!*\
-  !*** ./src/components/dynamic-app/shadow-entry.tsx ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom */ "react-dom");
-/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _dynamic_app_dynamic_app_shadow_jsx__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/components/dynamic-app/shadow-entry.tsx
-
-
-
-
-const ShadowEntry = ({
-  blockId
-}) => {
-  const [target, setTarget] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (typeof document === 'undefined') return;
-    const container = document.getElementById(blockId);
-    if (!container) return;
-    const tryFind = () => {
-      const overlay = container.querySelector('.screen-overlay') || null;
-      if (overlay) {
-        setTarget(overlay);
-        return true;
-      }
-      return false;
-    };
-    if (tryFind()) return;
-    const observer = new MutationObserver(() => {
-      if (tryFind()) observer.disconnect();
-    });
-    observer.observe(container, {
-      childList: true,
-      subtree: true
-    });
-    return () => observer.disconnect();
-  }, [blockId]);
-
-  // Announce mount/unmount of the embedded scroll container to the outer controller
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!target) return;
-    const detail = {
-      el: target,
-      blockId
-    };
-    window.dispatchEvent(new CustomEvent('embedded-app:mounted', {
-      detail
-    }));
-    return () => {
-      window.dispatchEvent(new CustomEvent('embedded-app:unmounted', {
-        detail
-      }));
-    };
-  }, [target, blockId]);
-
-  // Called by DynamicAppInbound (guarded there) on first paint
-  const handleReady = () => {
-    // hide any SSR/client spinner if present
-    const loader = document.getElementById('dynamic-overlay-loader');
-    if (loader) loader.style.display = 'none';
-    // notify listeners (e.g. enhancer / other logic)
-    window.dispatchEvent(new CustomEvent('dynamic-app:hydrated'));
-  };
-  if (!target) return null;
-  return /*#__PURE__*/react_dom__WEBPACK_IMPORTED_MODULE_1___default().createPortal((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_dynamic_app_dynamic_app_shadow_jsx__WEBPACK_IMPORTED_MODULE_2__["default"], {
-    onFocusChange: () => {},
-    onReady: handleReady
-  }), target);
-};
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ShadowEntry);
-
-/***/ }),
 
 /***/ "./src/dynamic-app/lib/fetchSVGIcons.js":
 /*!**********************************************!*\
@@ -272,54 +189,83 @@ if (typeof window !== 'undefined' && window.__DYNAMIC_PRELOAD__) {
 
 /***/ }),
 
-/***/ "./src/utils/content-utility/real-mobile.ts":
-/*!**************************************************!*\
-  !*** ./src/utils/content-utility/real-mobile.ts ***!
-  \**************************************************/
+/***/ "./src/dynamic-app/ssr-app/dynamic-theme.route.jsx":
+/*!*********************************************************!*\
+  !*** ./src/dynamic-app/ssr-app/dynamic-theme.route.jsx ***!
+  \*********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   useRealMobileViewport: () => (/* binding */ useRealMobileViewport)
+/* harmony export */   "default": () => (/* binding */ DynamicThemeRoute)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-// useRealMobileViewport.ts
+/* harmony import */ var _loadable_component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @loadable/component */ "./node_modules/@loadable/component/dist/cjs/loadable.cjs.js");
+/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _preload_dynamic_app__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ..//preload-dynamic-app */ "./src/dynamic-app/preload-dynamic-app.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
-function useRealMobileViewport() {
-  const [isRealMobile, setIsRealMobile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+
+
+
+
+// Load the existing client page (no SSR false flag here)
+
+const DynamicTheme = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])({
+  resolved: {},
+  chunkName() {
+    return "DynamicTheme-jsx";
+  },
+  isReady(props) {
+    const key = this.resolve(props);
+    if (this.resolved[key] !== true) {
+      return false;
+    }
+    if (true) {
+      return !!__webpack_require__.m[key];
+    }
+    // removed by dead control flow
+{}
+  },
+  importAsync: () => Promise.all(/*! import() | DynamicTheme-jsx */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-73dd24"), __webpack_require__.e("DynamicTheme-jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../DynamicTheme.jsx */ "./src/DynamicTheme.jsx")),
+  requireAsync(props) {
+    const key = this.resolve(props);
+    this.resolved[key] = false;
+    return this.importAsync(props).then(resolved => {
+      this.resolved[key] = true;
+      return resolved;
+    });
+  },
+  requireSync(props) {
+    const id = this.resolve(props);
+    if (true) {
+      return __webpack_require__(id);
+    }
+    // removed by dead control flow
+{}
+  },
+  resolve() {
+    if (true) {
+      return /*require.resolve*/(/*! ../../DynamicTheme.jsx */ "./src/DynamicTheme.jsx");
+    }
+    // removed by dead control flow
+{}
+  }
+});
+function DynamicThemeRoute() {
+  // If your server provided preloaded data, push it into the shared cache
+  const ssr = (0,_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_2__.useSsrData)();
+  const preload = ssr?.preloaded?.dynamicTheme; // { icons, images } if your server sets it
+
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const checkMobile = () => {
-      const touch = navigator.maxTouchPoints > 0;
-      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-      const width = window.innerWidth;
-      const ua = navigator.userAgent || navigator.vendor || window.opera;
-
-      // iOS detection (iPhone / iPad)
-      const isIOS = /iPad|iPhone|iPod/.test(ua) || navigator.platform === 'MacIntel' && touch; // iPadOS pretends to be Mac
-
-      // Android detection
-      const isAndroid = /Android/.test(ua);
-
-      // Consider it real mobile if:
-      // - Touch exists, and viewport is small, or
-      // - Known mobile UA
-      const realMobile = touch && width <= 1024 || isIOS || isAndroid || coarse;
-      setIsRealMobile(realMobile);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    window.addEventListener('orientationchange', checkMobile);
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-      window.removeEventListener('orientationchange', checkMobile);
-    };
-  }, []);
-  return isRealMobile;
+    if (preload) (0,_preload_dynamic_app__WEBPACK_IMPORTED_MODULE_3__.primeFromSSR)(preload);
+  }, [preload]);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(DynamicTheme, {});
 }
 
 /***/ })
 
 };
 ;
-//# sourceMappingURL=dynamic-shadow.server.js.map
+//# sourceMappingURL=dynamic-app-ssr-app-dynamic-theme-route-jsx.server.js.map

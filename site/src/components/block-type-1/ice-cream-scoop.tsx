@@ -1,4 +1,3 @@
-// /IceCreamScoop.tsx
 import { useEffect, useState } from 'react';
 import { getProjectData } from '../../utils/get-project-data';
 import SplitDragHandler from '../../utils/split-controller';
@@ -15,9 +14,6 @@ export default function IceCreamScoop() {
   const [split, setSplit] = useState(() => (window.innerWidth < 1024 ? 45 : 50));
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
-  // Track poster removal state so React VDOM also removes it
-  const [posterRemoved, setPosterRemoved] = useState(false);
-
   useTooltipInit();
 
   useEffect(() => {
@@ -33,11 +29,6 @@ export default function IceCreamScoop() {
   if (!data) return null;
 
   const media2IsVideo = Boolean(data.mediaTwo?.video?.webmUrl || data.mediaTwo?.video?.mp4Url);
-
-  // When video first loads, remove poster from React's VDOM state
-  const handleVideoLoaded = () => {
-    setPosterRemoved(true);
-  };
 
   return (
     <section className="block-type-1" id="no-ssr" style={{ position: 'relative' }}>
@@ -91,22 +82,13 @@ export default function IceCreamScoop() {
       >
         <MediaLoader
           type={media2IsVideo ? 'video' : 'image'}
-          src={
-            media2IsVideo
-              ? {
-                  ...data.mediaTwo.video!,
-                  // Only pass poster if not removed
-                  poster: posterRemoved ? undefined : data.mediaTwo.video?.poster,
-                }
-              : data.mediaTwo.image!
-          }
+          src={media2IsVideo ? (data.mediaTwo.video as VideoSet) : (data.mediaTwo.image as any)}
           alt={data.mediaTwo.alt || 'Ice Cream Scoop media'}
           id="icecream-media-2"
           className="media-item-2 tooltip-ice-scoop"
           objectPosition="center bottom"
           style={{ width: '100%', height: '100%' }}
-          // Pass onLoadedData handler only if video
-          {...(media2IsVideo && { onLoadedData: handleVideoLoaded })}
+          // no manual poster removal; MediaLoader handles first-frame timing
         />
       </div>
     </section>

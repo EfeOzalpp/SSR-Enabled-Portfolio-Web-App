@@ -1,24 +1,35 @@
-// dynamic app shadow DOM wrappér
+// dynamic app shadow DOM wrapper
 import React, { useRef, useEffect, useState } from 'react';
 import createShadowRoot from 'react-shadow';
 import DynamicTheme from './dynamic-app-outgoing.jsx';
-import { ShadowRootProvider } from '../utils/context-providers/shadow-root-context.tsx'; 
+import { ShadowRootProvider } from '../utils/context-providers/shadow-root-context.tsx';
 
-const DynamicAppInbound = ({ onFocusChange }) => {
+const DynamicAppInbound = ({ onFocusChange, onReady }) => {
   const shadowRef = useRef(null);
   const [shadowRoot, setShadowRoot] = useState(null);
   const ShadowRoot = createShadowRoot.div;
 
+  // ensure we only ever signal ready once
+  const readySentRef = useRef(false);
+  const sendReady = () => {
+    if (readySentRef.current) return;
+    readySentRef.current = true;
+    try { onReady?.(); } catch {}
+  };
+
   useEffect(() => {
-    setTimeout(() => {
+    const t = setTimeout(() => {
       const root = shadowRef.current?.getRootNode?.();
       if (root && root.host) {
         setShadowRoot(root);
+        // first visual frame -> tell enhancer we’re ready
+        requestAnimationFrame(sendReady);
       } else {
         console.warn('[Not a ShadowRoot]', root);
       }
     }, 0);
-  }, []);
+    return () => clearTimeout(t);
+  }, [onReady]); // safe for HMR
 
   useEffect(() => {
     const el = shadowRef.current;
@@ -29,10 +40,7 @@ const DynamicAppInbound = ({ onFocusChange }) => {
 
     const triggerSyntheticClick = () => {
       const down = new PointerEvent('pointerdown', {
-        bubbles: true,
-        cancelable: true,
-        composed: true,
-        pointerType: 'touch',
+        bubbles: true, cancelable: true, composed: true, pointerType: 'touch',
       });
       el.dispatchEvent(down);
       onFocusChange?.(true);
@@ -48,7 +56,6 @@ const DynamicAppInbound = ({ onFocusChange }) => {
     const handleTouchMove = (e) => {
       if (focusTriggered || e.touches.length === 0) return;
       const deltaY = e.touches[0].clientY - startY;
-
       if (Math.abs(deltaY) > 1) {
         el.scrollTop += 1;
         triggerSyntheticClick();
@@ -60,7 +67,6 @@ const DynamicAppInbound = ({ onFocusChange }) => {
       el.addEventListener('touchstart', handleTouchStart, { passive: true });
       el.addEventListener('touchmove', handleTouchMove, { passive: true });
     }
-
     return () => {
       el.removeEventListener('touchstart', handleTouchStart);
       el.removeEventListener('touchmove', handleTouchMove);
@@ -73,10 +79,11 @@ const DynamicAppInbound = ({ onFocusChange }) => {
         <div ref={shadowRef} className="dynamic-app" id="shadow-dynamic-app">
           {shadowRoot ? (
             <ShadowRootProvider getShadowRoot={() => shadowRoot}>
-              <DynamicTheme />
+              {/* pass the guarded ready down so either level can signal */}
+              <DynamicTheme onReady={sendReady} />
             </ShadowRootProvider>
           ) : null}
-        </div>
+        </div> 
       </ShadowRoot>
     </div>
   );

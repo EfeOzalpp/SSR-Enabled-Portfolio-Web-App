@@ -1,3 +1,4 @@
+// src/components/dynamic-app/shadow-entry.tsx
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import DynamicAppInbound from '../../dynamic-app/dynamic-app-shadow.jsx';
@@ -31,22 +32,31 @@ const ShadowEntry: React.FC<Props> = ({ blockId }) => {
     return () => observer.disconnect();
   }, [blockId]);
 
-  // NEW: announce mount/unmount of the embedded scroll container to the outer controller
+  // Announce mount/unmount of the embedded scroll container to the outer controller
   useEffect(() => {
     if (!target) return;
-
     const detail = { el: target, blockId };
-    const mountedEvt = new CustomEvent('embedded-app:mounted', { detail });
-    window.dispatchEvent(mountedEvt);
-
+    window.dispatchEvent(new CustomEvent('embedded-app:mounted', { detail }));
     return () => {
-      const unmountedEvt = new CustomEvent('embedded-app:unmounted', { detail });
-      window.dispatchEvent(unmountedEvt);
+      window.dispatchEvent(new CustomEvent('embedded-app:unmounted', { detail }));
     };
   }, [target, blockId]);
 
+  // Called by DynamicAppInbound (guarded there) on first paint
+  const handleReady = () => {
+    // hide any SSR/client spinner if present
+    const loader = document.getElementById('dynamic-overlay-loader');
+    if (loader) loader.style.display = 'none';
+    // notify listeners (e.g. enhancer / other logic)
+    window.dispatchEvent(new CustomEvent('dynamic-app:hydrated'));
+  };
+
   if (!target) return null;
-  return ReactDOM.createPortal(<DynamicAppInbound onFocusChange={() => {}} />, target);
+
+  return ReactDOM.createPortal(
+    <DynamicAppInbound onFocusChange={() => {}} onReady={handleReady} />,
+    target
+  );
 };
 
 export default ShadowEntry;

@@ -36,7 +36,7 @@ const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`
 const { BUILD_DIR, STATS_FILE, ASSET_MANIFEST } = resolveStatsFile()
 
 /** -----------------------------
- * ✅ API routes (MOUNT FIRST)
+ * API routes (MOUNT FIRST)
  * ----------------------------- */
 app.use('/api', highScoreRoute)
 

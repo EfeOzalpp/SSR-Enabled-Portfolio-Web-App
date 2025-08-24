@@ -625,7 +625,7 @@ function LazyViewMount({
   fallback = null,
   // strategy
   mountMode = 'io',
-  // IO-only
+  // IO
   enterThreshold = 0.2,
   exitThreshold = 0.05,
   unmountDelayMs = 150,
@@ -646,61 +646,74 @@ function LazyViewMount({
   const selfRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [Comp, setComp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
 
-  // mounted vs visible (for fade)
+  // mount/visibility
   const mountedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const [isMounted, setIsMounted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const unmountDebounceRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const fadeOutTimerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // timers
+  const unmountTimer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const fadeTimer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // preload promise cache
+  const preloadPromiseRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // IO edge tracking
+  const lastRatio = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(0);
+  const lastIntersecting = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const firstIOSeen = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
 
-  // preload cache
-  const preloadPromiseRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  /** Preload once */
   const ensurePreloaded = () => {
     if (!preloadPromiseRef.current) {
       preloadPromiseRef.current = load();
     }
     return preloadPromiseRef.current;
   };
-  const clearUnmountTimers = () => {
-    if (unmountDebounceRef.current != null) {
-      window.clearTimeout(unmountDebounceRef.current);
-      unmountDebounceRef.current = null;
+  const clearTimers = () => {
+    if (unmountTimer.current != null) {
+      window.clearTimeout(unmountTimer.current);
+      unmountTimer.current = null;
     }
-    if (fadeOutTimerRef.current != null) {
-      window.clearTimeout(fadeOutTimerRef.current);
-      fadeOutTimerRef.current = null;
+    if (fadeTimer.current != null) {
+      window.clearTimeout(fadeTimer.current);
+      fadeTimer.current = null;
     }
   };
   const mountNow = () => {
     if (mountedRef.current) {
-      if (!isVisible) setIsVisible(true);
+      // already mounted; just ensure visible
+      setIsVisible(true);
       return;
     }
     mountedRef.current = true;
-    const promise = ensurePreloaded();
-    setComp(prev => prev ?? /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.lazy)(() => promise));
+    const p = ensurePreloaded();
+    setComp(prev => prev ?? /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.lazy)(() => p));
     setIsMounted(true);
+    // next frame -> allow CSS transition
     requestAnimationFrame(() => setIsVisible(true));
   };
-  const scheduleUnmount = () => {
+  const unmountSoon = () => {
     if (!mountedRef.current) return;
-    clearUnmountTimers();
-    unmountDebounceRef.current = window.setTimeout(() => {
+    clearTimers();
+    // fade out -> unmount
+    unmountTimer.current = window.setTimeout(() => {
       setIsVisible(false);
-      fadeOutTimerRef.current = window.setTimeout(() => {
+      fadeTimer.current = window.setTimeout(() => {
         setIsMounted(false);
         mountedRef.current = false;
       }, fadeMs);
     }, unmountDelayMs);
   };
 
-  /* Preload on idle (works for all modes) */
+  /** Preload on idle */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isServer || !preloadOnIdle) return;
     if (idleId.current) cic(idleId.current);
-    idleId.current = ric(() => ensurePreloaded(), {
+    idleId.current = ric(() => {
+      void ensurePreloaded();
+    }, {
       timeout: preloadIdleTimeout
     });
     return () => {
@@ -711,74 +724,75 @@ function LazyViewMount({
     };
   }, [isServer, preloadOnIdle, preloadIdleTimeout, load]);
 
-  /* Mount behavior per mode */
+  /** Mount behavior per mode */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isServer) return;
     if (mountMode === 'immediate') {
-      // mount as soon as possible
       mountNow();
       return;
     }
     if (mountMode === 'idle') {
-      // after idle (or immediately if idle already passed)
-      let cancel = ric(() => mountNow(), {
+      const id = ric(() => mountNow(), {
         timeout: preloadIdleTimeout
       });
       return () => {
-        if (cancel) cic(cancel);
+        if (id) cic(id);
       };
     }
 
-    // mountMode === 'io'
-    const el = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
-    if (!el) return;
+    // ---- IO MODE ----
+    const target = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
+    if (!target) return;
     if (typeof IntersectionObserver === 'undefined') {
+      // no IO support -> just mount
       mountNow();
       return;
     }
 
-    // --- replace the IntersectionObserver callback in lazy-view-mount.tsx ---
-    const thresholds = Array.from(new Set([0, exitThreshold, enterThreshold])).sort((a, b) => a - b);
+    // ensure sensible thresholds (enter > exit)
+    const enter = Math.max(0, Math.min(1, enterThreshold));
+    const exit = Math.max(0, Math.min(enter, exitThreshold)); // cap at enter
+    const thresholds = Array.from(new Set([0, exit, enter, 1])).sort((a, b) => a - b);
     const io = new IntersectionObserver(([entry]) => {
-      const ratio = entry.intersectionRatio || 0;
-      const visible = !!entry.isIntersecting;
+      const ratio = entry?.intersectionRatio ?? 0;
+      const intersecting = !!entry?.isIntersecting;
 
-      // First IO seen → optional preload
+      // first IO → optional preload
       if (!firstIOSeen.current) {
         firstIOSeen.current = true;
-        if (preloadOnFirstIO) ensurePreloaded();
+        if (preloadOnFirstIO) void ensurePreloaded();
       }
 
-      // Fast-path: on any (re)intersection, mount immediately if not mounted
-      if (visible && !mountedRef.current) {
-        clearUnmountTimers();
+      // Compute edge crossings (prevents jitter in the gray zone)
+      const crossedEnter = lastRatio.current < enter && ratio >= enter;
+      const crossedExit = lastRatio.current > exit && ratio <= exit;
+      const becameIntersecting = !lastIntersecting.current && intersecting;
+      const leftIntersecting = lastIntersecting.current && !intersecting;
+
+      // ENTER: on intersection or crossing the enter threshold
+      if (becameIntersecting || crossedEnter) {
+        clearTimers();
         mountNow();
-        return;
+      }
+      // EXIT: when leaving intersection OR crossing exit threshold
+      else if (leftIntersecting || crossedExit) {
+        unmountSoon();
       }
 
-      // Normal hysteresis:
-      // - If we've reached the "enter" threshold, keep/make visible
-      if (ratio >= enterThreshold) {
-        clearUnmountTimers();
-        if (!mountedRef.current) mountNow();
-        return;
-      }
-
-      // - If we've dropped below exit threshold OR not intersecting at all, schedule unmount
-      if (!visible || ratio <= exitThreshold) {
-        scheduleUnmount();
-      }
+      // save last values
+      lastRatio.current = ratio;
+      lastIntersecting.current = intersecting;
     }, {
       root,
       rootMargin,
       threshold: thresholds
     });
-    io.observe(el);
+    io.observe(target);
     return () => {
       io.disconnect();
-      clearUnmountTimers();
+      clearTimers();
     };
-  }, [isServer, mountMode, root, rootMargin, enterThreshold, exitThreshold, observeTargetId, load, fadeMs, unmountDelayMs, preloadIdleTimeout, preloadOnFirstIO]);
+  }, [isServer, mountMode, root, rootMargin, enterThreshold, exitThreshold, observeTargetId, preloadIdleTimeout, preloadOnFirstIO, fadeMs, unmountDelayMs]);
   const CompAny = Comp;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
     ref: selfRef,
@@ -790,6 +804,7 @@ function LazyViewMount({
     children: isMounted && CompAny ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
       style: {
         opacity: isVisible ? 1 : 0,
+        // 1 in view, 0 out of view
         transition: `opacity ${fadeMs}ms ${fadeEasing}`,
         willChange: 'opacity'
       },

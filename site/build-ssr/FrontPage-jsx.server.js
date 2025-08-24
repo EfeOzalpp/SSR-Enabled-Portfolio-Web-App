@@ -199,12 +199,12 @@ const projectColors = {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   "default": () => (/* binding */ LazyInView)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/utils/content-utility/lazy-view.tsx
+// src/utils/content-utility/lazy-in-view.tsx
 
 
 const hasWindow = typeof window !== 'undefined';
@@ -212,24 +212,45 @@ const hasRIC = hasWindow && 'requestIdleCallback' in window;
 const hasCIC = hasWindow && 'cancelIdleCallback' in window;
 const ric = (cb, opts) => hasRIC ? window.requestIdleCallback(cb, opts) : setTimeout(cb, opts?.timeout ?? 0);
 const cic = id => hasCIC ? window.cancelIdleCallback(id) : clearTimeout(id);
-const LazyInView = ({
+function LazyInView({
   load,
   fallback = null,
   serverRender,
   eager = false,
-  allowIdle = false
-}) => {
+  allowIdle = false,
+  observeTargetId,
+  rootMargin = '0px',
+  threshold = 0.05,
+  placeholderMinHeight = 360,
+  debugLabel
+}) {
   const isServer = !hasWindow;
-  const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(isServer || eager);
+
+  // ✅ Make SSR and client's first render agree:
+  // If we SSR-ed content (serverRender) or set eager, start visible; otherwise start hidden.
+  const initialVisible = eager || !!serverRender;
+  const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialVisible);
   const [Component, setComponent] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const ref = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const selfRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // IO
+  // IntersectionObserver: flip visible when in view
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer || eager) return;
+    // If already visible (SSR or eager), nothing to observe.
+    if (isVisible) return;
+    const target = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
+    if (!target || typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return;
+    }
     const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
+      const vis = !!entry.isIntersecting;
+      const ratio = entry.intersectionRatio ?? 0;
+      if (debugLabel) console.log(`[LazyInView:${debugLabel}] IO`, {
+        ratio,
+        vis
+      });
+      if (vis) {
         setIsVisible(true);
         io.disconnect();
         if (idleId.current) {
@@ -238,15 +259,17 @@ const LazyInView = ({
         }
       }
     }, {
-      threshold: 0.05
+      threshold,
+      root: null,
+      rootMargin
     });
-    if (ref.current) io.observe(ref.current);
+    io.observe(target);
     return () => io.disconnect();
-  }, [isServer, eager]);
+  }, [isVisible, observeTargetId, rootMargin, threshold, debugLabel]);
 
-  // Idle preloading
+  // Idle preloading (optional): if still hidden and allowed, show after an idle slot
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer || eager || isVisible || !allowIdle) return;
+    if (isVisible || !allowIdle) return;
     idleId.current = ric(() => setIsVisible(true), {
       timeout: 2000
     });
@@ -256,11 +279,10 @@ const LazyInView = ({
         idleId.current = null;
       }
     };
-  }, [isServer, eager, isVisible, allowIdle]);
+  }, [isVisible, allowIdle]);
 
-  // only call load if provided
+  // Load component when visible
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isServer) return;
     if (!isVisible || Component || !load) return;
     let cancelled = false;
     load().then(mod => {
@@ -269,21 +291,25 @@ const LazyInView = ({
     return () => {
       cancelled = true;
     };
-  }, [isServer, isVisible, Component, load]);
+  }, [isVisible, Component, load]);
   const content = Component ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(react__WEBPACK_IMPORTED_MODULE_0__.Suspense, {
     fallback: fallback,
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Component, {})
   }) : serverRender ?? fallback;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-    ref: ref,
+    ref: selfRef,
+    className: debugLabel ? `liv--${debugLabel}` : undefined,
     style: {
       width: '100%',
-      height: '100%'
+      minHeight: placeholderMinHeight,
+      position: 'relative',
+      // 👇 First render matches SSR exactly via initialVisible
+      opacity: isVisible ? 1 : 0,
+      transition: 'opacity 220ms ease'
     },
     children: content
   });
-};
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (LazyInView);
+}
 
 /***/ }),
 
@@ -313,7 +339,7 @@ function LazyViewMount({
   fallback = null,
   // strategy
   mountMode = 'io',
-  // IO-only
+  // IO
   enterThreshold = 0.2,
   exitThreshold = 0.05,
   unmountDelayMs = 150,
@@ -334,61 +360,74 @@ function LazyViewMount({
   const selfRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [Comp, setComp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
 
-  // mounted vs visible (for fade)
+  // mount/visibility
   const mountedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const [isMounted, setIsMounted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const unmountDebounceRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const fadeOutTimerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // timers
+  const unmountTimer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const fadeTimer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // preload promise cache
+  const preloadPromiseRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // IO edge tracking
+  const lastRatio = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(0);
+  const lastIntersecting = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const firstIOSeen = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
 
-  // preload cache
-  const preloadPromiseRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const idleId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  /** Preload once */
   const ensurePreloaded = () => {
     if (!preloadPromiseRef.current) {
       preloadPromiseRef.current = load();
     }
     return preloadPromiseRef.current;
   };
-  const clearUnmountTimers = () => {
-    if (unmountDebounceRef.current != null) {
-      window.clearTimeout(unmountDebounceRef.current);
-      unmountDebounceRef.current = null;
+  const clearTimers = () => {
+    if (unmountTimer.current != null) {
+      window.clearTimeout(unmountTimer.current);
+      unmountTimer.current = null;
     }
-    if (fadeOutTimerRef.current != null) {
-      window.clearTimeout(fadeOutTimerRef.current);
-      fadeOutTimerRef.current = null;
+    if (fadeTimer.current != null) {
+      window.clearTimeout(fadeTimer.current);
+      fadeTimer.current = null;
     }
   };
   const mountNow = () => {
     if (mountedRef.current) {
-      if (!isVisible) setIsVisible(true);
+      // already mounted; just ensure visible
+      setIsVisible(true);
       return;
     }
     mountedRef.current = true;
-    const promise = ensurePreloaded();
-    setComp(prev => prev ?? /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.lazy)(() => promise));
+    const p = ensurePreloaded();
+    setComp(prev => prev ?? /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.lazy)(() => p));
     setIsMounted(true);
+    // next frame -> allow CSS transition
     requestAnimationFrame(() => setIsVisible(true));
   };
-  const scheduleUnmount = () => {
+  const unmountSoon = () => {
     if (!mountedRef.current) return;
-    clearUnmountTimers();
-    unmountDebounceRef.current = window.setTimeout(() => {
+    clearTimers();
+    // fade out -> unmount
+    unmountTimer.current = window.setTimeout(() => {
       setIsVisible(false);
-      fadeOutTimerRef.current = window.setTimeout(() => {
+      fadeTimer.current = window.setTimeout(() => {
         setIsMounted(false);
         mountedRef.current = false;
       }, fadeMs);
     }, unmountDelayMs);
   };
 
-  /* Preload on idle (works for all modes) */
+  /** Preload on idle */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isServer || !preloadOnIdle) return;
     if (idleId.current) cic(idleId.current);
-    idleId.current = ric(() => ensurePreloaded(), {
+    idleId.current = ric(() => {
+      void ensurePreloaded();
+    }, {
       timeout: preloadIdleTimeout
     });
     return () => {
@@ -399,74 +438,75 @@ function LazyViewMount({
     };
   }, [isServer, preloadOnIdle, preloadIdleTimeout, load]);
 
-  /* Mount behavior per mode */
+  /** Mount behavior per mode */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (isServer) return;
     if (mountMode === 'immediate') {
-      // mount as soon as possible
       mountNow();
       return;
     }
     if (mountMode === 'idle') {
-      // after idle (or immediately if idle already passed)
-      let cancel = ric(() => mountNow(), {
+      const id = ric(() => mountNow(), {
         timeout: preloadIdleTimeout
       });
       return () => {
-        if (cancel) cic(cancel);
+        if (id) cic(id);
       };
     }
 
-    // mountMode === 'io'
-    const el = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
-    if (!el) return;
+    // ---- IO MODE ----
+    const target = (observeTargetId ? document.getElementById(observeTargetId) : null) || selfRef.current;
+    if (!target) return;
     if (typeof IntersectionObserver === 'undefined') {
+      // no IO support -> just mount
       mountNow();
       return;
     }
 
-    // --- replace the IntersectionObserver callback in lazy-view-mount.tsx ---
-    const thresholds = Array.from(new Set([0, exitThreshold, enterThreshold])).sort((a, b) => a - b);
+    // ensure sensible thresholds (enter > exit)
+    const enter = Math.max(0, Math.min(1, enterThreshold));
+    const exit = Math.max(0, Math.min(enter, exitThreshold)); // cap at enter
+    const thresholds = Array.from(new Set([0, exit, enter, 1])).sort((a, b) => a - b);
     const io = new IntersectionObserver(([entry]) => {
-      const ratio = entry.intersectionRatio || 0;
-      const visible = !!entry.isIntersecting;
+      const ratio = entry?.intersectionRatio ?? 0;
+      const intersecting = !!entry?.isIntersecting;
 
-      // First IO seen → optional preload
+      // first IO → optional preload
       if (!firstIOSeen.current) {
         firstIOSeen.current = true;
-        if (preloadOnFirstIO) ensurePreloaded();
+        if (preloadOnFirstIO) void ensurePreloaded();
       }
 
-      // Fast-path: on any (re)intersection, mount immediately if not mounted
-      if (visible && !mountedRef.current) {
-        clearUnmountTimers();
+      // Compute edge crossings (prevents jitter in the gray zone)
+      const crossedEnter = lastRatio.current < enter && ratio >= enter;
+      const crossedExit = lastRatio.current > exit && ratio <= exit;
+      const becameIntersecting = !lastIntersecting.current && intersecting;
+      const leftIntersecting = lastIntersecting.current && !intersecting;
+
+      // ENTER: on intersection or crossing the enter threshold
+      if (becameIntersecting || crossedEnter) {
+        clearTimers();
         mountNow();
-        return;
+      }
+      // EXIT: when leaving intersection OR crossing exit threshold
+      else if (leftIntersecting || crossedExit) {
+        unmountSoon();
       }
 
-      // Normal hysteresis:
-      // - If we've reached the "enter" threshold, keep/make visible
-      if (ratio >= enterThreshold) {
-        clearUnmountTimers();
-        if (!mountedRef.current) mountNow();
-        return;
-      }
-
-      // - If we've dropped below exit threshold OR not intersecting at all, schedule unmount
-      if (!visible || ratio <= exitThreshold) {
-        scheduleUnmount();
-      }
+      // save last values
+      lastRatio.current = ratio;
+      lastIntersecting.current = intersecting;
     }, {
       root,
       rootMargin,
       threshold: thresholds
     });
-    io.observe(el);
+    io.observe(target);
     return () => {
       io.disconnect();
-      clearUnmountTimers();
+      clearTimers();
     };
-  }, [isServer, mountMode, root, rootMargin, enterThreshold, exitThreshold, observeTargetId, load, fadeMs, unmountDelayMs, preloadIdleTimeout, preloadOnFirstIO]);
+  }, [isServer, mountMode, root, rootMargin, enterThreshold, exitThreshold, observeTargetId, preloadIdleTimeout, preloadOnFirstIO, fadeMs, unmountDelayMs]);
   const CompAny = Comp;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
     ref: selfRef,
@@ -478,6 +518,7 @@ function LazyViewMount({
     children: isMounted && CompAny ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
       style: {
         opacity: isVisible ? 1 : 0,
+        // 1 in view, 0 out of view
         transition: `opacity ${fadeMs}ms ${fadeEasing}`,
         willChange: 'opacity'
       },
@@ -638,7 +679,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/components/ProjectPane.tsx
+// src/utils/project-pane.tsx
 
 
 
@@ -669,7 +710,7 @@ function ProjectPane({
   const isGame = item.key === 'game';
   const usesCustomLoader = isDynamic || isGame;
 
-  // Generic loader only for non-custom blocks (dynamic/game have their own UX)
+  // Generic loader for non-custom blocks
   const fallbackNode = !payload && isHydrated && !usesCustomLoader ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
     isFullScreen: false
   }) : null;
@@ -680,10 +721,7 @@ function ProjectPane({
     style: {
       height: isHidden ? '0px' : isFocused ? 'auto' : viewportHeight,
       overflow: isFocused ? 'visible' : 'hidden',
-      scrollSnapAlign: isHidden ? 'none' : 'start',
-      opacity: isHidden ? 0 : 1,
-      visibility: isHidden ? 'hidden' : 'visible',
-      pointerEvents: isHidden ? 'none' : 'auto'
+      scrollSnapAlign: isHidden ? 'none' : 'start'
     },
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
       style: {
@@ -691,32 +729,30 @@ function ProjectPane({
       },
       children: isDynamic ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
         children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
-          load: load
-          // no generic fallback; SSR frame is already visible
-          ,
-          serverRender: serverRender,
-          eager: isFirst,
-          allowIdle: true
-        }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
-          load: () => Promise.all(/*! import() */[__webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-21d201"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_utils_content-utility_real-mobile_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
-          mountMode: "idle"
-          /* Preload so re-mounts are instant */,
-          preloadOnIdle: true,
-          preloadIdleTimeout: 2000,
-          preloadOnFirstIO: true
-          /* IO config */,
-          observeTargetId: blockId,
-          rootMargin: "0px",
-          placeholderMinHeight: 360
-          /* No props required; the shadow app finds its overlay */
-        })]
-      }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
           load: load,
           serverRender: serverRender,
           eager: isFirst,
           allowIdle: true
-        })
+        }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          load: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-73dd24"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
+          mountMode: "idle",
+          preloadOnIdle: true,
+          preloadIdleTimeout: 2000,
+          preloadOnFirstIO: true,
+          observeTargetId: blockId,
+          rootMargin: "0px",
+          placeholderMinHeight: 360,
+          componentProps: {
+            blockId
+          }
+        })]
+      }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        load: load,
+        serverRender: serverRender,
+        eager: isFirst,
+        allowIdle: true,
+        observeTargetId: blockId,
+        placeholderMinHeight: 360
       }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
         load: load,
         fallback: fallbackNode,
