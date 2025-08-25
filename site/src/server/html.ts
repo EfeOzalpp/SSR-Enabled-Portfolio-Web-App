@@ -62,12 +62,6 @@ export function buildRouteHead(routePath: string) {
       <meta name="description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
       <meta name="keywords" content="Innovation, Art, Technology, Science, Culture, Exhibition, Installation, Display, Projects">
       <meta name="theme-color" content="#1e1e1f">
-      <meta property="og:title" content="DMI MassArt - Fresh Media 2025">
-      <meta property="og:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
-      <meta property="og:type" content="website">
-      <meta name="twitter:card" content="summary_large_image">
-      <meta name="twitter:title" content="DMI MassArt - Fresh Media 2024">
-      <meta name="twitter:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
     `;
   }
   return '';
@@ -89,11 +83,13 @@ export function buildHtmlOpen(opts: {
   extractorStyleTags: string;
   emotionStyleTags: string;
   extraCriticalCss?: string;
+  injectBeforeRoot?: string;  // <-- added for dynamic snapshot HTML
 }) {
   const {
     IS_DEV, routePath, iconSvg, iconIco, preloadLinks,
     fontsCss, extractorLinkTags, extractorStyleTags,
     emotionStyleTags, extraCriticalCss = '',
+    injectBeforeRoot = '',
   } = opts;
 
   const ROOT = process.cwd();
@@ -134,8 +130,25 @@ export function buildHtmlOpen(opts: {
       path.resolve(ROOT, 'src/dynamic-app/styles/UIcards.css'),
       path.resolve(ROOT, 'src/styles/dynamic-app/UIcards.css'),
     ]);
+
+    const sortByCss = readFirst([
+      path.resolve(ROOT, 'src/dynamic-app/styles/sortByStyles.css'),
+      path.resolve(ROOT, 'src/styles/dynamic-app/sortByStyles.css'),
+    ]);
+
+    const indexCss = readFirst([
+      path.resolve(ROOT, 'src/dynamic-app/styles/index.css'),
+      path.resolve(ROOT, 'src/styles/dynamic-app/index.css'),
+    ]);
+
     if (uiCardsCss) {
-      dynamicThemeInlineCss = `<style id="critical-dynamic-ui-cards">${uiCardsCss}</style>`;
+      dynamicThemeInlineCss += `<style id="critical-dynamic-ui-cards">${uiCardsCss}</style>`;
+    }
+    if (sortByCss) {
+      dynamicThemeInlineCss += `<style id="critical-dynamic-sortby">${sortByCss}</style>`;
+    }
+    if (indexCss) {
+      dynamicThemeInlineCss += `<style id="critical-dynamic-index">${indexCss}</style>`;
     }
   }
 
@@ -182,12 +195,14 @@ ${dynamicThemeInlineCss}
 ${routeHead}
 </head>
 <body>
+${injectBeforeRoot}
 <div id="root">`;
 }
 
-export function buildHtmlClose(ssrPayload: any, scriptTags: string) {
+export function buildHtmlClose(ssrPayload: any, scriptTags: string, extraScripts = '') {
   const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
+${extraScripts}
 ${scriptTags}
 </body></html>`;
 }

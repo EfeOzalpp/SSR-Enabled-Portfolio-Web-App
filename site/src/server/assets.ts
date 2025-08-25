@@ -43,3 +43,34 @@ export function buildPreloadLinks(firstData: any): string[] {
   }
   return links;
 }
+
+export function buildDynamicImagePreloads(images: any[], limit = 6): string[] {
+  if (!Array.isArray(images) || !images.length) return [];
+  const links: string[] = [];
+  const seen = new Set<string>();
+  let count = 0;
+
+  const toUrl = (img: any) => img?.asset?.url || img?.url || (typeof img === 'string' ? img : null);
+  const toLq = (url: string) => {
+    // if it's a sanity CDN URL, ask for a smaller version; else leave as is
+    return /cdn\.sanity\.io/.test(url)
+      ? `${url}${url.includes('?') ? '&' : '?'}auto=format&w=640&q=60`
+      : url;
+  };
+
+  for (const it of images) {
+    const u1 = toUrl(it?.image1);
+    const u2 = toUrl(it?.image2);
+    for (const raw of [u1, u2]) {
+      if (!raw || seen.has(raw)) continue;
+      seen.add(raw);
+
+      const href = toLq(raw);
+      links.push(`<link rel="preload" as="image" href="${href}" imagesrcset="${href}">`);
+
+      if (++count >= limit) break;
+    }
+    if (count >= limit) break;
+  }
+  return links;
+}

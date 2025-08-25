@@ -2,84 +2,6 @@ exports.id = "src_ssr_projects_dynamic_enhancer_tsx";
 exports.ids = ["src_ssr_projects_dynamic_enhancer_tsx"];
 exports.modules = {
 
-/***/ "./src/dynamic-app/lib/fetchSVGIcons.js":
-/*!**********************************************!*\
-  !*** ./src/dynamic-app/lib/fetchSVGIcons.js ***!
-  \**********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ fetchSVGIcons)
-/* harmony export */ });
-/* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
-/* Fetch SVG icons */
-
-async function fetchSVGIcons() {
-  const query = `*[_type == "svgIcon"]{
-    title,
-    icon,                         // inline SVG string (portable text / string)
-    "url": file.asset->url        // optional file URL if present in schema
-  }`;
-  const icons = await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].fetch(query);
-  return icons;
-}
-
-/***/ }),
-
-/***/ "./src/dynamic-app/lib/fetchUser.js":
-/*!******************************************!*\
-  !*** ./src/dynamic-app/lib/fetchUser.js ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   fetchImages: () => (/* binding */ fetchImages)
-/* harmony export */ });
-/* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
-// lib/fetchUser.ts
-
-const fetchImages = async (sortOption = 'default') => {
-  let orderClause = '';
-  switch (sortOption) {
-    case 'titleAsc':
-      orderClause = '| order(title asc)';
-      break;
-    case 'titleDesc':
-      orderClause = '| order(title desc)';
-      break;
-    case 'dateAsc':
-      orderClause = '| order(_createdAt asc)';
-      break;
-    case 'dateDesc':
-      orderClause = '| order(_createdAt desc)';
-      break;
-  }
-  const query = `*[_type == "imageAsset"] ${orderClause} {
-    _id,
-    title,
-    description,
-    image1,         // keep full Sanity image object
-    image2,         // same
-    caption1,
-    alt1,
-    alt2,
-    iconName
-  }`;
-  try {
-    const data = await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].fetch(query);
-    return data; // pass raw; AppMedia will render responsively
-  } catch (error) {
-    console.error('Error fetching images', error);
-    return [];
-  }
-};
-
-/***/ }),
-
 /***/ "./src/dynamic-app/preload-dynamic-app.ts":
 /*!************************************************!*\
   !*** ./src/dynamic-app/preload-dynamic-app.ts ***!
@@ -371,7 +293,7 @@ const DynamicEnhancer = () => {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!shouldMountShadow) return;
     let alive = true;
-    Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-73dd24"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx")).then(m => {
+    Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../dynamic-app/dynamic-app-shadow.jsx */ "./src/dynamic-app/dynamic-app-shadow.jsx")).then(m => {
       if (alive) setShadowInbound(() => m.default);
     }).catch(err => console.warn('[DynamicEnhancer] shadow import failed:', err));
     return () => {

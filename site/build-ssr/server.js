@@ -17422,7 +17422,7 @@ const Frontpage = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"]
 const DynamicThemeRoute = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"])({
   resolved: {},
   chunkName() {
-    return "dynamic-app-ssr-app-dynamic-theme-route-jsx";
+    return "dynamic-app-ssr-app-dynamic-theme-route-tsx";
   },
   isReady(props) {
     const key = this.resolve(props);
@@ -17435,7 +17435,7 @@ const DynamicThemeRoute = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["d
     // removed by dead control flow
 {}
   },
-  importAsync: () => __webpack_require__.e(/*! import() | dynamic-app-ssr-app-dynamic-theme-route-jsx */ "dynamic-app-ssr-app-dynamic-theme-route-jsx").then(__webpack_require__.bind(__webpack_require__, /*! ./dynamic-app/ssr-app/dynamic-theme.route.jsx */ "./src/dynamic-app/ssr-app/dynamic-theme.route.jsx")),
+  importAsync: () => __webpack_require__.e(/*! import() | dynamic-app-ssr-app-dynamic-theme-route-tsx */ "dynamic-app-ssr-app-dynamic-theme-route-tsx").then(__webpack_require__.bind(__webpack_require__, /*! ./dynamic-app/ssr-app/dynamic-theme.route.tsx */ "./src/dynamic-app/ssr-app/dynamic-theme.route.tsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -17454,7 +17454,7 @@ const DynamicThemeRoute = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["d
   },
   resolve() {
     if (true) {
-      return /*require.resolve*/(/*! ./dynamic-app/ssr-app/dynamic-theme.route.jsx */ "./src/dynamic-app/ssr-app/dynamic-theme.route.jsx");
+      return /*require.resolve*/(/*! ./dynamic-app/ssr-app/dynamic-theme.route.tsx */ "./src/dynamic-app/ssr-app/dynamic-theme.route.tsx");
     }
     // removed by dead control flow
 {}
@@ -17506,6 +17506,86 @@ function ScopedShell({
 
 /***/ }),
 
+/***/ "./src/dynamic-app/lib/fetchSVGIcons.js":
+/*!**********************************************!*\
+  !*** ./src/dynamic-app/lib/fetchSVGIcons.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ fetchSVGIcons)
+/* harmony export */ });
+/* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
+/* Fetch SVG icons */
+
+async function fetchSVGIcons() {
+  const query = `*[_type == "svgIcon"]{
+    title,
+    icon,                         // inline SVG string (portable text / string)
+    "url": file.asset->url        // optional file URL if present in schema
+  }`;
+  const icons = await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].fetch(query);
+  return icons;
+}
+
+/***/ }),
+
+/***/ "./src/dynamic-app/lib/fetchUser.js":
+/*!******************************************!*\
+  !*** ./src/dynamic-app/lib/fetchUser.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   fetchImages: () => (/* binding */ fetchImages)
+/* harmony export */ });
+/* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
+// lib/fetchUser.ts
+
+const fetchImages = async (sortOption = 'default') => {
+  let orderClause = '';
+  switch (sortOption) {
+    case 'titleAsc':
+      orderClause = '| order(title asc)';
+      break;
+    case 'titleDesc':
+      orderClause = '| order(title desc)';
+      break;
+    case 'dateAsc':
+      orderClause = '| order(_createdAt asc)';
+      break;
+    case 'dateDesc':
+      orderClause = '| order(_createdAt desc)';
+      break;
+  }
+  const query = `*[_type == "imageAsset"] ${orderClause} {
+    _id,
+    title,
+    description,
+    // dereference to get real URLs on the server
+    image1{ ..., asset->{ url } },
+    image2{ ..., asset->{ url } },
+    caption1,
+    alt1,
+    alt2,
+    iconName,
+    url1
+  }`;
+  try {
+    const data = await _utils_sanity__WEBPACK_IMPORTED_MODULE_0__["default"].fetch(query);
+    return data;
+  } catch (error) {
+    console.error('Error fetching images', error);
+    return [];
+  }
+};
+
+/***/ }),
+
 /***/ "./src/server/assets.ts":
 /*!******************************!*\
   !*** ./src/server/assets.ts ***!
@@ -17515,6 +17595,7 @@ function ScopedShell({
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   buildDynamicImagePreloads: () => (/* binding */ buildDynamicImagePreloads),
 /* harmony export */   buildPreloadLinks: () => (/* binding */ buildPreloadLinks),
 /* harmony export */   loadManifestIfAny: () => (/* binding */ loadManifestIfAny),
 /* harmony export */   readFontCss: () => (/* binding */ readFontCss),
@@ -17567,6 +17648,30 @@ function buildPreloadLinks(firstData) {
     if (m?.video?.posterUrl) links.push(`<link rel="preload" as="image" href="${m.video.posterUrl}">`);
     if (m?.video?.mp4Url) links.push(`<link rel="preload" as="video" href="${m.video.mp4Url}">`);
     if (m?.video?.webmUrl) links.push(`<link rel="preload" as="video" href="${m.video.webmUrl}">`);
+  }
+  return links;
+}
+function buildDynamicImagePreloads(images, limit = 6) {
+  if (!Array.isArray(images) || !images.length) return [];
+  const links = [];
+  const seen = new Set();
+  let count = 0;
+  const toUrl = img => img?.asset?.url || img?.url || (typeof img === 'string' ? img : null);
+  const toLq = url => {
+    // if it's a sanity CDN URL, ask for a smaller version; else leave as is
+    return /cdn\.sanity\.io/.test(url) ? `${url}${url.includes('?') ? '&' : '?'}auto=format&w=640&q=60` : url;
+  };
+  for (const it of images) {
+    const u1 = toUrl(it?.image1);
+    const u2 = toUrl(it?.image2);
+    for (const raw of [u1, u2]) {
+      if (!raw || seen.has(raw)) continue;
+      seen.add(raw);
+      const href = toLq(raw);
+      links.push(`<link rel="preload" as="image" href="${href}" imagesrcset="${href}">`);
+      if (++count >= limit) break;
+    }
+    if (count >= limit) break;
   }
   return links;
 }
@@ -17786,12 +17891,6 @@ function buildRouteHead(routePath) {
       <meta name="description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
       <meta name="keywords" content="Innovation, Art, Technology, Science, Culture, Exhibition, Installation, Display, Projects">
       <meta name="theme-color" content="#1e1e1f">
-      <meta property="og:title" content="DMI MassArt - Fresh Media 2025">
-      <meta property="og:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
-      <meta property="og:type" content="website">
-      <meta name="twitter:card" content="summary_large_image">
-      <meta name="twitter:title" content="DMI MassArt - Fresh Media 2024">
-      <meta name="twitter:description" content="Fresh Media is a Dynamic Media Institute at MassArt tradition! Students exhibit their projects. This is the 2024 curation.">
     `;
   }
   return '';
@@ -17807,7 +17906,8 @@ function buildHtmlOpen(opts) {
     extractorLinkTags,
     extractorStyleTags,
     emotionStyleTags,
-    extraCriticalCss = ''
+    extraCriticalCss = '',
+    injectBeforeRoot = ''
   } = opts;
   const ROOT = process.cwd();
   const cssTheme = readTextSafe(node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/font+theme.css'));
@@ -17833,8 +17933,16 @@ function buildHtmlOpen(opts) {
   let dynamicThemeInlineCss = '';
   if (isDynamicTheme) {
     const uiCardsCss = readFirst([node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/dynamic-app/styles/UIcards.css'), node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/dynamic-app/UIcards.css')]);
+    const sortByCss = readFirst([node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/dynamic-app/styles/sortByStyles.css'), node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/dynamic-app/sortByStyles.css')]);
+    const indexCss = readFirst([node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/dynamic-app/styles/index.css'), node_path__WEBPACK_IMPORTED_MODULE_1___default().resolve(ROOT, 'src/styles/dynamic-app/index.css')]);
     if (uiCardsCss) {
-      dynamicThemeInlineCss = `<style id="critical-dynamic-ui-cards">${uiCardsCss}</style>`;
+      dynamicThemeInlineCss += `<style id="critical-dynamic-ui-cards">${uiCardsCss}</style>`;
+    }
+    if (sortByCss) {
+      dynamicThemeInlineCss += `<style id="critical-dynamic-sortby">${sortByCss}</style>`;
+    }
+    if (indexCss) {
+      dynamicThemeInlineCss += `<style id="critical-dynamic-index">${indexCss}</style>`;
     }
   }
 
@@ -17872,11 +17980,13 @@ ${dynamicThemeInlineCss}
 ${routeHead}
 </head>
 <body>
+${injectBeforeRoot}
 <div id="root">`;
 }
-function buildHtmlClose(ssrPayload, scriptTags) {
+function buildHtmlClose(ssrPayload, scriptTags, extraScripts = '') {
   const ssrJson = `<script>window.__SSR_DATA__=${JSON.stringify(ssrPayload).replace(/</g, '\\u003c')}</script>`;
   return `</div>${ssrJson}
+${extraScripts}
 ${scriptTags}
 </body></html>`;
 }
@@ -17910,15 +18020,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _emotion__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./emotion */ "./src/server/emotion.ts");
 /* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! http-proxy-middleware */ "http-proxy-middleware");
 /* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__);
-/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
-/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
-/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
-/* harmony import */ var _cssPipeline__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./cssPipeline */ "./src/server/cssPipeline.ts");
-/* harmony import */ var _highScoreRoute__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./highScoreRoute */ "./src/server/highScoreRoute.ts");
-/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
-/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _highScoreRoute__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./highScoreRoute */ "./src/server/highScoreRoute.ts");
+/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
+/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
+/* harmony import */ var _ssr_route_registry__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../ssr/route-registry */ "./src/ssr/route-registry.ts");
+/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
+/* harmony import */ var _cssPipeline__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./cssPipeline */ "./src/server/cssPipeline.ts");
+/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
+/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/server/index.jsx
 
 
 
@@ -17934,6 +18046,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+ // homepage registry
+ // dynamic-route registry
 
 
 
@@ -17950,10 +18064,10 @@ const {
   BUILD_DIR,
   STATS_FILE,
   ASSET_MANIFEST
-} = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.resolveStatsFile)();
+} = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.resolveStatsFile)();
 
 /** API routes */
-app.use('/api', _highScoreRoute__WEBPACK_IMPORTED_MODULE_17__["default"]);
+app.use('/api', _highScoreRoute__WEBPACK_IMPORTED_MODULE_12__["default"]);
 
 /** Static assets */
 app.use(express__WEBPACK_IMPORTED_MODULE_4___default()["static"](path__WEBPACK_IMPORTED_MODULE_1___default().join(process.cwd(), 'public'), {
@@ -17995,12 +18109,41 @@ app.get('/*', async (req, res) => {
     preloaded: {},
     preloadLinks: []
   };
+
+  // Dynamic route bootstrap state
+  let dynamicPreload = null;
+  let dynamicPreloadLinks = [];
+  let dynamicSnapshotHtml = '';
+  let dynamicSeed = null;
   if (!isDynamicTheme) {
     const {
       seed
-    } = (0,_seed__WEBPACK_IMPORTED_MODULE_18__.getEphemeralSeed)();
-    ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_13__.prepareSsrData)(seed);
+    } = (0,_seed__WEBPACK_IMPORTED_MODULE_19__.getEphemeralSeed)();
+    ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_14__.prepareSsrData)(seed);
+  } else {
+    const desc = _ssr_route_registry__WEBPACK_IMPORTED_MODULE_16__.routeRegistry['dynamic-theme'];
+    if (!desc || typeof desc.render !== 'function' || typeof desc.fetch !== 'function') {
+      res.status(500).send('<pre>dynamic-theme descriptor missing or invalid.</pre>');
+      return;
+    }
+
+    // Resolve seed (query wins over ephemeral)
+    const rawSeed = Number((req.query || {}).seed);
+    dynamicSeed = Number.isFinite(rawSeed) ? rawSeed : (0,_seed__WEBPACK_IMPORTED_MODULE_19__.getEphemeralSeed)().seed;
+
+    // Call the proper fetch variant (seeded or unseeded) based on function arity
+    const fetchPromise = desc.fetch.length === 0 ? desc.fetch() : desc.fetch(dynamicSeed);
+    dynamicPreload = await fetchPromise;
+
+    // Image preloads for head
+    dynamicPreloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.buildDynamicImagePreloads)(dynamicPreload?.images || [], 8);
+
+    // Render descriptor section (includes SortBy stub + snapshot container)
+    const sectionNode = desc.render(dynamicPreload);
+    dynamicSnapshotHtml = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_6__.renderToString)(sectionNode);
   }
+
+  // Chunk extractor / emotion
   const extractor = new _loadable_server__WEBPACK_IMPORTED_MODULE_8__.ChunkExtractor({
     statsFile: STATS_FILE,
     publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/'
@@ -18010,27 +18153,27 @@ app.get('/*', async (req, res) => {
     extractCriticalToChunks,
     constructStyleTagsFromChunks
   } = (0,_emotion__WEBPACK_IMPORTED_MODULE_10__.createEmotion)();
-  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_9__.CacheProvider, {
+  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_9__.CacheProvider, {
     value: cache,
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_12__.SsrDataProvider, {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_13__.SsrDataProvider, {
       value: ssrPayload,
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_5__.StaticRouter, {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_5__.StaticRouter, {
         location: req.url,
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_20__.jsx)(_App__WEBPACK_IMPORTED_MODULE_7__["default"], {})
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(_App__WEBPACK_IMPORTED_MODULE_7__["default"], {})
       })
     })
   }));
   const prerender = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_6__.renderToString)(jsx);
   const emotionChunks = extractCriticalToChunks(prerender);
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks);
-  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
+  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
 
   // Icons (html builder chooses which to emit)
   const iconSvg = '/freshmedia-icon.svg';
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
 
-  // Fonts: build once, then keep only Rubik + Orbitron on /dynamic-theme
-  const allFonts = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.readFontCss)();
+  // Fonts: keep only Rubik + Orbitron on /dynamic-theme
+  const allFonts = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.readFontCss)();
   const fontsCss = isDynamicTheme ? {
     rubikCss: allFonts.rubikCss,
     orbitronCss: allFonts.orbitronCss,
@@ -18038,37 +18181,45 @@ app.get('/*', async (req, res) => {
     epilogueCss: ''
   } : allFonts;
 
-  // Preloads: only for NON-dynamic routes
-  let preloadLinks = [];
-  if (!isDynamicTheme) {
+  // Preloads
+  const preloadLinks = isDynamicTheme ? dynamicPreloadLinks : (() => {
     const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
     const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
-    preloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_19__.buildPreloadLinks)(firstData);
-  }
+    return (0,_assets__WEBPACK_IMPORTED_MODULE_20__.buildPreloadLinks)(firstData);
+  })();
 
-  // Project critical CSS: only for NON-dynamic routes
+  // Critical CSS
   let extraCriticalCss = '';
   if (!isDynamicTheme) {
     const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
     if (firstKey) {
-      const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_14__.ssrRegistry[firstKey];
-      const files = desc?.criticalCssFiles || [];
+      const d = _ssr_registry__WEBPACK_IMPORTED_MODULE_15__.ssrRegistry[firstKey];
+      const files = d && d.criticalCssFiles || [];
       if (files.length > 0) {
         try {
-          extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_16__.buildCriticalCss)(files);
-        } catch (err) {
-          console.error('[SSR] buildCriticalCss failed:', err);
+          extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_18__.buildCriticalCss)(files);
+        } catch {
           extraCriticalCss = '';
         }
       }
     }
+  } else {
+    const d = _ssr_route_registry__WEBPACK_IMPORTED_MODULE_16__.routeRegistry['dynamic-theme'];
+    const files = d && d.criticalCssFiles || [];
+    if (files.length > 0) {
+      try {
+        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_18__.buildCriticalCss)(files);
+      } catch {
+        extraCriticalCss = '';
+      }
+    }
   }
 
-  // Filter CRA/Loadable CSS on /dynamic-theme
+  // Filter CRA/Loadable CSS on /dynamic-theme (keep JS, drop CSS tags)
   const rawLinkTags = extractor.getLinkTags();
   const extractorLinkTags = isDynamicTheme ? rawLinkTags.replace(/<link[^>]+rel=["']stylesheet["'][^>]*>/g, '') : rawLinkTags;
   const extractorStyleTags = isDynamicTheme ? '' : extractor.getStyleTags();
-  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlOpen)({
+  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_17__.buildHtmlOpen)({
     IS_DEV,
     routePath: req.path,
     iconSvg,
@@ -18078,9 +18229,16 @@ app.get('/*', async (req, res) => {
     extractorLinkTags,
     extractorStyleTags,
     emotionStyleTags,
-    extraCriticalCss
+    extraCriticalCss,
+    injectBeforeRoot: isDynamicTheme ? dynamicSnapshotHtml : ''
   });
-  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_15__.buildHtmlClose)(ssrPayload, extractor.getScriptTags());
+
+  // One dynamic bootstrap (seed included)
+  const dynamicBootstrap = isDynamicTheme ? `<script>window.__DYNAMIC_PRELOAD__=${JSON.stringify({
+    ...(dynamicPreload || {}),
+    seed: dynamicSeed
+  }).replace(/</g, '\\u003c')}</script>` : '';
+  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_17__.buildHtmlClose)(ssrPayload, extractor.getScriptTags(), dynamicBootstrap);
   let didError = false;
   const ABORT_MS = IS_DEV ? 30000 : 10000;
   const stream = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_6__.renderToPipeableStream)(jsx, {
@@ -18120,6 +18278,52 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, HOST, () => {
   console.log(`SSR server running at http://${HOST}:${PORT} (${IS_DEV ? 'development' : 'production'})`);
 });
+
+/***/ }),
+
+/***/ "./src/server/prepareDynamicRoute.ts":
+/*!*******************************************!*\
+  !*** ./src/server/prepareDynamicRoute.ts ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   prepareDynamicRoute: () => (/* binding */ prepareDynamicRoute)
+/* harmony export */ });
+/* harmony import */ var _dynamic_app_lib_fetchUser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../dynamic-app/lib/fetchUser */ "./src/dynamic-app/lib/fetchUser.js");
+/* harmony import */ var _dynamic_app_lib_fetchSVGIcons__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../dynamic-app/lib/fetchSVGIcons */ "./src/dynamic-app/lib/fetchSVGIcons.js");
+/* harmony import */ var _utils_seed_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/seed/index */ "./src/utils/seed/index.ts");
+
+
+
+function toIconMap(list) {
+  return (list || []).reduce((acc, it) => {
+    if (!it?.title) return acc;
+    const val = it.icon ?? it.url;
+    if (typeof val === 'string' && val) acc[it.title] = val;
+    return acc;
+  }, {});
+}
+
+/**
+ * Seed is ONLY used on the server to set first-paint order.
+ * We also return it for debugging/telemetry, but the client shouldn't reshuffle with it.
+ */
+async function prepareDynamicRoute(seed) {
+  const [iconsRaw, imagesRaw] = await Promise.all([(0,_dynamic_app_lib_fetchSVGIcons__WEBPACK_IMPORTED_MODULE_1__["default"])().catch(() => []), (0,_dynamic_app_lib_fetchUser__WEBPACK_IMPORTED_MODULE_0__.fetchImages)().catch(() => [])]);
+  const icons = toIconMap(Array.isArray(iconsRaw) ? iconsRaw : []);
+  const images = Array.isArray(imagesRaw) ? imagesRaw : [];
+  const ordered = Number.isFinite(seed) ? (0,_utils_seed_index__WEBPACK_IMPORTED_MODULE_2__.seededShuffle)(images, seed) : images;
+
+  // ok to include seed for logs — client strips/ignores it
+  return {
+    icons,
+    images: ordered,
+    seed
+  };
+}
 
 /***/ }),
 
@@ -18216,6 +18420,256 @@ function getEphemeralSeed() {
     seedStr
   };
 }
+
+/***/ }),
+
+/***/ "./src/ssr/dynamic-app/UIcards.ssr.ts":
+/*!********************************************!*\
+  !*** ./src/ssr/dynamic-app/UIcards.ssr.ts ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   renderUIcardsHTML: () => (/* binding */ renderUIcardsHTML)
+/* harmony export */ });
+/** Build a Sanity-style URL pair for low and high quality */
+function urlPair(img) {
+  const raw = img?.asset?.url || img?.url || (typeof img === 'string' ? img : null);
+  if (!raw) return {
+    lq: null,
+    hq: null
+  };
+  const sep = raw.includes('?') ? '&' : '?';
+  return {
+    lq: `${raw}${sep}auto=format&w=320&q=40`,
+    hq: `${raw}${sep}auto=format&w=1280&q=80`
+  };
+}
+
+/** Normalization helpers (trim, collapse spaces, strip accents, lowercase) */
+function normalizeKey(s) {
+  return s.trim().replace(/\s+/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('en');
+}
+
+/** Build a loose lookup map once per render */
+function buildLooseIconMap(icons) {
+  const loose = new Map();
+  for (const [k, v] of Object.entries(icons || {})) {
+    loose.set(normalizeKey(k), v);
+  }
+  return loose;
+}
+
+/** Is the string an inline SVG snippet? */
+function isInlineSvg(s) {
+  return typeof s === 'string' && /^\s*<svg[\s\S]*<\/svg>\s*$/i.test(s);
+}
+
+/** Safe attribute escape for URLs */
+function escapeAttr(s) {
+  return String(s).replace(/"/g, '&quot;');
+}
+
+/** Turn an icon value into HTML (inline <svg> or <img>) */
+function iconToHtml(val) {
+  if (!val) return '';
+  if (isInlineSvg(val)) {
+    return `<div class="svg-icon">${val}</div>`;
+  }
+  return `<img class="svg-icon" src="${escapeAttr(val)}" alt="" aria-hidden="true">`;
+}
+
+/** Resolve an icon by (iconName | title) using exact → trimmed → normalized */
+function resolveIconValue(icons, loose, iconName, title) {
+  const tryKeys = [iconName, title].filter(Boolean);
+  for (const key of tryKeys) {
+    if (Object.prototype.hasOwnProperty.call(icons, key)) return icons[key];
+    const t = key.trim();
+    if (Object.prototype.hasOwnProperty.call(icons, t)) return icons[t];
+    const n = normalizeKey(key);
+    const hit = loose.get(n);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
+/**
+ * Render the server HTML snapshot of the cards.
+ * Pass the `icons` map returned by `prepareDynamicRoute()` to SSR-inject the SVG.
+ * If no per-item icon is found, defaults to `icons['arrow1']`.
+ */
+function renderUIcardsHTML(images, icons = {}, limit = 12) {
+  const items = (Array.isArray(images) ? images : []).slice(0, limit);
+  const looseIcons = buildLooseIconMap(icons);
+  const Arrow = icons['arrow1'];
+  const cards = items.map((it, i) => {
+    const {
+      lq: u1Lq,
+      hq: u1Hq
+    } = urlPair(it.image1);
+    const {
+      lq: u2Lq,
+      hq: u2Hq
+    } = urlPair(it.image2);
+    const alt1 = it?.alt1 ?? it?.title ?? '';
+    const alt2 = it?.alt2 ?? it?.title ?? '';
+    const url1 = it?.url1 ?? '#';
+
+    // Prefer per-item icon (iconName → title). If none → global arrow
+    const iconVal = resolveIconValue(icons, looseIcons, it?.iconName, it?.title) ?? Arrow;
+    const iconHtml = iconToHtml(iconVal);
+
+    // first card eager, rest lazy
+    const eagerAttrs = i === 0 ? `loading="eager" fetchpriority="high" decoding="async"` : `loading="lazy" decoding="async"`;
+    return `
+        <div class="card-container custom-card-${i}">
+          <div class="image-container custom-card-${i}">
+            <a href="${url1}" class="ui-link custom-card-${i}">
+              ${u2Lq ? `<img 
+                      src="${u2Lq}" 
+                      data-src-full="${u2Hq}" 
+                      alt="${escapeHtml(alt1)}" 
+                      class="ui-image1 custom-card-${i}" 
+                      ${eagerAttrs}
+                    >` : ''}
+            </a>
+          </div>
+          <div class="image-container2 custom-card-${i}-2">
+            <a href="${url1}" class="ui-link-3 custom-card-${i}">
+              ${u1Lq ? `<img 
+                      src="${u1Lq}" 
+                      data-src-full="${u1Hq}" 
+                      alt="${escapeHtml(alt2)}" 
+                      class="ui-image2 custom-card-${i}-2" 
+                      loading="lazy" 
+                      decoding="async"
+                    >` : ''}
+            </a>
+            <h-name class="image-title custom-card-${i}">
+              <a href="${url1}" class="ui-link-2 custom-card-${i}">
+                <span class="title-text">${escapeHtml(it?.title ?? '')}</span>
+                ${iconHtml}
+              </a>
+            </h-name>
+          </div>
+        </div>
+      `;
+  }).join('');
+  return `
+    <div id="dynamic-snapshot" data-ssr-snapshot="1">
+      <div class="homePage-container">
+        <div class="UI-card-divider">
+          ${cards}
+        </div>
+      </div>
+    </div>
+  `;
+}
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/***/ }),
+
+/***/ "./src/ssr/dynamic-app/dynamic-theme.ssr.tsx":
+/*!***************************************************!*\
+  !*** ./src/ssr/dynamic-app/dynamic-theme.ssr.tsx ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   dynamicThemeSSR: () => (/* binding */ dynamicThemeSSR)
+/* harmony export */ });
+/* harmony import */ var _server_prepareDynamicRoute__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../server/prepareDynamicRoute */ "./src/server/prepareDynamicRoute.ts");
+/* harmony import */ var _UIcards_ssr__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./UIcards.ssr */ "./src/ssr/dynamic-app/UIcards.ssr.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+
+
+const dynamicThemeSSR = {
+  fetch: async seed => (0,_server_prepareDynamicRoute__WEBPACK_IMPORTED_MODULE_0__.prepareDynamicRoute)(seed),
+  render: data => {
+    const {
+      images = [],
+      icons = {}
+    } = data || {};
+    const arrow = icons['arrow2'] || ''; // inline SVG expected
+
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
+      id: "dynamic-theme-ssr",
+      className: "dynamic-theme-block ssr-initial",
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "navigation-wrapper",
+        id: "dynamic-nav-mount"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "firework-wrapper",
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+          className: "firework-divider",
+          id: "dynamic-fireworks-mount"
+        })
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "section-divider"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "title-divider",
+        id: "dynamic-title-mount"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "pause-button-wrapper",
+        id: "dynamic-pause-mount"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "sort-by-divider",
+        id: "dynamic-sortby-mount",
+        "data-ssr-stub": "true",
+        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
+          className: "students-heading",
+          children: "Students"
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "sort-by-container",
+          children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+            className: "sort-container",
+            children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+              children: "Sort by:"
+            })
+          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+            className: "sort-container2",
+            children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+              className: "custom-dropdown",
+              children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+                className: "custom-select",
+                children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                  className: "selected-value",
+                  children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h5", {
+                    children: "Randomized"
+                  })
+                }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+                  className: "custom-arrow",
+                  children: arrow ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                    className: "svg-icon",
+                    dangerouslySetInnerHTML: {
+                      __html: arrow
+                    }
+                  }) : null
+                })]
+              })
+            })
+          })]
+        })]
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "section-divider2"
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        dangerouslySetInnerHTML: {
+          __html: (0,_UIcards_ssr__WEBPACK_IMPORTED_MODULE_1__.renderUIcardsHTML)(images, icons, 12)
+        }
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "footer-wrapper",
+        id: "dynamic-footer-mount"
+      })]
+    });
+  }
+};
 
 /***/ }),
 
@@ -18684,6 +19138,27 @@ const ssrRegistry = {
 
 /***/ }),
 
+/***/ "./src/ssr/route-registry.ts":
+/*!***********************************!*\
+  !*** ./src/ssr/route-registry.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   routeRegistry: () => (/* binding */ routeRegistry)
+/* harmony export */ });
+/* harmony import */ var _dynamic_app_dynamic_theme_ssr__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dynamic-app/dynamic-theme.ssr */ "./src/ssr/dynamic-app/dynamic-theme.ssr.tsx");
+// src/ssr/route-registry.ts
+
+
+const routeRegistry = {
+  'dynamic-theme': _dynamic_app_dynamic_theme_ssr__WEBPACK_IMPORTED_MODULE_0__.dynamicThemeSSR
+};
+
+/***/ }),
+
 /***/ "./src/utils/content-utility/component-loader.tsx":
 /*!********************************************************!*\
   !*** ./src/utils/content-utility/component-loader.tsx ***!
@@ -18720,7 +19195,7 @@ const componentMap = {
 // ----- Split loaders for dynamic (frame & shadow)
 const dynamicLoaders = {
   frame: () => __webpack_require__.e(/*! import() | dynamic-frame */ "dynamic-frame").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/frame */ "./src/components/dynamic-app/frame.tsx")),
-  shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-73dd24"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
+  shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
 };
 const gameLoaders = {
   components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),

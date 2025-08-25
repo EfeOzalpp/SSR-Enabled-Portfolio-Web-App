@@ -734,7 +734,7 @@ function ProjectPane({
           eager: isFirst,
           allowIdle: true
         }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
-          load: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_IntroOverlay_jsx-src_dynamic-app_components_fireworksDisplay_jsx-s-73dd24"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
+          load: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
           mountMode: "idle",
           preloadOnIdle: true,
           preloadIdleTimeout: 2000,

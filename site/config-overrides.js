@@ -36,7 +36,7 @@ module.exports = function override(config, env) {
       test: /\.css$/i,
       resourceQuery: /raw/,
       use: 'raw-loader',
-      include: path.resolve(__dirname, 'src/styles'),
+      include: path.resolve(__dirname, 'src'),
     });
 
     // 2) add postcss prefixer after css-loader (except font css)
@@ -72,6 +72,7 @@ module.exports = function override(config, env) {
                             selector.startsWith('body') ||
                             selector.startsWith(':root') ||
                             selector.includes('#dynamic-theme') ||
+                            selector.includes('#dynamic-theme-ssr') ||
                             selector.includes('#shadow-dynamic-app') ||
                             selector.includes('::slotted')
                           ) {

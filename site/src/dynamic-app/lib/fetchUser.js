@@ -14,17 +14,19 @@ export const fetchImages = async (sortOption = 'default') => {
     _id,
     title,
     description,
-    image1,         // keep full Sanity image object
-    image2,         // same
+    // dereference to get real URLs on the server
+    image1{ ..., asset->{ url } },
+    image2{ ..., asset->{ url } },
     caption1,
     alt1,
     alt2,
-    iconName
+    iconName,
+    url1
   }`;
 
   try {
     const data = await sanityClient.fetch(query);
-    return data; // pass raw; AppMedia will render responsively
+    return data;
   } catch (error) {
     console.error('Error fetching images', error);
     return [];

@@ -5,7 +5,7 @@ import loadable from '@loadable/component';
 import ScopedShell from './ScopedShell'; // use PascalCase for components
 
 const Frontpage = loadable(() => import('./FrontPage.jsx'));
-const DynamicThemeRoute = loadable(() => import('./dynamic-app/ssr-app/dynamic-theme.route.jsx'));
+const DynamicThemeRoute = loadable(() => import('./dynamic-app/ssr-app/dynamic-theme.route.tsx'));
 
 export default function App() {
   return (
