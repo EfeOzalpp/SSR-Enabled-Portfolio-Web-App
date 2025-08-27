@@ -483,6 +483,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_rock_escapade_block_g_game_over__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../components/rock-escapade/block-g-game-over */ "./src/components/rock-escapade/block-g-game-over.tsx");
 /* harmony import */ var _components_rock_escapade_updateHighScore__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../components/rock-escapade/updateHighScore */ "./src/components/rock-escapade/updateHighScore.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/logic/game-over-controller.tsx
 
 
 
@@ -491,22 +492,43 @@ const GameOverController = ({
   score,
   highScore,
   onRestart,
-  onHide
+  onHide,
+  newHighScore
 }) => {
   const visible = score != null;
-  const isNewHigh = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (score ?? -Infinity) > highScore, [score, highScore]);
-  const submittedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+
+  // Live comparison used only as a seed when host doesn't pass a latched flag.
+  const baseNewHigh = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (score ?? -Infinity) > highScore, [score, highScore]);
+
+  // Latch for this overlay session when host doesn't provide one.
+  const [localLatch, setLocalLatch] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+
+  // Reset latch when overlay hides; seed latch on first show (host flag absent).
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!visible) {
+      setLocalLatch(null);
+      return;
+    }
+    if (localLatch === null && typeof newHighScore !== 'boolean') {
+      setLocalLatch(baseNewHigh);
+    }
+  }, [visible, newHighScore, baseNewHigh, localLatch]);
+
+  // Final value we display/post: host-provided > local latch > base.
+  const effectiveNewHigh = typeof newHighScore === 'boolean' ? newHighScore : localLatch ?? baseNewHigh;
+
+  // Prevent duplicate Sanity writes per visible session.
+  const submittedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!visible || score == null) {
       submittedRef.current = false;
       return;
     }
-    if (score == null) return;
-    if (isNewHigh && !submittedRef.current) {
+    if (effectiveNewHigh && !submittedRef.current) {
       submittedRef.current = true;
       (0,_components_rock_escapade_updateHighScore__WEBPACK_IMPORTED_MODULE_2__.updateHighScore)(score).catch(err => console.error('[HS] update failed:', err));
     }
-  }, [visible, score, isNewHigh]);
+  }, [visible, score, effectiveNewHigh]);
   if (!visible || score == null) return null;
   const handleRestart = () => {
     onRestart();
@@ -516,7 +538,7 @@ const GameOverController = ({
     onRestart: handleRestart,
     visibleTrigger: 1,
     coins: score,
-    newHighScore: isNewHigh
+    newHighScore: effectiveNewHigh
   });
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GameOverController);

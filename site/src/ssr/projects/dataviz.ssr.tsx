@@ -2,6 +2,7 @@
 import type { SsrDescriptor } from '../types';
 import { getProjectData } from '../../utils/get-project-data';
 import { getMediumImageUrl, getHighQualityImageUrl } from '../../utils/media-providers/image-builder';
+import PannableViewport from '../../utils/split+drag/pannable-object-position';
 
 export const datavizSSR: SsrDescriptor = {
   fetch: () => getProjectData('data-viz'),
@@ -34,25 +35,28 @@ export const datavizSSR: SsrDescriptor = {
           }}
         >
           {posterMedium && (
-            <video
-              id="dataviz-media-video"
-              className="tooltip-data-viz"
-              poster={posterMedium}
-              {...(posterHigh ? { 'data-src-full': posterHigh } : {})}
-              muted
-              playsInline
-              loop
-              preload="auto"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            >
-              {video.webmUrl && <source src={video.webmUrl} type="video/webm" />}
-              {video.mp4Url && <source src={video.mp4Url} type="video/mp4" />}
-            </video>
+            <PannableViewport sensitivity={2}>
+              <video
+                id="dataviz-media-video"
+                className="tooltip-data-viz"
+                poster={posterMedium}
+                {...(posterHigh ? { 'data-src-full': posterHigh } : {})}
+                muted
+                playsInline
+                loop
+                preload="auto"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: '50% 50%', // ensures SSR/client match
+                  display: 'block',
+                }}
+              >
+                {video.webmUrl && <source src={video.webmUrl} type="video/webm" />}
+                {video.mp4Url && <source src={video.mp4Url} type="video/mp4" />}
+              </video>
+            </PannableViewport>
           )}
         </div>
       </section>

@@ -3,19 +3,20 @@ import { baseProjects } from '../utils/content-utility/component-loader';
 import { seededShuffle } from '../utils/seed';
 import { ssrRegistry } from '../ssr/registry';
 
-export async function prepareSsrData(seed: number) {
+export async function prepareSsrData(seed: number, count = 3) {
   const order = seededShuffle(baseProjects, seed);
-  const first = order[0];
-
   const preloaded: Record<string, any> = {};
   let preloadLinks: string[] = [];
 
-  const desc = first ? ssrRegistry[first.key] : undefined;
-  if (desc?.fetch) {
-    const data = await desc.fetch(); // server fetch
-    preloaded[first.key] = { kind: first.key, data }; // tiny discriminator is handy
-    if (desc.buildPreloads) preloadLinks = desc.buildPreloads(data);
+  const top = order.slice(0, count); // take first N
+  for (const proj of top) {
+    const desc = ssrRegistry[proj.key];
+    if (!desc?.fetch) continue;
+
+    const data = await desc.fetch();
+    preloaded[proj.key] = { kind: proj.key, data };
+    // skip desc.buildPreloads() since you don’t want any <link rel="preload">
   }
 
-  return { seed, preloaded, preloadLinks };
+  return { seed, preloaded, preloadLinks }; // preloadLinks stays empty
 }

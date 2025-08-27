@@ -84,7 +84,7 @@ const TitleDivider = ({ svgIcon, movingTextColors, pauseAnimation }) => {
           className="moving-text"
           style={{
             color: colors[i],
-            transition: 'color 180ms linear',
+            transition: 'color 120ms linear',
           }}
         >
           {segment.text}
@@ -92,7 +92,7 @@ const TitleDivider = ({ svgIcon, movingTextColors, pauseAnimation }) => {
             <span
               className="svg-icon"
               // If your injected SVG respects currentColor, you could instead set color here.
-              style={{ fill: colors[i], transition: 'fill 180ms linear' }}
+              style={{ fill: colors[i], transition: 'fill 120ms linear' }}
               dangerouslySetInnerHTML={{ __html: svgIcon }}
             />
           </span>

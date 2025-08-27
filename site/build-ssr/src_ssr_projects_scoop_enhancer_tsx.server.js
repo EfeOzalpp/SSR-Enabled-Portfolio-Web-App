@@ -17,7 +17,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom */ "react-dom");
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utils_split_controller__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/split-controller */ "./src/utils/split-controller.tsx");
+/* harmony import */ var _utils_split_drag_split_controller__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/split+drag/split-controller */ "./src/utils/split+drag/split-controller.tsx");
 /* harmony import */ var _utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/tooltip/tooltipInit */ "./src/utils/tooltip/tooltipInit.ts");
 /* harmony import */ var _logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../logic/apply-split-style */ "./src/ssr/logic/apply-split-style.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
@@ -34,13 +34,8 @@ function ScoopEnhancer() {
   const [isPortrait, setIsPortrait] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(window.innerHeight > window.innerWidth);
   (0,_utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__.useTooltipInit)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    // Collect all cleanups here so we can add to it anywhere below
     const cleanup = [];
-
-    // Remove SSR preset so JS can control layout without specificity fights
     document.getElementById('scoop-ssr')?.classList.remove('ssr-initial-split');
-
-    // Upgrade images/videos from SSR medium-quality to high-quality (if provided)
     const img1El = document.querySelector('#scoop-ssr #icecream-media-1');
     const vid2El = document.querySelector('#scoop-ssr #icecream-media-2');
     const full1 = img1El?.dataset?.srcFull;
@@ -53,12 +48,9 @@ function ScoopEnhancer() {
 
     // Upgrade RIGHT media (video)
     if (vid2El) {
-      // If high-quality poster exists, upgrade it before load
       if (full2 && vid2El.poster !== full2) {
         vid2El.poster = full2;
       }
-
-      // Wait for the FIRST painted frame before removing poster (no black flash)
       const removePoster = () => {
         vid2El.removeAttribute('poster');
       };
@@ -77,8 +69,6 @@ function ScoopEnhancer() {
             once: true
           });
           cleanup.push(() => vid2El.removeEventListener('timeupdate', onTime));
-
-          // Safety backstop
           const timer = setTimeout(() => {
             vid2El.removeEventListener('timeupdate', onTime);
             removePoster();
@@ -90,8 +80,6 @@ function ScoopEnhancer() {
         once: true
       });
       cleanup.push(() => vid2El.removeEventListener('play', onPlay));
-
-      // Trigger fetch (eager or metadata is fine here)
       if (vid2El.readyState === 0) {
         vid2El.preload = 'auto';
         try {
@@ -100,21 +88,13 @@ function ScoopEnhancer() {
       } else {
         vid2El.preload = 'auto';
       }
-
-      // Try to play (muted/inline should allow autoplay)
       vid2El.play().catch(() => {/* ignored; poster remains until user interacts */});
     }
-
-    // Set mount host
     setHost(document.getElementById('scoop-enhancer-mount'));
-
-    // Initial apply
     (0,_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(split, isPortrait, {
       m1: 'scoop-media-1-container',
       m2: 'scoop-media-2-container'
     });
-
-    // Orientation listener
     const onResize = () => {
       const p = window.innerHeight > window.innerWidth;
       setIsPortrait(p);
@@ -127,16 +107,8 @@ function ScoopEnhancer() {
       passive: true
     });
     cleanup.push(() => window.removeEventListener('resize', onResize));
-    return () => {
-      for (const fn of cleanup) {
-        try {
-          fn();
-        } catch {}
-      }
-    };
-  }, []); // run once
-
-  // Keep DOM in sync when split OR orientation changes
+    return () => cleanup.forEach(fn => fn());
+  }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     (0,_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(split, isPortrait, {
       m1: 'scoop-media-1-container',
@@ -144,7 +116,7 @@ function ScoopEnhancer() {
     });
   }, [split, isPortrait]);
   if (!host) return null;
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_utils_split_controller__WEBPACK_IMPORTED_MODULE_2__["default"], {
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_utils_split_drag_split_controller__WEBPACK_IMPORTED_MODULE_2__["default"], {
     split: split,
     setSplit: setSplit,
     ids: {

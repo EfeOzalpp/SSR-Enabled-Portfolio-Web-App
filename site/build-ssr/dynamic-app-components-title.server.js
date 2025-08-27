@@ -100,7 +100,7 @@ const TitleDivider = ({
     className: "moving-text",
     style: {
       color: colors[i],
-      transition: 'color 180ms linear'
+      transition: 'color 120ms linear'
     },
     children: [segment.text, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
       className: "logo-container",
@@ -110,7 +110,7 @@ const TitleDivider = ({
         ,
         style: {
           fill: colors[i],
-          transition: 'fill 180ms linear'
+          transition: 'fill 120ms linear'
         },
         dangerouslySetInnerHTML: {
           __html: svgIcon

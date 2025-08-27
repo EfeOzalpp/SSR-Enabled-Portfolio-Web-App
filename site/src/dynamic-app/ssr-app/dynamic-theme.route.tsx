@@ -19,6 +19,13 @@ import {
 } from '../../dynamic-app/lib/svg-icon-map';
 import type { IconLike } from '../../dynamic-app/lib/svg-icon-map';
 
+// use the actual export you have
+import { computeStateFromPalette } from '../lib/palette-controller';
+
+// local types to satisfy TS based on your controller’s API
+type Quartet = [string, string, string, string];
+type Triplet = [string, string, string];
+
 // client-only chunks
 const Navigation = loadable(() => import('../../dynamic-app/components/navigation'), { ssr: false });
 const FireworksDisplay = loadable(() => import('../../dynamic-app/components/fireworksDisplay'), { ssr: false });
@@ -32,8 +39,8 @@ const DynamicTheme = loadable(() => import('../../DynamicTheme.jsx'), { ssr: tru
 /* ---------- portals ---------- */
 function NavigationPortal(props: {
   items: any[];
-  arrow1?: string; // customArrowIcon2
-  arrow2?: string; // customArrowIcon
+  arrow1?: string;
+  arrow2?: string;
   activeColor?: string;
 }) {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -55,6 +62,8 @@ function NavigationPortal(props: {
 
 function FireworksPortal(props: {
   items: any[];
+  activeColor: string;
+  lastKnownColor: string;
   onToggleFireworks?: (fn: (enabled: boolean) => void) => void;
 }) {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -64,8 +73,8 @@ function FireworksPortal(props: {
     <FireworksDisplay
       colorMapping={colorMapping}
       items={props.items}
-      activeColor="#FFFFFF"
-      lastKnownColor="#FFFFFF"
+      activeColor={props.activeColor}
+      lastKnownColor={props.lastKnownColor}
       onToggleFireworks={props.onToggleFireworks || (() => {})}
     />,
     target
@@ -74,7 +83,7 @@ function FireworksPortal(props: {
 
 function TitlePortal(props: {
   logoSvg?: string;
-  movingTextColors?: [string, string, string];
+  movingTextColors?: Triplet;
   pauseAnimation?: boolean;
 }) {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -103,8 +112,8 @@ function PausePortal(props: { onToggle: (isEnabled: boolean) => void }) {
 }
 
 function FooterPortal(props: {
-  arrow1?: string;         // customArrowIcon2
-  linkArrowIcon?: string;  // inline <svg> or <img>
+  arrow1?: string;
+  linkArrowIcon?: string;
 }) {
   const [target, setTarget] = useState<HTMLElement | null>(null);
   useEffect(() => { setTarget(document.getElementById('dynamic-footer-mount')); }, []);
@@ -123,25 +132,23 @@ export default function DynamicThemeRoute() {
   const ssr = useSsrData();
   const preload = ssr?.preloaded?.dynamicTheme;
 
-  // state
   const [items, setItems] = useState<any[]>(Array.isArray(preload?.images) ? preload!.images : []);
   const [icons, setIcons] = useState<Record<string, string>>(normalizeIconMap(preload?.icons || {}));
   const [pauseAnimation, setPauseAnimation] = useState(false);
-  const [activeColor, setActiveColor] = useState('#FFFFFF');
 
-  // wire PauseButton ↔ FireworksDisplay
+  const [activeColor, setActiveColor] = useState('#FFFFFF');
+  const [movingTextColors, setMovingTextColors] = useState<Triplet>(['#FFFFFF', '#FFFFFF', '#FFFFFF']);
+  const [lastKnownColor, setLastKnownColor] = useState('#FFFFFF');
+
   const fwToggleRef = useRef<((enabled: boolean) => void) | null>(null);
   const handleSetToggleFireworks = (fn: (enabled: boolean) => void) => { fwToggleRef.current = fn; };
   const handlePauseToggle = (isEnabled: boolean) => {
-    // isEnabled=true means animations ON → pauseAnimation false
     setPauseAnimation(!isEnabled);
     try { fwToggleRef.current?.(isEnabled); } catch {}
   };
 
-  // hydrate from SSR payload
   useEffect(() => { if (preload) primeFromSSR(preload); }, [preload]);
 
-  // prime from window bootstrap if present
   useEffect(() => {
     const w = typeof window !== 'undefined' ? (window as any) : null;
     const boot = w?.__DYNAMIC_THEME_PRELOAD__;
@@ -152,7 +159,6 @@ export default function DynamicThemeRoute() {
     }
   }, []);
 
-  // client-only ensure (no reseed)
   useEffect(() => {
     let dead = false;
     (async () => {
@@ -165,9 +171,8 @@ export default function DynamicThemeRoute() {
       } catch {}
     })();
     return () => { dead = true; };
-  }, []); // once
+  }, []);
 
-  // FINAL FALLBACK: fetch icons on client if still missing
   useEffect(() => {
     let dead = false;
     (async () => {
@@ -183,23 +188,31 @@ export default function DynamicThemeRoute() {
     return () => { dead = true; };
   }, [icons]);
 
-  // enhance SSR snapshot (HQ image upgrade + DOM-driven SortBy + color from order)
+  // compute palette-driven state from the enhancer (which gives a Quartet)
   useEffect(() => {
     if (typeof window !== 'undefined')
       enhanceDynamicThemeSSR({
-        onColorChange: (alt, colors) => {
-          if (Array.isArray(colors) && colors[2]) setActiveColor(colors[2]);
+        onColorChange: (_alt: string, palette?: string[] | null) => {
+          // only accept quartets
+          if (!Array.isArray(palette) || palette.length < 4) return;
+          const { activeColor: nextActive, movingText: nextTriplet, lastKnown } =
+            computeStateFromPalette(palette as Quartet);
+
+          if (nextActive !== activeColor) {
+            setActiveColor(nextActive);
+            setLastKnownColor(lastKnown ?? nextActive);
+          }
+          setMovingTextColors(nextTriplet as Triplet);
         },
       });
-  }, []);
+  }, [activeColor]);
 
-  // props for portals
   const propsMemo = useMemo(() => ({
     items,
-    arrow1: icons['arrow1'] || '',            // Navigation.customArrowIcon2 + Footer.customArrowIcon2
-    arrow2: icons['arrow2'] || '',            // Navigation.customArrowIcon
-    linkArrowIcon: icons['link-icon'] || '',  // Footer.linkArrowIcon
-    logoSmall: icons['logo-small-1'] || '',   // TitleDivider.svgIcon
+    arrow1: icons['arrow1'] || '',
+    arrow2: icons['arrow2'] || '',
+    linkArrowIcon: icons['link-icon'] || '',
+    logoSmall: icons['logo-small-1'] || '',
   }), [items, icons]);
 
   return (
@@ -215,12 +228,14 @@ export default function DynamicThemeRoute() {
 
       <FireworksPortal
         items={propsMemo.items}
+        activeColor={activeColor}
+        lastKnownColor={lastKnownColor}
         onToggleFireworks={handleSetToggleFireworks}
       />
 
       <TitlePortal
         logoSvg={propsMemo.logoSmall}
-        movingTextColors={['#FFFFFF', '#FFFFFF', '#FFFFFF']}
+        movingTextColors={movingTextColors}
         pauseAnimation={pauseAnimation}
       />
 

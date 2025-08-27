@@ -18191,16 +18191,14 @@ app.get('/*', async (req, res) => {
   // Critical CSS
   let extraCriticalCss = '';
   if (!isDynamicTheme) {
-    const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
-    if (firstKey) {
-      const d = _ssr_registry__WEBPACK_IMPORTED_MODULE_15__.ssrRegistry[firstKey];
-      const files = d && d.criticalCssFiles || [];
-      if (files.length > 0) {
-        try {
-          extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_18__.buildCriticalCss)(files);
-        } catch {
-          extraCriticalCss = '';
-        }
+    const keys = Object.keys(ssrPayload.preloaded || {}).slice(0, 3); // top 3
+    const allFiles = keys.flatMap(k => _ssr_registry__WEBPACK_IMPORTED_MODULE_15__.ssrRegistry[k]?.criticalCssFiles ?? []);
+    const uniqueFiles = Array.from(new Set(allFiles));
+    if (uniqueFiles.length > 0) {
+      try {
+        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_18__.buildCriticalCss)(uniqueFiles);
+      } catch {
+        extraCriticalCss = '';
       }
     }
   } else {
@@ -18345,25 +18343,26 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-async function prepareSsrData(seed) {
+async function prepareSsrData(seed, count = 3) {
   const order = (0,_utils_seed__WEBPACK_IMPORTED_MODULE_1__.seededShuffle)(_utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_0__.baseProjects, seed);
-  const first = order[0];
   const preloaded = {};
   let preloadLinks = [];
-  const desc = first ? _ssr_registry__WEBPACK_IMPORTED_MODULE_2__.ssrRegistry[first.key] : undefined;
-  if (desc?.fetch) {
-    const data = await desc.fetch(); // server fetch
-    preloaded[first.key] = {
-      kind: first.key,
+  const top = order.slice(0, count); // take first N
+  for (const proj of top) {
+    const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_2__.ssrRegistry[proj.key];
+    if (!desc?.fetch) continue;
+    const data = await desc.fetch();
+    preloaded[proj.key] = {
+      kind: proj.key,
       data
-    }; // tiny discriminator is handy
-    if (desc.buildPreloads) preloadLinks = desc.buildPreloads(data);
+    };
+    // skip desc.buildPreloads() since you don’t want any <link rel="preload">
   }
   return {
     seed,
     preloaded,
     preloadLinks
-  };
+  }; // preloadLinks stays empty
 }
 
 /***/ }),
@@ -18686,8 +18685,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
 /* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/split+drag/pannable-object-position */ "./src/utils/split+drag/pannable-object-position.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/ssr/dataviz.ssr.tsx
+
 
 
 
@@ -18699,7 +18700,7 @@ const datavizSSR = {
     const video = m1.video || {};
     const posterMedium = video.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(video.poster) : undefined;
     const posterHigh = video.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(video.poster, 1920, 1080, 90) : undefined;
-    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("section", {
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("section", {
       id: "dataviz-ssr",
       className: "block-type-1",
       style: {
@@ -18707,7 +18708,7 @@ const datavizSSR = {
         width: '100%',
         overflow: 'hidden'
       },
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
         id: "dataviz-media-container",
         className: "media-content",
         style: {
@@ -18715,30 +18716,35 @@ const datavizSSR = {
           width: '100%',
           height: '100%'
         },
-        children: posterMedium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("video", {
-          id: "dataviz-media-video",
-          className: "tooltip-data-viz",
-          poster: posterMedium,
-          ...(posterHigh ? {
-            'data-src-full': posterHigh
-          } : {}),
-          muted: true,
-          playsInline: true,
-          loop: true,
-          preload: "auto",
-          style: {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          },
-          children: [video.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
-            src: video.webmUrl,
-            type: "video/webm"
-          }), video.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
-            src: video.mp4Url,
-            type: "video/mp4"
-          })]
+        children: posterMedium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          sensitivity: 2,
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("video", {
+            id: "dataviz-media-video",
+            className: "tooltip-data-viz",
+            poster: posterMedium,
+            ...(posterHigh ? {
+              'data-src-full': posterHigh
+            } : {}),
+            muted: true,
+            playsInline: true,
+            loop: true,
+            preload: "auto",
+            style: {
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: '50% 50%',
+              // ensures SSR/client match
+              display: 'block'
+            },
+            children: [video.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("source", {
+              src: video.webmUrl,
+              type: "video/webm"
+            }), video.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("source", {
+              src: video.mp4Url,
+              type: "video/mp4"
+            })]
+          })
         })
       })
     });
@@ -18914,8 +18920,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
 /* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// rotary.ssr.tsx
+/* harmony import */ var _utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/split+drag/pannable-object-position */ "./src/utils/split+drag/pannable-object-position.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/projects/rotary.ssr.tsx
+
 
 
 
@@ -18931,7 +18939,7 @@ const rotarySSR = {
     const m1High = m1?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m1.image, 1920, 1080, 90) : m1?.imageUrl;
     const m2Medium = m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.image) : m2?.imageUrl;
     const m2High = m2?.image ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.image, 1920, 1080, 90) : m2?.imageUrl;
-    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
       id: "rotary-ssr",
       className: "block-type-1 ssr-initial-split",
       style: {
@@ -18939,57 +18947,61 @@ const rotarySSR = {
         width: '100%',
         overflow: 'hidden'
       },
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
         id: "rotary-media-1-container",
         className: "media-content-1",
         style: {
           position: 'absolute'
         },
-        children: m1Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
-          id: "rotary-media-1",
-          className: "media-item-1 tooltip-rotary-lamp",
-          src: m1Medium
-          // only set data attr if different / available
-          ,
-          ...(m1High ? {
-            'data-src-full': m1High
-          } : {}),
-          alt: m1?.alt ?? 'Rotary Lamp media',
-          draggable: false,
-          decoding: "async",
-          fetchPriority: "high",
-          style: {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          }
+        children: m1Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          sensitivity: 2,
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+            id: "rotary-media-1",
+            className: "media-item-1 tooltip-rotary-lamp",
+            src: m1Medium,
+            ...(m1High ? {
+              'data-src-full': m1High
+            } : {}),
+            alt: m1?.alt ?? 'Rotary Lamp media',
+            draggable: false,
+            decoding: "async",
+            fetchPriority: "high",
+            style: {
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            }
+          })
         })
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
         id: "rotary-enhancer-mount"
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
         id: "rotary-media-2-container",
         className: "media-content-2",
         style: {
           position: 'absolute'
         },
-        children: m2Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
-          id: "rotary-media-2",
-          className: "media-item-2 tooltip-rotary-lamp",
-          src: m2Medium,
-          ...(m2High ? {
-            'data-src-full': m2High
-          } : {}),
-          alt: m2?.alt ?? 'Rotary Lamp media',
-          draggable: false,
-          decoding: "async",
-          fetchPriority: "high",
-          style: {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          }
+        children: m2Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          sensitivity: 2,
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+            id: "rotary-media-2",
+            className: "media-item-2 tooltip-rotary-lamp",
+            src: m2Medium,
+            ...(m2High ? {
+              'data-src-full': m2High
+            } : {}),
+            alt: m2?.alt ?? 'Rotary Lamp media',
+            draggable: false,
+            decoding: "async",
+            fetchPriority: "high",
+            style: {
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            }
+          })
         })
       })]
     });
@@ -19012,8 +19024,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _utils_get_project_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utils/get-project-data */ "./src/utils/get-project-data.ts");
 /* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// scoop.ssr.tsx
+/* harmony import */ var _utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/split+drag/pannable-object-position */ "./src/utils/split+drag/pannable-object-position.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/ssr/projects/scoop.ssr.tsx
+
 
 
 
@@ -19031,7 +19045,7 @@ const scoopSSR = {
     // RIGHT / BOTTOM media (video always)
     const m2PosterMedium = m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getMediumImageUrl)(m2.video.poster) : undefined;
     const m2PosterHigh = m2?.video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_1__.getHighQualityImageUrl)(m2.video.poster, 1920, 1080, 90) : undefined;
-    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
       id: "scoop-ssr",
       className: "block-type-1 ssr-initial-split",
       style: {
@@ -19039,62 +19053,68 @@ const scoopSSR = {
         width: '100%',
         overflow: 'hidden'
       },
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
         id: "scoop-media-1-container",
         className: "media-content-1",
         style: {
           position: 'absolute'
         },
-        children: m1Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("img", {
-          id: "icecream-media-1",
-          className: "media-item-1 tooltip-ice-scoop",
-          src: m1Medium,
-          ...(m1High ? {
-            'data-src-full': m1High
-          } : {}),
-          alt: m1?.alt ?? 'Ice Cream Scoop media',
-          draggable: false,
-          decoding: "async",
-          fetchPriority: "high",
-          style: {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          }
+        children: m1Medium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          sensitivity: 2,
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+            id: "icecream-media-1",
+            className: "media-item-1 tooltip-ice-scoop",
+            src: m1Medium,
+            ...(m1High ? {
+              'data-src-full': m1High
+            } : {}),
+            alt: m1?.alt ?? 'Ice Cream Scoop media',
+            draggable: false,
+            decoding: "async",
+            fetchPriority: "high",
+            style: {
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            }
+          })
         })
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
         id: "scoop-enhancer-mount"
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
         id: "scoop-media-2-container",
         className: "media-content-2",
         style: {
           position: 'absolute'
         },
-        children: m2PosterMedium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("video", {
-          id: "icecream-media-2",
-          className: "media-item-2 tooltip-ice-scoop",
-          poster: m2PosterMedium,
-          ...(m2PosterHigh ? {
-            'data-src-full': m2PosterHigh
-          } : {}),
-          muted: true,
-          playsInline: true,
-          loop: true,
-          preload: "auto",
-          style: {
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          },
-          children: [m2?.video?.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
-            src: m2.video.webmUrl,
-            type: "video/webm"
-          }), m2?.video?.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("source", {
-            src: m2.video.mp4Url,
-            type: "video/mp4"
-          })]
+        children: m2PosterMedium && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          sensitivity: 2,
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("video", {
+            id: "icecream-media-2",
+            className: "media-item-2 tooltip-ice-scoop",
+            poster: m2PosterMedium,
+            ...(m2PosterHigh ? {
+              'data-src-full': m2PosterHigh
+            } : {}),
+            muted: true,
+            playsInline: true,
+            loop: true,
+            preload: "auto",
+            style: {
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            },
+            children: [m2?.video?.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("source", {
+              src: m2.video.webmUrl,
+              type: "video/webm"
+            }), m2?.video?.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("source", {
+              src: m2.video.mp4Url,
+              type: "video/mp4"
+            })]
+          })
         })
       })]
     });
@@ -19187,8 +19207,8 @@ __webpack_require__.r(__webpack_exports__);
 // ----- Async loaders for non-dynamic projects
 
 const componentMap = {
-  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
-  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
+  rotary: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")),
+  scoop: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")),
   dataviz: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_components_block-type-1_data-visualization_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/data-visualization */ "./src/components/block-type-1/data-visualization.tsx"))
 };
 
@@ -19213,11 +19233,11 @@ const toComponent = p => p;
 const baseProjects = [{
   key: 'scoop',
   title: 'Ice Cream Scoop',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_ice-cream-scoop_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/ice-cream-scoop */ "./src/components/block-type-1/ice-cream-scoop.tsx")))
 }, {
   key: 'rotary',
   title: 'Rotary Lamp',
-  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
+  lazyImport: () => toComponent(Promise.all(/*! import() */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_components_block-type-1_rotary-lamp_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/block-type-1/rotary-lamp */ "./src/components/block-type-1/rotary-lamp.tsx")))
 }, {
   key: 'dataviz',
   title: 'Data Visualization',
@@ -19246,7 +19266,7 @@ function useProjectLoader(key) {
     const data = payload.data ?? payload;
     if (key === 'rotary') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_rotary_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/rotary.enhancer */ "./src/ssr/projects/rotary.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
@@ -19256,7 +19276,7 @@ function useProjectLoader(key) {
     }
     if (key === 'scoop') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_scoop_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/scoop.enhancer */ "./src/ssr/projects/scoop.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"), __webpack_require__.e("src_ssr_projects_scoop_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/scoop.enhancer */ "./src/ssr/projects/scoop.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {})]
@@ -19382,7 +19402,7 @@ const queries = {
   }`,
   'rock-coin': `*[_type=="imageDemanded" && title=="coin"][0]{
     alt,
-    image{ asset->{ url } }
+    image{ asset->{ url } } 
   }`
   // add others as I go
 };
@@ -19508,6 +19528,215 @@ function seededShuffle(arr, seed) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+/***/ }),
+
+/***/ "./src/utils/split+drag/pannable-object-position.tsx":
+/*!***********************************************************!*\
+  !*** ./src/utils/split+drag/pannable-object-position.tsx ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ PannableViewport)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+
+/**
+ * Wrap a single <img> or <video>. Lets users drag to pan the media
+ * inside its container by adjusting CSS `object-position`.
+ *
+ * - Works with object-fit: cover (default).
+ * - Handles mouse/touch via Pointer Events (with safe fallbacks).
+ * - Only pans on axes where the covered media is larger than the box.
+ * - While dragging, sets data-gesture-lock="1" so outer scroll handoff ignores it.
+ */
+function PannableViewport({
+  className,
+  style,
+  children,
+  sensitivity = 1.75
+}) {
+  const hostRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const draggingRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const host = hostRef.current;
+    if (!host) return;
+
+    // Find first img/video under this wrapper
+    const media = host.querySelector('img, video');
+    if (!media) return;
+    const styleMedia = media.style;
+    if (!styleMedia.objectFit) styleMedia.objectFit = 'cover';
+    // Make sure SSR and client match by forcing a default
+    const computed = window.getComputedStyle(media);
+    if (!computed.objectPosition || computed.objectPosition === 'initial') {
+      styleMedia.objectPosition = '50% 50%'; // only if truly missing
+    }
+    media.draggable = false;
+    const sensX = typeof sensitivity === 'number' ? sensitivity : Math.max(0.1, Math.min(10, sensitivity?.x ?? 1));
+    const sensY = typeof sensitivity === 'number' ? sensitivity : Math.max(0.1, Math.min(10, sensitivity?.y ?? 1));
+    let cw = 0,
+      ch = 0; // container box
+    let mw = 0,
+      mh = 0; // intrinsic media
+    let dispW = 0,
+      dispH = 0; // displayed (covered) size
+
+    let canPanX = false,
+      canPanY = false;
+    let pctPerPxX = 0,
+      pctPerPxY = 0;
+    const parseOP = () => {
+      const op = window.getComputedStyle(media).objectPosition || '50% 50%';
+      const [oxRaw, oyRaw] = op.split(/\s+/).map(t => t.trim());
+      const toPct = v => {
+        if (v.endsWith('%')) return parseFloat(v);
+        const n = parseFloat(v);
+        return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 50;
+      };
+      return [toPct(oxRaw), toPct(oyRaw)];
+    };
+    const setOP = (xPct, yPct) => {
+      const x = Math.max(0, Math.min(100, xPct));
+      const y = Math.max(0, Math.min(100, yPct));
+      styleMedia.objectPosition = `${x}% ${y}%`;
+    };
+    const computeCover = () => {
+      const rect = host.getBoundingClientRect();
+      cw = rect.width;
+      ch = rect.height;
+      if (media instanceof HTMLImageElement) {
+        mw = media.naturalWidth || 0;
+        mh = media.naturalHeight || 0;
+      } else if (media instanceof HTMLVideoElement) {
+        mw = media.videoWidth || 0;
+        mh = media.videoHeight || 0;
+      }
+      if (!mw || !mh || !cw || !ch) {
+        dispW = dispH = 0;
+        canPanX = canPanY = false;
+        pctPerPxX = pctPerPxY = 0;
+        return;
+      }
+      const scale = Math.max(cw / mw, ch / mh);
+      dispW = mw * scale;
+      dispH = mh * scale;
+      const overflowX = dispW - cw;
+      const overflowY = dispH - ch;
+      canPanX = overflowX > 1;
+      canPanY = overflowY > 1;
+      pctPerPxX = canPanX ? 100 / overflowX * sensX : 0;
+      pctPerPxY = canPanY ? 100 / overflowY * sensY : 0;
+    };
+
+    // initial compute
+    computeCover();
+
+    // Safe ResizeObserver
+    let ro = null;
+    if ('ResizeObserver' in window) {
+      ro = new ResizeObserver(() => computeCover());
+      ro.observe(host);
+    }
+
+    // For videos, wait for metadata to get intrinsic size
+    let onMeta = null;
+    if (media instanceof HTMLVideoElement) {
+      onMeta = () => computeCover();
+      media.addEventListener('loadedmetadata', onMeta);
+    }
+
+    // Drag state
+    let startX = 0,
+      startY = 0;
+    let startOPX = 50,
+      startOPY = 50;
+    const setGestureLock = on => {
+      draggingRef.current = on;
+      if (on) {
+        host.dataset.gestureLock = '1';
+        host.style.touchAction = 'none';
+        host.style.cursor = 'grabbing';
+      } else {
+        delete host.dataset.gestureLock;
+        host.style.touchAction = '';
+        host.style.cursor = '';
+      }
+    };
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.target?.closest('a,button,[role="button"]')) return;
+      const [ox, oy] = parseOP();
+      startOPX = ox;
+      startOPY = oy;
+      startX = e.clientX;
+      startY = e.clientY;
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      setGestureLock(true);
+    };
+    const onPointerMove = e => {
+      if (!draggingRef.current) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      let nextX = startOPX;
+      let nextY = startOPY;
+      if (canPanX) nextX = startOPX + dx * pctPerPxX;
+      if (canPanY) nextY = startOPY + dy * pctPerPxY;
+      setOP(nextX, nextY);
+    };
+    const endDrag = e => {
+      if (!draggingRef.current) return;
+      if (e) e.currentTarget.releasePointerCapture?.(e.pointerId);
+      setGestureLock(false);
+    };
+    const onDblClick = () => setOP(50, 50);
+
+    // Safe pointer events
+    if ('PointerEvent' in window) {
+      host.addEventListener('pointerdown', onPointerDown);
+      window.addEventListener('pointermove', onPointerMove, {
+        passive: true
+      });
+      window.addEventListener('pointerup', endDrag, {
+        passive: true
+      });
+    }
+    host.addEventListener('dblclick', onDblClick);
+    return () => {
+      ro?.disconnect();
+      if (media instanceof HTMLVideoElement && onMeta) {
+        media.removeEventListener('loadedmetadata', onMeta);
+      }
+      if ('PointerEvent' in window) {
+        host.removeEventListener('pointerdown', onPointerDown);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', endDrag);
+      }
+      host.removeEventListener('dblclick', onDblClick);
+      setGestureLock(false);
+    };
+  }, [sensitivity]);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+    ref: hostRef,
+    className: ['pannable-viewport', className].filter(Boolean).join(' '),
+    "data-gesture-lock": draggingRef.current ? '1' : undefined,
+    style: {
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      overflow: 'hidden',
+      cursor: 'grab',
+      ...style
+    },
+    children: children
+  });
 }
 
 /***/ }),

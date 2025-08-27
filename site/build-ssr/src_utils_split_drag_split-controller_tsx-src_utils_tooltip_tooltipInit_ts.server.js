@@ -1,5 +1,5 @@
-exports.id = "src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts";
-exports.ids = ["src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"];
+exports.id = "src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts";
+exports.ids = ["src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts"];
 exports.modules = {
 
 /***/ "./src/ssr/logic/apply-split-style.ts":
@@ -12,30 +12,84 @@ exports.modules = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   MIN_PORTRAIT_SPLIT: () => (/* binding */ MIN_PORTRAIT_SPLIT),
-/* harmony export */   applySplitStyle: () => (/* binding */ applySplitStyle)
+/* harmony export */   PORTRAIT_MIN_RULES: () => (/* binding */ PORTRAIT_MIN_RULES),
+/* harmony export */   applySplitStyle: () => (/* binding */ applySplitStyle),
+/* harmony export */   getPortraitMinSplit: () => (/* binding */ getPortraitMinSplit)
 /* harmony export */ });
-// src/utils/apply-split-style.ts
-const MIN_PORTRAIT_SPLIT = 20;
-function applySplitStyle(split, isPortrait, ids) {
+// One place to control the portrait floor, with a special rule for 768–1024.
+const PORTRAIT_MIN_RULES = [{
+  maxWidth: 767,
+  value: 16
+},
+// phones
+{
+  maxWidth: 1024,
+  value: 12
+},
+// tablets (your 768–1024 window)
+{
+  maxWidth: Infinity,
+  value: 20
+} // anything larger in portrait
+];
+
+// Legacy name kept so existing imports won't break.
+// It is only used as a default when no window width exists (very rare here).
+const MIN_PORTRAIT_SPLIT = 18;
+
+// Tiny hysteresis used inside this module for snap animations.
+const EPS = 0.25;
+
+// Exported helper so client/non-SSR components can compute the same value.
+function getPortraitMinSplit(viewportWidth) {
+  const vw = typeof viewportWidth === 'number' && isFinite(viewportWidth) ? viewportWidth : 1024;
+  for (const rule of PORTRAIT_MIN_RULES) {
+    if (vw <= rule.maxWidth) return rule.value;
+  }
+  return PORTRAIT_MIN_RULES[PORTRAIT_MIN_RULES.length - 1].value;
+}
+
+/**
+ * Apply split to two absolutely-positioned media containers.
+ * Back-compat signature; optional 4th param lets callers pin a min floor explicitly.
+ */
+function applySplitStyle(split, isPortrait, ids, explicitMinPortrait) {
   const media1 = document.getElementById(ids.m1);
   const media2 = document.getElementById(ids.m2);
   if (!media1 || !media2) return;
-  const s = Math.max(0, Math.min(100, split));
+  const sClamped = Math.max(0, Math.min(100, split));
   media1.style.position = 'absolute';
   media2.style.position = 'absolute';
   if (isPortrait) {
+    const minPortrait = typeof explicitMinPortrait === 'number' ? explicitMinPortrait : getPortraitMinSplit(typeof window !== 'undefined' ? window.innerWidth : undefined);
+    const TOP = minPortrait;
+    const BOTTOM = 100 - minPortrait;
+
+    // clamp into the rails so the handle can't hide completely
+    const s = Math.max(TOP, Math.min(BOTTOM, sClamped));
+
+    // common portrait rails
     media1.style.left = '0';
     media1.style.width = '100%';
     media2.style.left = '0';
     media2.style.width = '100%';
     media1.style.top = '0';
-    if (s <= MIN_PORTRAIT_SPLIT) {
+    if (s <= TOP + EPS) {
+      // collapse TOP
       media1.style.height = '0%';
       media1.style.transition = 'height 0.1s ease';
       media2.style.top = '0%';
       media2.style.height = '100%';
       media2.style.transition = 'height 0.1s ease, top 0.1s ease';
+    } else if (s >= BOTTOM - EPS) {
+      // collapse BOTTOM
+      media1.style.height = '100%';
+      media1.style.transition = 'height 0.1s ease';
+      media2.style.top = '100%';
+      media2.style.height = '0%';
+      media2.style.transition = 'height 0.1s ease, top 0.1s ease';
     } else {
+      // normal split
       media1.style.height = `${s}%`;
       media1.style.transition = 'none';
       media2.style.top = `${s}%`;
@@ -43,14 +97,15 @@ function applySplitStyle(split, isPortrait, ids) {
       media2.style.transition = 'none';
     }
   } else {
+    // landscape unchanged
     media1.style.top = '0';
     media1.style.height = '100%';
     media2.style.top = '0';
     media2.style.height = '100%';
     media1.style.left = '0';
-    media1.style.width = `${s}%`;
-    media2.style.left = `${s}%`;
-    media2.style.width = `${100 - s}%`;
+    media1.style.width = `${sClamped}%`;
+    media2.style.left = `${sClamped}%`;
+    media2.style.width = `${100 - sClamped}%`;
   }
 }
 
@@ -231,10 +286,10 @@ const useProjectVisibility = () => {
 
 /***/ }),
 
-/***/ "./src/utils/split-controller.tsx":
-/*!****************************************!*\
-  !*** ./src/utils/split-controller.tsx ***!
-  \****************************************/
+/***/ "./src/utils/split+drag/split-controller.tsx":
+/*!***************************************************!*\
+  !*** ./src/utils/split+drag/split-controller.tsx ***!
+  \***************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -246,11 +301,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
 /* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
-/* harmony import */ var _svg_arrow2_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../svg/arrow2.json */ "./src/svg/arrow2.json");
-/* harmony import */ var _ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../ssr/logic/apply-split-style */ "./src/ssr/logic/apply-split-style.ts");
+/* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
+/* harmony import */ var _svg_arrow2_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/arrow2.json */ "./src/svg/arrow2.json");
+/* harmony import */ var _ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../ssr/logic/apply-split-style */ "./src/ssr/logic/apply-split-style.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// utils/split-controller.tsx
 
 
 
@@ -265,7 +319,8 @@ const PULSE_COOLDOWN_MS = 700;
 const SplitDragHandler = ({
   split,
   setSplit,
-  ids
+  ids,
+  minPortraitSplit
 }) => {
   const containerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const {
@@ -279,6 +334,9 @@ const SplitDragHandler = ({
   const [isPortrait, setIsPortrait] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(typeof window !== 'undefined' ? window.innerHeight > window.innerWidth : false);
   const [isTouchDevice, setIsTouchDevice] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
 
+  // keep a live min floor based on viewport width (unless override provided)
+  const minRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(typeof window !== 'undefined' ? window.innerWidth : undefined));
+
   // pinch-to-reset helpers
   const initialPinchDistance = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const pinchTriggeredRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
@@ -290,24 +348,24 @@ const SplitDragHandler = ({
     let lastCompleteHandler = null;
     let currentSegment = null;
     return (segment, holdFrame) => {
-      const arrowAnim = arrowAnimRef.current;
-      if (!arrowAnim) return;
+      const anim = arrowAnimRef.current;
+      if (!anim) return;
       if (lastCompleteHandler) {
-        arrowAnim.removeEventListener('complete', lastCompleteHandler);
+        anim.removeEventListener('complete', lastCompleteHandler);
         lastCompleteHandler = null;
       }
       currentSegment = segment;
       const onComplete = () => {
-        arrowAnim.removeEventListener('complete', onComplete);
+        anim.removeEventListener('complete', onComplete);
         lastCompleteHandler = null;
-        const currentFrame = arrowAnim.currentFrame ?? 0;
-        if (currentSegment && currentSegment[1] !== undefined && Math.abs(currentFrame - currentSegment[1]) <= 2) {
-          arrowAnim.goToAndStop(holdFrame, true);
+        const currentFrame = anim.currentFrame ?? 0;
+        if (currentSegment && Math.abs(currentFrame - currentSegment[1]) <= 2) {
+          anim.goToAndStop(holdFrame, true);
         }
       };
       lastCompleteHandler = onComplete;
-      arrowAnim.addEventListener('complete', onComplete);
-      arrowAnim.playSegments(segment, true);
+      anim.addEventListener('complete', onComplete);
+      anim.playSegments(segment, true);
     };
   })();
   const pulseLottie = async () => {
@@ -329,46 +387,59 @@ const SplitDragHandler = ({
     }
   };
 
-  // Initial apply
+  // Initial apply (SSR ids only)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
-    if (!ids) return; // only if ids are given
+    if (!ids) return;
     const portraitNow = window.innerHeight > window.innerWidth;
     setIsPortrait(portraitNow);
-    (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(splitRef.current, portraitNow, ids);
-  }, [ids]);
+    minRef.current = typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(window.innerWidth);
+    (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(splitRef.current, portraitNow, ids, minRef.current);
+  }, [ids, minPortraitSplit]);
 
   // Resize/orientation listener
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const handleResize = () => {
       const portraitNow = window.innerHeight > window.innerWidth;
       setIsPortrait(portraitNow);
-      if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(splitRef.current, portraitNow, ids);
+      minRef.current = typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(window.innerWidth);
+      if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(splitRef.current, portraitNow, ids, minRef.current);
     };
     window.addEventListener('resize', handleResize, {
       passive: true
     });
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
     return () => window.removeEventListener('resize', handleResize);
-  }, [ids]);
+  }, [ids, minPortraitSplit]);
 
   // Sync DOM on split/orientation change
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     splitRef.current = split;
-    if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(split, isPortrait, ids);
+    if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(split, isPortrait, ids, minRef.current);
   }, [split, isPortrait, ids]);
   const handlePointerMove = (clientX, clientY) => {
     if (!isDraggingRef.current) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const isNowPortrait = vh > vw;
-    let next = isNowPortrait ? clientY / vh * 100 : clientX / vw * 100;
-    next = isNowPortrait ? Math.max(_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.MIN_PORTRAIT_SPLIT, Math.min(100, next)) : Math.max(0, Math.min(100, next));
+    const portraitNow = vh > vw;
+
+    // live recompute (covers device rotation while dragging)
+    const minPortrait = typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(vw);
+    let next = portraitNow ? clientY / vh * 100 : clientX / vw * 100;
+    if (portraitNow) {
+      const TOP = minPortrait;
+      const BOTTOM = 100 - minPortrait;
+      next = Math.max(TOP, Math.min(BOTTOM, next));
+
+      // pulse when user hits either floor
+      if (next <= TOP + FLOOR_EPS || next >= BOTTOM - FLOOR_EPS) {
+        pulseLottie();
+      }
+    } else {
+      next = Math.max(0, Math.min(100, next));
+    }
     splitRef.current = next;
     setSplit(next);
-    if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(next, isNowPortrait, ids);
-    if (isNowPortrait && next <= _ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.MIN_PORTRAIT_SPLIT + FLOOR_EPS) {
-      pulseLottie();
-    }
+    if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(next, portraitNow, ids, minPortrait);
   };
   const handleMouseMove = e => handlePointerMove(e.clientX, e.clientY);
   const handleTouchMove = e => {
@@ -389,7 +460,7 @@ const SplitDragHandler = ({
           setIsDragging(false);
           splitRef.current = 50;
           setSplit(50);
-          if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(50, isPortrait, ids);
+          if (ids) (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.applySplitStyle)(50, isPortrait, ids, minRef.current);
           initialPinchDistance.current = null;
         }
       }
@@ -399,9 +470,9 @@ const SplitDragHandler = ({
     e.preventDefault();
     isDraggingRef.current = true;
     setIsDragging(true);
-    const arrowAnim = arrowAnimRef.current;
-    if (arrowAnim) {
-      if (isTouchDevice) arrowAnim.playSegments([0, 25], true);else arrowAnim.goToAndStop(25, true);
+    const anim = arrowAnimRef.current;
+    if (anim) {
+      if (isTouchDevice) anim.playSegments([0, 25], true);else anim.goToAndStop(25, true);
     }
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', stopDragging);
@@ -413,9 +484,9 @@ const SplitDragHandler = ({
   const stopDragging = () => {
     isDraggingRef.current = false;
     setIsDragging(false);
-    const arrowAnim = arrowAnimRef.current;
-    if (arrowAnim) {
-      if (isTouchDevice) arrowAnim.playSegments([25, 75], true);else if (isHoveringRef.current) arrowAnim.goToAndStop(25, true);else arrowAnim.playSegments([25, 75], true);
+    const anim = arrowAnimRef.current;
+    if (anim) {
+      if (isTouchDevice) anim.playSegments([25, 75], true);else if (isHoveringRef.current) anim.goToAndStop(25, true);else anim.playSegments([25, 75], true);
     }
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', stopDragging);
@@ -448,14 +519,26 @@ const SplitDragHandler = ({
       const t = e.changedTouches[0];
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const isNowPortrait = vh > vw;
-      endSplit = isNowPortrait ? t.clientY / vh * 100 : t.clientX / vw * 100;
-      endSplit = isNowPortrait ? Math.max(_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.MIN_PORTRAIT_SPLIT, Math.min(100, endSplit)) : Math.max(0, Math.min(100, endSplit));
+      const portraitNow = vh > vw;
+      endSplit = portraitNow ? t.clientY / vh * 100 : t.clientX / vw * 100;
+      const minPortrait = typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(vw);
+      if (portraitNow) {
+        const TOP = minPortrait;
+        const BOTTOM = 100 - minPortrait;
+        endSplit = Math.max(TOP, Math.min(BOTTOM, endSplit));
+      } else {
+        endSplit = Math.max(0, Math.min(100, endSplit));
+      }
     }
     stopDragging();
-    if (endSplit <= _ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.MIN_PORTRAIT_SPLIT + FLOOR_EPS) {
-      await pulseLottie();
-      arrowAnimRef.current?.playSegments([25, 75], true);
+    if (isPortrait) {
+      const minPortrait = typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(window.innerWidth);
+      const TOP = minPortrait;
+      const BOTTOM = 100 - minPortrait;
+      if (endSplit <= TOP + FLOOR_EPS || endSplit >= BOTTOM - FLOOR_EPS) {
+        await pulseLottie();
+        arrowAnimRef.current?.playSegments([25, 75], true);
+      }
     }
     initialPinchDistance.current = null;
     pinchTriggeredRef.current = false;
@@ -626,11 +709,15 @@ function createTooltipDOM() {
 let tooltipEl = null;
 let currentKey = '';
 let hideTimeout = null;
+
+// IO gating state
+let io = null;
+let observedEl = null;
+let visibleEnough = true; // only show/apply when true
+
 const fetchTooltipDataForKey = async key => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
   const bg = bgForKey(key);
-
-  // local fallback
   if (LOCAL_FALLBACK_TAGS[key]) {
     const info = {
       tags: LOCAL_FALLBACK_TAGS[key],
@@ -639,8 +726,6 @@ const fetchTooltipDataForKey = async key => {
     tooltipDataCache[key] = info;
     return info;
   }
-
-  // CMS fetch by slug
   try {
     const client = (await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ../sanity */ "./src/utils/sanity.ts"))).default;
     const res = await client.fetch(`*[_type=="mediaBlock" && slug.current == $key][0]{ tags }`, {
@@ -663,17 +748,18 @@ const fetchTooltipDataForKey = async key => {
 };
 const showTooltip = () => {
   if (!tooltipEl) return;
+  if (!visibleEnough) return; // 🚫 gate: do not show if target < 0.3 visible
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 1_500);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '0';
   tooltipEl.style.visibility = 'hidden';
-  currentKey = '';
+  // keep currentKey so we can re-show quickly if still over same element
 };
 function positionTooltip(x, y) {
   if (!tooltipEl) return;
@@ -707,6 +793,28 @@ function positionTooltip(x, y) {
   tooltipEl.style.left = `${left}px`;
   tooltipEl.style.top = `${top}px`;
 }
+
+// (new) observe hovered/attached element and gate visibility
+function observeTargetForVisibility(el) {
+  if (!('IntersectionObserver' in window)) {
+    visibleEnough = true;
+    return;
+  }
+  if (!io) {
+    io = new IntersectionObserver(entries => {
+      const e = entries[0];
+      const ratio = e?.intersectionRatio ?? 0;
+      visibleEnough = !!e?.isIntersecting && ratio >= 0.3; // 🔑 gate at 0.3
+      if (!visibleEnough) hideTooltip();
+    }, {
+      root: null,
+      threshold: [0, 0.3, 1]
+    });
+  }
+  if (observedEl) io.unobserve(observedEl);
+  observedEl = el || null;
+  if (observedEl) io.observe(observedEl);
+}
 function initGlobalTooltip(isRealMobile) {
   if (tooltipEl) return () => {};
   tooltipEl = createTooltipDOM();
@@ -719,11 +827,28 @@ function initGlobalTooltip(isRealMobile) {
       hideTooltip();
       return;
     }
-    const tooltipClass = [...el.classList].find(c => c.startsWith('tooltip-'));
-    if (!tooltipClass) {
+
+    // find a tooltip-* class on the element or ancestors
+    const tooltipHost = el.closest('[class*="tooltip-"]');
+    if (!tooltipHost) {
       hideTooltip();
+      observeTargetForVisibility(null);
       return;
     }
+    const tooltipClass = Array.from(tooltipHost.classList).find(c => c.startsWith('tooltip-'));
+    if (!tooltipClass) {
+      hideTooltip();
+      observeTargetForVisibility(null);
+      return;
+    }
+
+    // observe this specific element for visibility gating
+    observeTargetForVisibility(tooltipHost);
+    if (!visibleEnough) {
+      hideTooltip();
+      return;
+    } // don’t apply if under threshold
+
     const key = tooltipClass.replace('tooltip-', '');
     if (key !== currentKey) {
       currentKey = key;
@@ -746,6 +871,7 @@ function initGlobalTooltip(isRealMobile) {
     updateForElement(e.target);
   };
   const checkHoveredElementOnScroll = () => {
+    if (lastMouseX < 0 || lastMouseY < 0) return;
     const el = document.elementFromPoint(lastMouseX, lastMouseY);
     updateForElement(el);
     requestAnimationFrame(() => positionTooltip(lastMouseX, lastMouseY));
@@ -764,8 +890,6 @@ function initGlobalTooltip(isRealMobile) {
   const onMouseOut = e => {
     if (!e.relatedTarget) hideTooltip();
   };
-
-  // only attach scroll observer for non-mobile real viewports
   if (!isRealMobile) window.addEventListener('scroll', onScroll, true);
   document.addEventListener('mousemove', onMouseMove, {
     passive: true
@@ -778,6 +902,12 @@ function initGlobalTooltip(isRealMobile) {
     if (!isRealMobile) window.removeEventListener('scroll', onScroll, true);
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseout', onMouseOut);
+    if (io) {
+      if (observedEl) io.unobserve(observedEl);
+      io.disconnect();
+      io = null;
+      observedEl = null;
+    }
     tooltipEl.remove();
     tooltipEl = null;
     if (hideTimeout) clearTimeout(hideTimeout);
@@ -817,4 +947,4 @@ const useTooltipInit = () => {
 
 };
 ;
-//# sourceMappingURL=src_utils_split-controller_tsx-src_utils_tooltip_tooltipInit_ts.server.js.map
+//# sourceMappingURL=src_utils_split_drag_split-controller_tsx-src_utils_tooltip_tooltipInit_ts.server.js.map

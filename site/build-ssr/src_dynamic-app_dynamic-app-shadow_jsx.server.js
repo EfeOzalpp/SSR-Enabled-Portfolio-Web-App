@@ -781,7 +781,7 @@ const TitleDivider = ({
     className: "moving-text",
     style: {
       color: colors[i],
-      transition: 'color 180ms linear'
+      transition: 'color 120ms linear'
     },
     children: [segment.text, (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
       className: "logo-container",
@@ -791,7 +791,7 @@ const TitleDivider = ({
         ,
         style: {
           fill: colors[i],
-          transition: 'fill 180ms linear'
+          transition: 'fill 120ms linear'
         },
         dangerouslySetInnerHTML: {
           __html: svgIcon
@@ -851,7 +851,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../styles/loading-overlay.css?raw */ "./src/styles/loading-overlay.css?raw");
 /* harmony import */ var _styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_styles_loading_overlay_css_raw__WEBPACK_IMPORTED_MODULE_14__);
 /* harmony import */ var _preload_dynamic_app__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./preload-dynamic-app */ "./src/dynamic-app/preload-dynamic-app.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _lib_palette_controller__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./lib/palette-controller */ "./src/dynamic-app/lib/palette-controller.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
 
@@ -869,6 +870,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 // shared preloader (no TS types in this file)
+
+
+// 🔸 single source of truth for palette semantics
 
 
 function DynamicTheme({
@@ -930,13 +934,27 @@ function DynamicTheme({
     const root = typeof getShadowRoot === 'function' ? getShadowRoot() : document;
     observerRoot.current = root;
   }, [getShadowRoot]);
+
+  // 🔹 Activation now uses the shared palette-controller
   const handleActivate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(alt1 => {
-    const colors = _lib_colorString__WEBPACK_IMPORTED_MODULE_10__.colorMapping?.[alt1];
-    if (colors && colors[0] !== activeColor) {
-      setActiveColor(colors[2]);
-      setMovingTextColors([colors[0], colors[1], colors[3]]);
-      setLastKnownColor(colors[2]);
+    // resolve a quartet [c0, c1, c2, c3] for this alt
+    const quartet = (0,_lib_palette_controller__WEBPACK_IMPORTED_MODULE_16__.resolvePalette)(alt1, _lib_colorString__WEBPACK_IMPORTED_MODULE_10__.colorMapping);
+    if (!Array.isArray(quartet) || quartet.length < 4) return;
+
+    // compute state (activeColor, title triplet, lastKnown)
+    const {
+      activeColor: nextActive,
+      movingText: nextTriplet,
+      lastKnown
+    } = (0,_lib_palette_controller__WEBPACK_IMPORTED_MODULE_16__.computeStateFromPalette)(quartet);
+
+    // minimize state churn
+    if (nextActive !== activeColor) {
+      setActiveColor(nextActive);
+      setLastKnownColor(lastKnown ?? nextActive);
     }
+    // nextTriplet is a [c0, c1, c3] triplet per controller semantics
+    setMovingTextColors(nextTriplet);
   }, [activeColor]);
   const handleDeactivate = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     if (activeColor !== lastKnownColor) setActiveColor(lastKnownColor);
@@ -970,7 +988,8 @@ function DynamicTheme({
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!shadowRef.current) return;
     const ro = new ResizeObserver(() => {
-      console.log('[Resize observed]', shadowRef.current?.getBoundingClientRect());
+      // optional diagnostics
+      // console.log('[Resize observed]', shadowRef.current?.getBoundingClientRect());
     });
     ro.observe(shadowRef.current);
     return () => ro.disconnect();
@@ -1010,13 +1029,13 @@ function DynamicTheme({
   }, [pauseAnimation, isHostVisible]);
   const cardRefs = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)([]);
   cardRefs.current = sortedImages.map((_, i) => cardRefs.current[i] ?? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef());
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
     className: "homePage-container",
     ref: scrollContainerRef,
     "aria-busy": isLoading ? 'true' : 'false',
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_IntroOverlay__WEBPACK_IMPORTED_MODULE_9__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_IntroOverlay__WEBPACK_IMPORTED_MODULE_9__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
       className: "navigation-wrapper",
-      children: showNavigation && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_navigation__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      children: showNavigation && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_navigation__WEBPACK_IMPORTED_MODULE_1__["default"], {
         customArrowIcon2: svgIcons['arrow1'],
         customArrowIcon: svgIcons['arrow2'],
         items: sortedImages,
@@ -1024,11 +1043,11 @@ function DynamicTheme({
         isInShadow: typeof getShadowRoot === 'function' && getShadowRoot() !== document,
         scrollLockContainer: scrollContainerRef.current
       })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
       className: "firework-wrapper",
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
         className: "firework-divider",
-        children: showFireworks && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        children: showFireworks && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_fireworksDisplay__WEBPACK_IMPORTED_MODULE_4__["default"], {
           colorMapping: _lib_colorString__WEBPACK_IMPORTED_MODULE_10__.colorMapping,
           items: sortedImages,
           activeColor: activeColor,
@@ -1036,48 +1055,48 @@ function DynamicTheme({
           onToggleFireworks: handleSetToggleFireworks
         })
       })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
       className: "section-divider"
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
       className: "title-divider",
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_title__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_title__WEBPACK_IMPORTED_MODULE_2__["default"], {
         svgIcon: svgIcons['logo-small-1'],
         movingTextColors: movingTextColors,
         pauseAnimation: pauseAnimation
       })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
       id: "homePage",
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
         className: "no-overflow",
-        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
           className: "pause-button-wrapper",
-          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_pauseButton__WEBPACK_IMPORTED_MODULE_5__["default"], {
+          children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_pauseButton__WEBPACK_IMPORTED_MODULE_5__["default"], {
             toggleP5Animation: handlePauseToggle
           })
-        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsxs)("div", {
           className: "sort-by-divider",
-          children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("h3", {
+          children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("h3", {
             className: "students-heading",
             children: "Students"
-          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_sortBy__WEBPACK_IMPORTED_MODULE_3__["default"], {
+          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_sortBy__WEBPACK_IMPORTED_MODULE_3__["default"], {
             setSortOption: () => {},
             onFetchItems: setSortedImages,
             customArrowIcon: svgIcons['arrow2'],
             colorMapping: _lib_colorString__WEBPACK_IMPORTED_MODULE_10__.colorMapping,
             getRoot: getShadowRoot
           })]
-        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
           className: "section-divider2"
-        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)("div", {
           className: "UI-card-divider",
-          children: sortedImages.map((data, index) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_lib_observedCard_jsx__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          children: sortedImages.map((data, index) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_lib_observedCard_jsx__WEBPACK_IMPORTED_MODULE_7__["default"], {
             data: data,
             index: index,
             getShadowRoot: getShadowRoot,
             pauseAnimation: pauseAnimation,
             customArrowIcon2: svgIcons['arrow1']
           }, index))
-        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_components_footer__WEBPACK_IMPORTED_MODULE_6__["default"], {
+        }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_17__.jsx)(_components_footer__WEBPACK_IMPORTED_MODULE_6__["default"], {
           customArrowIcon2: svgIcons['arrow1'],
           linkArrowIcon: svgIcons['link-icon']
         })]
@@ -1349,6 +1368,51 @@ function ObservedCard({
   });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ObservedCard);
+
+/***/ }),
+
+/***/ "./src/dynamic-app/lib/palette-controller.ts":
+/*!***************************************************!*\
+  !*** ./src/dynamic-app/lib/palette-controller.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   computeStateFromPalette: () => (/* binding */ computeStateFromPalette),
+/* harmony export */   resolvePalette: () => (/* binding */ resolvePalette)
+/* harmony export */ });
+// src/dynamic-app/lib/palette-controller.ts
+
+const WHITE = '#FFFFFF';
+
+// resolve alt → palette (handles trailing spaces too)
+function resolvePalette(altRaw, colorMapping) {
+  if (!altRaw) return null;
+  const exact = colorMapping[altRaw];
+  if (Array.isArray(exact)) return exact;
+  const trimmed = colorMapping[altRaw.trim()];
+  if (Array.isArray(trimmed)) return trimmed;
+  return null;
+}
+
+// compute state from a quartet
+function computeStateFromPalette(q, win = window) {
+  const palette = q ?? [WHITE, WHITE, WHITE, WHITE];
+  const [c0, c1, c2, c3] = palette;
+
+  // desktop/mobile branching for first slot
+  const isDesktop = win.innerWidth >= 1024;
+  const first = isDesktop ? c1 ?? WHITE : c0 ?? WHITE;
+  const movingText = [first, c1 ?? WHITE, c3 ?? c2 ?? WHITE];
+  const activeColor = c2 ?? WHITE;
+  return {
+    activeColor,
+    movingText,
+    lastKnown: activeColor
+  };
+}
 
 /***/ }),
 

@@ -24,6 +24,7 @@ function DataVizEnhancer() {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const vid = document.getElementById('dataviz-media-video');
     if (!vid) return;
+    const cleanupFns = [];
 
     // 1) Upgrade poster to high-res if provided by SSR
     const fullPoster = vid.dataset?.srcFull;
@@ -31,18 +32,16 @@ function DataVizEnhancer() {
       vid.poster = fullPoster;
     }
 
-    // 2) Load only what's needed; let the browser fetch metadata first
-    //    (SSR set preload="auto", but we can safely keep it eager here, or use 'metadata')
+    // 2) Load eagerly if needed
     if (vid.readyState === 0) {
-      vid.preload = 'auto'; // or 'metadata' if you want to be lighter here
+      vid.preload = 'auto'; // can also use 'metadata' if lighter load desired
       try {
         vid.load();
       } catch {}
     }
 
-    // 3) Keep the poster until the *first painted* frame, not loadeddata.
+    // 3) Hide poster after first painted frame
     const hidePoster = () => {
-      // remove poster *after* a real frame is painted to avoid black flash
       vid.removeAttribute('poster');
     };
     const onPlay = () => {
@@ -50,7 +49,6 @@ function DataVizEnhancer() {
       if (typeof anyV.requestVideoFrameCallback === 'function') {
         anyV.requestVideoFrameCallback(() => hidePoster());
       } else {
-        // Fallback: wait until time advances and we have decoded frame(s)
         const onTime = () => {
           if (vid.currentTime > 0 && vid.readyState >= 2) {
             vid.removeEventListener('timeupdate', onTime);
@@ -60,39 +58,32 @@ function DataVizEnhancer() {
         vid.addEventListener('timeupdate', onTime, {
           once: true
         });
+        cleanupFns.push(() => vid.removeEventListener('timeupdate', onTime));
 
-        // Safety backstop in case timeupdate never fires
+        // Safety backstop
         const timer = setTimeout(() => {
           vid.removeEventListener('timeupdate', onTime);
           hidePoster();
         }, 1200);
-        // clean backstop on unmount
         cleanupFns.push(() => clearTimeout(timer));
       }
     };
-
-    // 4) Try to autoplay (muted + inline means iOS/Safari will usually allow it)
-    const tryPlay = () => {
-      vid.play().catch(() => {
-        // If browser blocks autoplay, poster will remain until user interacts
-        // (which is fine; the first frame hook above will still remove it later)
-      });
-    };
-
-    // Wire listeners
     vid.addEventListener('play', onPlay, {
       once: true
     });
+    cleanupFns.push(() => vid.removeEventListener('play', onPlay));
 
-    // Kick playback promptly (you can gate with IO if you want)
-    tryPlay();
+    // 4) Try autoplay (muted/inline usually works)
+    vid.play().catch(() => {
+      // If blocked, poster will remain until user interacts
+    });
 
-    // Optional: pause when tab hidden; resume when visible
+    // 5) Optional: pause when tab hidden
     const onVis = () => {
       if (document.hidden) vid.pause();
     };
     document.addEventListener('visibilitychange', onVis);
-    const cleanupFns = [() => vid.removeEventListener('play', onPlay), () => document.removeEventListener('visibilitychange', onVis)];
+    cleanupFns.push(() => document.removeEventListener('visibilitychange', onVis));
     return () => cleanupFns.forEach(fn => fn());
   }, []);
   return null;
@@ -260,11 +251,15 @@ function createTooltipDOM() {
 let tooltipEl = null;
 let currentKey = '';
 let hideTimeout = null;
+
+// IO gating state
+let io = null;
+let observedEl = null;
+let visibleEnough = true; // only show/apply when true
+
 const fetchTooltipDataForKey = async key => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
   const bg = bgForKey(key);
-
-  // local fallback
   if (LOCAL_FALLBACK_TAGS[key]) {
     const info = {
       tags: LOCAL_FALLBACK_TAGS[key],
@@ -273,8 +268,6 @@ const fetchTooltipDataForKey = async key => {
     tooltipDataCache[key] = info;
     return info;
   }
-
-  // CMS fetch by slug
   try {
     const client = (await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ../sanity */ "./src/utils/sanity.ts"))).default;
     const res = await client.fetch(`*[_type=="mediaBlock" && slug.current == $key][0]{ tags }`, {
@@ -297,17 +290,18 @@ const fetchTooltipDataForKey = async key => {
 };
 const showTooltip = () => {
   if (!tooltipEl) return;
+  if (!visibleEnough) return; // 🚫 gate: do not show if target < 0.3 visible
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 1_500);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '0';
   tooltipEl.style.visibility = 'hidden';
-  currentKey = '';
+  // keep currentKey so we can re-show quickly if still over same element
 };
 function positionTooltip(x, y) {
   if (!tooltipEl) return;
@@ -341,6 +335,28 @@ function positionTooltip(x, y) {
   tooltipEl.style.left = `${left}px`;
   tooltipEl.style.top = `${top}px`;
 }
+
+// (new) observe hovered/attached element and gate visibility
+function observeTargetForVisibility(el) {
+  if (!('IntersectionObserver' in window)) {
+    visibleEnough = true;
+    return;
+  }
+  if (!io) {
+    io = new IntersectionObserver(entries => {
+      const e = entries[0];
+      const ratio = e?.intersectionRatio ?? 0;
+      visibleEnough = !!e?.isIntersecting && ratio >= 0.3; // 🔑 gate at 0.3
+      if (!visibleEnough) hideTooltip();
+    }, {
+      root: null,
+      threshold: [0, 0.3, 1]
+    });
+  }
+  if (observedEl) io.unobserve(observedEl);
+  observedEl = el || null;
+  if (observedEl) io.observe(observedEl);
+}
 function initGlobalTooltip(isRealMobile) {
   if (tooltipEl) return () => {};
   tooltipEl = createTooltipDOM();
@@ -353,11 +369,28 @@ function initGlobalTooltip(isRealMobile) {
       hideTooltip();
       return;
     }
-    const tooltipClass = [...el.classList].find(c => c.startsWith('tooltip-'));
-    if (!tooltipClass) {
+
+    // find a tooltip-* class on the element or ancestors
+    const tooltipHost = el.closest('[class*="tooltip-"]');
+    if (!tooltipHost) {
       hideTooltip();
+      observeTargetForVisibility(null);
       return;
     }
+    const tooltipClass = Array.from(tooltipHost.classList).find(c => c.startsWith('tooltip-'));
+    if (!tooltipClass) {
+      hideTooltip();
+      observeTargetForVisibility(null);
+      return;
+    }
+
+    // observe this specific element for visibility gating
+    observeTargetForVisibility(tooltipHost);
+    if (!visibleEnough) {
+      hideTooltip();
+      return;
+    } // don’t apply if under threshold
+
     const key = tooltipClass.replace('tooltip-', '');
     if (key !== currentKey) {
       currentKey = key;
@@ -380,6 +413,7 @@ function initGlobalTooltip(isRealMobile) {
     updateForElement(e.target);
   };
   const checkHoveredElementOnScroll = () => {
+    if (lastMouseX < 0 || lastMouseY < 0) return;
     const el = document.elementFromPoint(lastMouseX, lastMouseY);
     updateForElement(el);
     requestAnimationFrame(() => positionTooltip(lastMouseX, lastMouseY));
@@ -398,8 +432,6 @@ function initGlobalTooltip(isRealMobile) {
   const onMouseOut = e => {
     if (!e.relatedTarget) hideTooltip();
   };
-
-  // only attach scroll observer for non-mobile real viewports
   if (!isRealMobile) window.addEventListener('scroll', onScroll, true);
   document.addEventListener('mousemove', onMouseMove, {
     passive: true
@@ -412,6 +444,12 @@ function initGlobalTooltip(isRealMobile) {
     if (!isRealMobile) window.removeEventListener('scroll', onScroll, true);
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseout', onMouseOut);
+    if (io) {
+      if (observedEl) io.unobserve(observedEl);
+      io.disconnect();
+      io = null;
+      observedEl = null;
+    }
     tooltipEl.remove();
     tooltipEl = null;
     if (hideTimeout) clearTimeout(hideTimeout);

@@ -18,7 +18,7 @@ const queries: Record<string, string> = {
   }`,
     'rock-coin': `*[_type=="imageDemanded" && title=="coin"][0]{
     alt,
-    image{ asset->{ url } }
+    image{ asset->{ url } } 
   }`,
   // add others as I go
 };

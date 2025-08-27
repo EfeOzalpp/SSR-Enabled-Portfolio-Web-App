@@ -21,6 +21,9 @@ import {
   ensureDynamicPreload,
 } from './preload-dynamic-app';
 
+// 🔸 single source of truth for palette semantics
+import { resolvePalette, computeStateFromPalette } from './lib/palette-controller';
+
 function DynamicTheme({ onReady }) {
   const [sortedImages, setSortedImages] = useState([]);
   const [svgIcons, setSvgIcons] = useState({});
@@ -80,13 +83,23 @@ function DynamicTheme({ onReady }) {
     observerRoot.current = root;
   }, [getShadowRoot]);
 
+  // 🔹 Activation now uses the shared palette-controller
   const handleActivate = useCallback((alt1) => {
-    const colors = colorMapping?.[alt1];
-    if (colors && colors[0] !== activeColor) {
-      setActiveColor(colors[2]);
-      setMovingTextColors([colors[0], colors[1], colors[3]]);
-      setLastKnownColor(colors[2]);
+    // resolve a quartet [c0, c1, c2, c3] for this alt
+    const quartet = resolvePalette(alt1, colorMapping);
+    if (!Array.isArray(quartet) || quartet.length < 4) return;
+
+    // compute state (activeColor, title triplet, lastKnown)
+    const { activeColor: nextActive, movingText: nextTriplet, lastKnown } =
+      computeStateFromPalette(quartet);
+
+    // minimize state churn
+    if (nextActive !== activeColor) {
+      setActiveColor(nextActive);
+      setLastKnownColor(lastKnown ?? nextActive);
     }
+    // nextTriplet is a [c0, c1, c3] triplet per controller semantics
+    setMovingTextColors(nextTriplet);
   }, [activeColor]);
 
   const handleDeactivate = useCallback(() => {
@@ -128,7 +141,8 @@ function DynamicTheme({ onReady }) {
   useEffect(() => {
     if (!shadowRef.current) return;
     const ro = new ResizeObserver(() => {
-      console.log('[Resize observed]', shadowRef.current?.getBoundingClientRect());
+      // optional diagnostics
+      // console.log('[Resize observed]', shadowRef.current?.getBoundingClientRect());
     });
     ro.observe(shadowRef.current);
     return () => ro.disconnect();

@@ -143,16 +143,14 @@ app.get('/*', async (req, res) => {
   // Critical CSS
   let extraCriticalCss = '';
   if (!isDynamicTheme) {
-    const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
-    if (firstKey) {
-      const d = ssrRegistry[firstKey];
-      const files = (d && d.criticalCssFiles) || [];
-      if (files.length > 0) {
-        try {
-          extraCriticalCss = await buildCriticalCss(files);
-        } catch {
-          extraCriticalCss = '';
-        }
+    const keys = Object.keys(ssrPayload.preloaded || {}).slice(0, 3); // top 3
+    const allFiles = keys.flatMap((k) => ssrRegistry[k]?.criticalCssFiles ?? []);
+    const uniqueFiles = Array.from(new Set(allFiles));
+    if (uniqueFiles.length > 0) {
+      try {
+        extraCriticalCss = await buildCriticalCss(uniqueFiles);
+      } catch {
+        extraCriticalCss = '';
       }
     }
   } else {

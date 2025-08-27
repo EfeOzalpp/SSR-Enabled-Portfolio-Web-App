@@ -41,7 +41,7 @@ const ViewProject = () => {
   const triggerBackgroundFade = () => {
     setShowBackground(true);
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 2000);
+    hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 1500);
   };
 
   useEffect(() => {
@@ -76,20 +76,29 @@ const ViewProject = () => {
     }
   }, [activeTitle]);
 
+  // ✨ Only trigger on mouse move if the cursor is in the bottom 30% of the viewport.
+  // Touch interactions stay as-is (always trigger).
   useEffect(() => {
-    const handleInteraction = () => {
+    const handleMouseMove = (e: globalThis.MouseEvent) => {
+      const viewportH = window.innerHeight || document.documentElement.clientHeight;
+      const isInBottom30 = e.clientY >= viewportH * 0.65;
+      if (isInBottom30) {
+        triggerBackgroundFade();
+      }
+    };
+
+    const handleTouchInteraction = () => {
       triggerBackgroundFade();
     };
 
-    // Any mouse move or touch triggers background
-    window.addEventListener('mousemove', handleInteraction);
-    window.addEventListener('touchstart', handleInteraction, { passive: true });
-    window.addEventListener('touchmove', handleInteraction, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchstart', handleTouchInteraction, { passive: true });
+    window.addEventListener('touchmove', handleTouchInteraction, { passive: true });
 
     return () => {
-      window.removeEventListener('mousemove', handleInteraction);
-      window.removeEventListener('touchstart', handleInteraction);
-      window.removeEventListener('touchmove', handleInteraction);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchstart', handleTouchInteraction);
+      window.removeEventListener('touchmove', handleTouchInteraction);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, []);

@@ -17,12 +17,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _utils_sanity__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/sanity */ "./src/utils/sanity.ts");
 /* harmony import */ var _utils_media_providers_media_loader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/media-providers/media-loader */ "./src/utils/media-providers/media-loader.tsx");
-/* harmony import */ var _utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/tooltip/tooltipInit */ "./src/utils/tooltip/tooltipInit.ts");
-/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
-/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../styles/block-type-1.css */ "./src/styles/block-type-1.css");
-/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils/split+drag/pannable-object-position */ "./src/utils/split+drag/pannable-object-position.tsx");
+/* harmony import */ var _utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils/tooltip/tooltipInit */ "./src/utils/tooltip/tooltipInit.ts");
+/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../utils/media-providers/image-builder */ "./src/utils/media-providers/image-builder.ts");
+/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../styles/block-type-1.css */ "./src/styles/block-type-1.css");
+/* harmony import */ var _styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_1_css__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
 
 
 
@@ -32,22 +34,22 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function DataVisualizationBlock() {
-  const ssrData = (0,_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__.useSsrData)();
+  const ssrData = (0,_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__.useSsrData)();
   const [data, setData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(ssrData?.preloaded?.dataviz || null);
-  (0,_utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_3__.useTooltipInit)();
+  (0,_utils_tooltip_tooltipInit__WEBPACK_IMPORTED_MODULE_4__.useTooltipInit)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (data) return;
     _utils_sanity__WEBPACK_IMPORTED_MODULE_1__["default"].fetch(`*[_type == "mediaBlock" && slug.current == $slug][0]{
-        mediaOne{
-          alt,
-          image,
-          video{
-            "webmUrl": webm.asset->url,
-            "mp4Url": mp4.asset->url,
-            poster
+          mediaOne{
+            alt,
+            image,
+            video{
+              "webmUrl": webm.asset->url,
+              "mp4Url": mp4.asset->url,
+              poster
+            }
           }
-        }
-      }`, {
+        }`, {
       slug: 'data-viz'
     }).then(setData).catch(err => {
       console.warn('[DataVisualizationBlock] GROQ fetch failed:', err);
@@ -62,8 +64,8 @@ function DataVisualizationBlock() {
     video
   } = data.mediaOne;
   const isVideo = Boolean(video?.webmUrl || video?.mp4Url);
-  const highPoster = video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_5__.getHighQualityImageUrl)(video.poster, 1920, 1080, 90) : undefined;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("section", {
+  const highPoster = video?.poster ? (0,_utils_media_providers_image_builder__WEBPACK_IMPORTED_MODULE_6__.getHighQualityImageUrl)(video.poster, 1920, 1080, 90) : undefined;
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("section", {
     className: "block-type-1",
     style: {
       position: 'relative',
@@ -71,7 +73,7 @@ function DataVisualizationBlock() {
       height: '100dvh',
       overflow: 'hidden'
     },
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
       className: "media-content",
       style: {
         width: '100%',
@@ -79,21 +81,24 @@ function DataVisualizationBlock() {
         position: 'absolute',
         inset: 0
       },
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_utils_media_providers_media_loader__WEBPACK_IMPORTED_MODULE_2__["default"], {
-        type: isVideo ? 'video' : 'image',
-        src: isVideo ? video : image,
-        alt: alt,
-        id: isVideo ? 'dataviz-media-video' : 'dataviz-media',
-        ...(highPoster ? {
-          'data-src-full': highPoster
-        } : {}),
-        className: "tooltip-data-viz",
-        objectPosition: "center center",
-        style: {
-          width: '100%',
-          height: '100%'
-        }
-        // priority // uncomment if this is the hero
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_utils_split_drag_pannable_object_position__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        sensitivity: 2,
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_utils_media_providers_media_loader__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          type: isVideo ? 'video' : 'image',
+          src: isVideo ? video : image,
+          alt: alt,
+          id: isVideo ? 'dataviz-media-video' : 'dataviz-media',
+          ...(highPoster ? {
+            'data-src-full': highPoster
+          } : {}),
+          className: "tooltip-data-viz",
+          objectPosition: "center center",
+          style: {
+            width: '100%',
+            height: '100%'
+          }
+          // priority // uncomment if this is the hero
+        })
       })
     })
   });
@@ -271,11 +276,15 @@ function createTooltipDOM() {
 let tooltipEl = null;
 let currentKey = '';
 let hideTimeout = null;
+
+// IO gating state
+let io = null;
+let observedEl = null;
+let visibleEnough = true; // only show/apply when true
+
 const fetchTooltipDataForKey = async key => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
   const bg = bgForKey(key);
-
-  // local fallback
   if (LOCAL_FALLBACK_TAGS[key]) {
     const info = {
       tags: LOCAL_FALLBACK_TAGS[key],
@@ -284,8 +293,6 @@ const fetchTooltipDataForKey = async key => {
     tooltipDataCache[key] = info;
     return info;
   }
-
-  // CMS fetch by slug
   try {
     const client = (await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ../sanity */ "./src/utils/sanity.ts"))).default;
     const res = await client.fetch(`*[_type=="mediaBlock" && slug.current == $key][0]{ tags }`, {
@@ -308,17 +315,18 @@ const fetchTooltipDataForKey = async key => {
 };
 const showTooltip = () => {
   if (!tooltipEl) return;
+  if (!visibleEnough) return; // 🚫 gate: do not show if target < 0.3 visible
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
-  hideTimeout = setTimeout(() => hideTooltip(), 2_000);
+  hideTimeout = setTimeout(() => hideTooltip(), 1_500);
 };
 const hideTooltip = () => {
   if (!tooltipEl) return;
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '0';
   tooltipEl.style.visibility = 'hidden';
-  currentKey = '';
+  // keep currentKey so we can re-show quickly if still over same element
 };
 function positionTooltip(x, y) {
   if (!tooltipEl) return;
@@ -352,6 +360,28 @@ function positionTooltip(x, y) {
   tooltipEl.style.left = `${left}px`;
   tooltipEl.style.top = `${top}px`;
 }
+
+// (new) observe hovered/attached element and gate visibility
+function observeTargetForVisibility(el) {
+  if (!('IntersectionObserver' in window)) {
+    visibleEnough = true;
+    return;
+  }
+  if (!io) {
+    io = new IntersectionObserver(entries => {
+      const e = entries[0];
+      const ratio = e?.intersectionRatio ?? 0;
+      visibleEnough = !!e?.isIntersecting && ratio >= 0.3; // 🔑 gate at 0.3
+      if (!visibleEnough) hideTooltip();
+    }, {
+      root: null,
+      threshold: [0, 0.3, 1]
+    });
+  }
+  if (observedEl) io.unobserve(observedEl);
+  observedEl = el || null;
+  if (observedEl) io.observe(observedEl);
+}
 function initGlobalTooltip(isRealMobile) {
   if (tooltipEl) return () => {};
   tooltipEl = createTooltipDOM();
@@ -364,11 +394,28 @@ function initGlobalTooltip(isRealMobile) {
       hideTooltip();
       return;
     }
-    const tooltipClass = [...el.classList].find(c => c.startsWith('tooltip-'));
-    if (!tooltipClass) {
+
+    // find a tooltip-* class on the element or ancestors
+    const tooltipHost = el.closest('[class*="tooltip-"]');
+    if (!tooltipHost) {
       hideTooltip();
+      observeTargetForVisibility(null);
       return;
     }
+    const tooltipClass = Array.from(tooltipHost.classList).find(c => c.startsWith('tooltip-'));
+    if (!tooltipClass) {
+      hideTooltip();
+      observeTargetForVisibility(null);
+      return;
+    }
+
+    // observe this specific element for visibility gating
+    observeTargetForVisibility(tooltipHost);
+    if (!visibleEnough) {
+      hideTooltip();
+      return;
+    } // don’t apply if under threshold
+
     const key = tooltipClass.replace('tooltip-', '');
     if (key !== currentKey) {
       currentKey = key;
@@ -391,6 +438,7 @@ function initGlobalTooltip(isRealMobile) {
     updateForElement(e.target);
   };
   const checkHoveredElementOnScroll = () => {
+    if (lastMouseX < 0 || lastMouseY < 0) return;
     const el = document.elementFromPoint(lastMouseX, lastMouseY);
     updateForElement(el);
     requestAnimationFrame(() => positionTooltip(lastMouseX, lastMouseY));
@@ -409,8 +457,6 @@ function initGlobalTooltip(isRealMobile) {
   const onMouseOut = e => {
     if (!e.relatedTarget) hideTooltip();
   };
-
-  // only attach scroll observer for non-mobile real viewports
   if (!isRealMobile) window.addEventListener('scroll', onScroll, true);
   document.addEventListener('mousemove', onMouseMove, {
     passive: true
@@ -423,6 +469,12 @@ function initGlobalTooltip(isRealMobile) {
     if (!isRealMobile) window.removeEventListener('scroll', onScroll, true);
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseout', onMouseOut);
+    if (io) {
+      if (observedEl) io.unobserve(observedEl);
+      io.disconnect();
+      io = null;
+      observedEl = null;
+    }
     tooltipEl.remove();
     tooltipEl = null;
     if (hideTimeout) clearTimeout(hideTimeout);

@@ -1,10 +1,11 @@
-// scoop.ssr.tsx
+// src/ssr/projects/scoop.ssr.tsx
 import type { SsrDescriptor } from '../types';
 import { getProjectData } from '../../utils/get-project-data';
 import {
   getMediumImageUrl,
   getHighQualityImageUrl,
 } from '../../utils/media-providers/image-builder';
+import PannableViewport from '../../utils/split+drag/pannable-object-position';
 
 export const scoopSSR: SsrDescriptor = {
   fetch: () => getProjectData('ice-scoop'),
@@ -48,22 +49,24 @@ export const scoopSSR: SsrDescriptor = {
           style={{ position: 'absolute' }}
         >
           {m1Medium && (
-            <img
-              id="icecream-media-1"
-              className="media-item-1 tooltip-ice-scoop"
-              src={m1Medium}
-              {...(m1High ? { 'data-src-full': m1High } : {})}
-              alt={m1?.alt ?? 'Ice Cream Scoop media'}
-              draggable={false}
-              decoding="async"
-              fetchPriority="high"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            />
+            <PannableViewport sensitivity={2}>
+              <img
+                id="icecream-media-1"
+                className="media-item-1 tooltip-ice-scoop"
+                src={m1Medium}
+                {...(m1High ? { 'data-src-full': m1High } : {})}
+                alt={m1?.alt ?? 'Ice Cream Scoop media'}
+                draggable={false}
+                decoding="async"
+                fetchPriority="high"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </PannableViewport>
           )}
         </div>
 
@@ -77,29 +80,31 @@ export const scoopSSR: SsrDescriptor = {
           style={{ position: 'absolute' }}
         >
           {m2PosterMedium && (
-            <video
-              id="icecream-media-2"
-              className="media-item-2 tooltip-ice-scoop"
-              poster={m2PosterMedium}
-              {...(m2PosterHigh ? { 'data-src-full': m2PosterHigh } : {})}
-              muted
-              playsInline
-              loop
-              preload="auto"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            >
-              {m2?.video?.webmUrl && (
-                <source src={m2.video.webmUrl} type="video/webm" />
-              )}
-              {m2?.video?.mp4Url && (
-                <source src={m2.video.mp4Url} type="video/mp4" />
-              )}
-            </video>
+            <PannableViewport sensitivity={2}>
+              <video
+                id="icecream-media-2"
+                className="media-item-2 tooltip-ice-scoop"
+                poster={m2PosterMedium}
+                {...(m2PosterHigh ? { 'data-src-full': m2PosterHigh } : {})}
+                muted
+                playsInline
+                loop
+                preload="auto"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              >
+                {m2?.video?.webmUrl && (
+                  <source src={m2.video.webmUrl} type="video/webm" />
+                )}
+                {m2?.video?.mp4Url && (
+                  <source src={m2.video.mp4Url} type="video/mp4" />
+                )}
+              </video>
+            </PannableViewport>
           )}
         </div>
       </section>

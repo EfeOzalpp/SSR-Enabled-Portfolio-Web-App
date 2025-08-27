@@ -94,16 +94,13 @@ export default function GameCanvas({
         const MAX_RECTANGLES = 220;
 
         // ---------- Pointer gesture state ----------
-        // One drag at a time
         let dragPointerId: number | null = null;
         let lastTouch: { x: number; y: number } | null = null;
 
-        // Primary candidate before promotion to drag
         let primaryCandidateId: number | null = null;
         type TapInfo = { x0: number; y0: number; x: number; y: number; t0: number };
         let primaryTapInfo: TapInfo | null = null;
 
-        // Secondary tap candidates (never drag)
         const tapCandidates = new Map<number, TapInfo>();
 
         // thresholds
@@ -120,6 +117,9 @@ export default function GameCanvas({
         // cached colors
         let GOLD_COLORS: any[] = [];
 
+        // small scratch object to avoid GC in getCanvasCoords
+        const scratchXY = { x: 0, y: 0 };
+
         function canSpawn() {
           return demoRef.current || allowSpawnsRef.current;
         }
@@ -129,10 +129,10 @@ export default function GameCanvas({
           gameOver = false;
           coins = 0;
           coinsChangeRef.current?.(coins);
-          rectangles = [];
-          octagons = [];
-          particles = [];
-          projectiles = [];
+          rectangles.length = 0;
+          octagons.length = 0;
+          particles.length = 0;
+          projectiles.length = 0;
           circle = new Circle(p, 240, p.height / 2, 33);
           (q5Ref.current as any).circle = circle;
           lastOctagonSpawnTime = p.millis();
@@ -159,9 +159,9 @@ export default function GameCanvas({
 
           const getCanvasCoords = (e: PointerEvent) => {
             const r = canvas.getBoundingClientRect();
-            const x = (e.clientX - r.left) * (p.width / r.width);
-            const y = (e.clientY - r.top) * (p.height / r.height);
-            return { x, y };
+            scratchXY.x = (e.clientX - r.left) * (p.width / r.width);
+            scratchXY.y = (e.clientY - r.top) * (p.height / r.height);
+            return scratchXY;
           };
 
           const promoteToDrag = (pointerId: number, x: number, y: number) => {
@@ -176,11 +176,9 @@ export default function GameCanvas({
             const { x, y } = getCanvasCoords(e);
 
             if (dragPointerId === null && primaryCandidateId === null) {
-              // first finger becomes a tap candidate; may promote to drag on move
               primaryCandidateId = e.pointerId;
               primaryTapInfo = { x0: x, y0: y, x, y, t0: p.millis() };
             } else {
-              // any other finger is a pure tap candidate (never drag)
               tapCandidates.set(e.pointerId, { x0: x, y0: y, x, y, t0: p.millis() });
             }
             e.preventDefault();
@@ -192,14 +190,12 @@ export default function GameCanvas({
 
             // Candidate → promote to drag when moved enough
             if (primaryCandidateId === e.pointerId && dragPointerId === null) {
-              // update candidate pos
               if (primaryTapInfo) { primaryTapInfo.x = x; primaryTapInfo.y = y; }
-              const moved = primaryTapInfo
-                ? Math.hypot(x - primaryTapInfo.x0, y - primaryTapInfo.y0)
-                : 0;
+              const dx0 = x - (primaryTapInfo?.x0 ?? x);
+              const dy0 = y - (primaryTapInfo?.y0 ?? y);
+              const moved = Math.hypot(dx0, dy0);
               if (moved > DRAG_PROMOTE) {
                 promoteToDrag(e.pointerId, x, y);
-                // no longer a tap candidate
                 primaryCandidateId = null;
                 primaryTapInfo = null;
               }
@@ -333,10 +329,10 @@ export default function GameCanvas({
 
           // detect demo → live transition
           if (!demo && lastDemoFlag) {
-            rectangles = [];
-            octagons = [];
-            particles = [];
-            projectiles = [];
+            rectangles.length = 0;
+            octagons.length = 0;
+            particles.length = 0;
+            projectiles.length = 0;
             coins = 0;
             coinsChangeRef.current?.(0);
 
@@ -344,8 +340,9 @@ export default function GameCanvas({
             circle.y = p.height / 2;
             circle.vx = circle.vy = circle.ax = circle.ay = 0;
 
-            lastOctagonSpawnTime = p.millis();
-            lastSpawnTime       = p.millis();
+            const now = p.millis();
+            lastOctagonSpawnTime = now;
+            lastSpawnTime = now;
           }
           lastDemoFlag = demo;
 
@@ -355,6 +352,10 @@ export default function GameCanvas({
           }
 
           const delta = p.deltaTime / 16.67;
+          const nowMillis = p.millis();
+          const vw = p.width;
+          const vh = p.height;
+
           p.background(28);
 
           if (!demo && overlayRef.current) {
@@ -370,29 +371,31 @@ export default function GameCanvas({
             if (movingLeft) circle.moveLeft(); else if (movingRight) circle.moveRight(); else circle.stopHorizontal();
           }
 
-          circle.update(delta);
-          circle.display();
+          circle.update(delta, vw, vh);
+          circle.display(p);
 
-          spawnRectangles(p);
-          updateRectangles(p, delta);
+          spawnRectangles(p, nowMillis, vw, vh);
+          updateRectangles(p, delta, nowMillis, vw, vh);
 
-          spawnOctagons(p);
-          updateOctagons(p, delta);
+          spawnOctagons(p, nowMillis);
+          updateOctagons(p, delta, vw, vh);
 
           if (!isRealMobile) p.blendMode(p.ADD);
+          // update & draw particles
           for (let i = particles.length - 1; i >= 0; i--) {
             const part = particles[i];
             part.update(delta);
-            part.display();
+            part.display(p);
             if (part.isDead()) particles.splice(i, 1);
           }
           if (!isRealMobile) p.blendMode(p.BLEND);
 
+          // projectiles
           for (let i = projectiles.length - 1; i >= 0; i--) {
             const proj = projectiles[i];
-            proj.update(delta);
-            proj.display();
-            if (proj.isDead()) projectiles.splice(i, 1);
+            proj.update(delta, vw, vh);
+            proj.display(p);
+            if (proj.isDead(vw, vh)) projectiles.splice(i, 1);
           }
 
           // live-mode only HUD & game-over
@@ -404,9 +407,20 @@ export default function GameCanvas({
             prevGameOver = gameOver;
 
             if (gameOver) { p.background(28, 180); return; }
-            drawCooldownRing();
+            drawCooldownRing(p, nowMillis);
           } else {
             gameOver = false; // demo never ends
+          }
+
+          // --- helpers (closed over locals) ---
+          function drawCooldownRing(pAny: any, now: number) {
+            const elapsed = now - lastFiredTime;
+            if (elapsed >= cooldownDuration) return;
+            const progress = 1 - (elapsed / cooldownDuration);
+            const radius = progress * cooldownRadiusMax;
+            pAny.noStroke();
+            pAny.fill(200, 150, 255, 100);
+            pAny.ellipse(circle.x, circle.y, radius * 2, radius * 2);
           }
         };
 
@@ -433,13 +447,13 @@ export default function GameCanvas({
           let attractX = 0, attractY = 0;
           if (octagons.length > 0 && danger < 50) {
             const target = octagons.reduce((a, b) => {
-              const da = p.dist(circle.x, circle.y, a.x + a.size / 2, a.y + a.size / 2);
-              const db = p.dist(circle.x, circle.y, b.x + b.size / 2, b.y + b.size / 2);
+              const da = Math.hypot(circle.x - (a.x + a.size / 2), circle.y - (a.y + a.size / 2));
+              const db = Math.hypot(circle.x - (b.x + b.size / 2), circle.y - (b.y + b.size / 2));
               return db < da ? b : a;
             });
             const dx = (target.x + target.size / 2) - circle.x;
             const dy = (target.y + target.size / 2) - circle.y;
-            const d = Math.sqrt(dx * dx + dy * dy) || 1;
+            const d = Math.hypot(dx, dy) || 1;
             attractX = (dx / d) * 0.45;
             attractY = (dy / d) * 0.45;
           }
@@ -450,38 +464,31 @@ export default function GameCanvas({
           if (circle.ax === 0 && circle.ay === 0) {
             const cx = p.width / 2 - circle.x;
             const cy = p.height / 2 - circle.y;
-            const d = Math.sqrt(cx * cx + cy * cy) || 1;
+            const d = Math.hypot(cx, cy) || 1;
             circle.ax = (cx / d) * 0.1;
             circle.ay = (cy / d) * 0.1;
           }
         }
 
-        function drawCooldownRing() {
-          const elapsed = p.millis() - lastFiredTime;
-          if (elapsed >= cooldownDuration) return;
-          const progress = 1 - (elapsed / cooldownDuration);
-          const radius = progress * cooldownRadiusMax;
-          p.noStroke();
-          p.fill(200, 150, 255, 100);
-          p.ellipse(circle.x, circle.y, radius * 2, radius * 2);
-        }
-
         // ---------------- Spawners/Updaters ----------------
-        function spawnRectangles(p: any) {
+        function spawnRectangles(p: any, now: number, vw: number, vh: number) {
           if (!allowSpawnsRef.current) return;
           if (!canSpawn()) return;
+
           const inView = rectangles.filter((r) =>
-            verticalMode ? r.y + r.h > 0 && r.y < p.height : r.x + r.w > 0 && r.x < p.width
+            verticalMode ? r.y + r.h > 0 && r.y < vh : r.x + r.w > 0 && r.x < vw
           ).length;
 
           let maxRectangles: number;
-          if (window.innerWidth >= 1025) {
+          const ww = window.innerWidth;
+          const wh = window.innerHeight;
+          if (ww >= 1025) {
             maxRectangles = 50;
             if (inView < 10) rectangleSpawnRate = 6;
             else if (inView < 25) rectangleSpawnRate = 5;
             else if (inView < 40) rectangleSpawnRate = 4;
             else rectangleSpawnRate = 0;
-          } else if (window.innerWidth >= 768) {
+          } else if (ww >= 768) {
             maxRectangles = 60;
             if (inView < 8) rectangleSpawnRate = 5;
             else if (inView < 20) rectangleSpawnRate = 4;
@@ -494,23 +501,23 @@ export default function GameCanvas({
             else rectangleSpawnRate = 1;
           }
 
-          if (rectangleSpawnRate > 0 && p.millis() - lastSpawnTime > 2000 / rectangleSpawnRate && inView < maxRectangles) {
-            rectangles.push(new Shape(p, true, false, verticalMode));
-            lastSpawnTime = p.millis();
+          if (rectangleSpawnRate > 0 && now - lastSpawnTime > 2000 / rectangleSpawnRate && inView < maxRectangles) {
+            rectangles.push(new Shape(p, true, false, verticalMode, GOLD_COLORS));
+            lastSpawnTime = now;
           }
 
           if (rectangles.length > MAX_RECTANGLES) rectangles.splice(0, rectangles.length - MAX_RECTANGLES);
 
-          if (p.millis() % 5000 < 20) {
+          if (now % 5000 < 20) {
             rectangles = rectangles.filter((r) => !isNaN(r.x) && !isNaN(r.y));
           }
         }
 
-        function updateRectangles(p: any, delta: number) {
+        function updateRectangles(p: any, delta: number, now: number, vw: number, vh: number) {
           for (let i = rectangles.length - 1; i >= 0; i--) {
             const r = rectangles[i];
             r.update(delta);
-            r.display();
+            r.display(p);
             if (!demoRef.current && circle.overlaps(r)) gameOver = true;
 
             // projectile collision
@@ -549,8 +556,8 @@ export default function GameCanvas({
             }
 
             const off = verticalMode
-              ? r.y - r.h > p.height + 100 || r.y + r.h < -100
-              : r.x + r.w < -100 || r.x - r.w > p.width + 100;
+              ? r.y - r.h > vh + 100 || r.y + r.h < -100
+              : r.x + r.w < -100 || r.x - r.w > vw + 100;
 
             if (off) {
               rectangles.splice(i, 1);
@@ -558,6 +565,7 @@ export default function GameCanvas({
             }
           }
 
+          // resolve collisions (unchanged logic)
           for (let i = 0; i < rectangles.length; i++) {
             const r1 = rectangles[i];
             for (let j = i + 1; j < rectangles.length; j++) {
@@ -578,22 +586,22 @@ export default function GameCanvas({
           if (projectiles.length > MAX_PROJECTILES) projectiles.splice(0, projectiles.length - MAX_PROJECTILES);
         }
 
-        function spawnOctagons(p: any) {
+        function spawnOctagons(p: any, now: number) {
           if (!allowSpawnsRef.current) return;
           if (!canSpawn()) return;
-          if (p.millis() - lastOctagonSpawnTime > 2000) {
-            if (octagons.length === 0) octagons.push(new Shape(p, true, true, verticalMode));
-            lastOctagonSpawnTime = p.millis();
+          if (now - lastOctagonSpawnTime > 2000) {
+            if (octagons.length === 0) octagons.push(new Shape(p, true, true, verticalMode, GOLD_COLORS));
+            lastOctagonSpawnTime = now;
           }
         }
 
-        function updateOctagons(p: any, delta: number) {
+        function updateOctagons(p: any, delta: number, vw: number, vh: number) {
           const buffer = 150;
 
           for (let i = octagons.length - 1; i >= 0; i--) {
             const o = octagons[i];
             o.update(delta);
-            o.display();
+            o.display(p);
 
             if (circle.overlaps(o)) {
               if (!demoRef.current) {
@@ -624,9 +632,9 @@ export default function GameCanvas({
 
             if (
               o.x + o.size < -buffer ||
-              o.x - o.size > p.width + buffer ||
+              o.x - o.size > vw + buffer ||
               o.y + o.size < -buffer ||
-              o.y - o.size > p.height + buffer
+              o.y - o.size > vh + buffer
             ) {
               octagons.splice(i, 1);
             }
@@ -664,44 +672,69 @@ export default function GameCanvas({
 
         // ---------------- Classes ----------------
         class Circle {
-          p:any;x:number;y:number;vx:number;vy:number;ax:number;ay:number;radius:number;c:any;trail:any[];
+          p:any;x:number;y:number;vx:number;vy:number;ax:number;ay:number;radius:number;c:any;trail:{x:number;y:number}[];
           constructor(p:any,x:number,y:number,r:number){
             this.p=p;this.x=x;this.y=y;this.vx=0;this.vy=0;this.ax=0;this.ay=0;this.radius=r;this.c=p.color(200,150,255);this.trail=[];
           }
-          update(delta:number){
+          update(delta:number, vw:number, vh:number){
             this.vx+=this.ax*delta;this.vy+=this.ay*delta;
-            this.vx*=Math.pow(0.92,delta);this.vy*=Math.pow(0.92,delta);
+            // damping
+            const damp = Math.pow(0.92,delta);
+            this.vx*=damp;this.vy*=damp;
             this.x+=this.vx*delta;this.y+=this.vy*delta;
-            if(this.y+this.radius<0)this.y=this.p.height+this.radius;else if(this.y-this.radius>this.p.height)this.y=-this.radius;
-            if(this.x+this.radius<0)this.x=this.p.width+this.radius;else if(this.x-this.radius>this.p.width)this.x=-this.radius;
-            this.trail.push(this.p.createVector(this.x,this.y));if(this.trail.length>8)this.trail.shift();
-            const lim=10;this.vx=this.p.constrain(this.vx,-lim,lim);this.vy=this.p.constrain(this.vy,-lim,lim);
+
+            // wrap
+            if(this.y+this.radius<0)this.y=vh+this.radius;else if(this.y-this.radius>vh)this.y=-this.radius;
+            if(this.x+this.radius<0)this.x=vw+this.radius;else if(this.x-this.radius>vw)this.x=-this.radius;
+
+            // cheap trail (no p.createVector allocs)
+            this.trail.push({x:this.x,y:this.y});
+            if(this.trail.length>8)this.trail.shift();
+
+            // clamp
+            const lim=10;
+            if(this.vx<-lim)this.vx=-lim; else if(this.vx>lim)this.vx=lim;
+            if(this.vy<-lim)this.vy=-lim; else if(this.vy>lim)this.vy=lim;
           }
-          display(){
-            for(let i=0;i<this.trail.length;i++){
-              const pos=this.trail[i];const a=this.p.map(i,0,this.trail.length-1,30,100);const r=this.p.map(i,0,this.trail.length-1,this.radius/2,this.radius);
-              this.p.fill(200,150,255,a);this.p.noStroke();this.p.ellipse(pos.x,pos.y,r,r);
+          display(pAny:any){
+            const n=this.trail.length;
+            for(let i=0;i<n;i++){
+              const pos=this.trail[i];
+              const a=pAny.map(i,0,n-1,30,100);
+              const r=pAny.map(i,0,n-1,this.radius/2,this.radius);
+              pAny.fill(200,150,255,a);pAny.noStroke();pAny.ellipse(pos.x,pos.y,r,r);
             }
-            this.p.fill(this.c);this.p.noStroke();this.p.ellipse(this.x,this.y,this.radius,this.radius);
+            pAny.fill(this.c);pAny.noStroke();pAny.ellipse(this.x,this.y,this.radius,this.radius);
           }
           moveUp(){this.ay=-0.5;}moveDown(){this.ay=0.5;}moveLeft(){this.ax=-0.5;}moveRight(){this.ax=0.5;}stopVertical(){this.ay=0;}stopHorizontal(){this.ax=0;}
           overlaps(other:any){
-            if(other.isOctagon){const d=this.p.dist(this.x,this.y,other.x+other.size/2,other.y+other.size/2);return d<this.radius+other.size/2;}
-            const cx=this.p.constrain(this.x,other.x,other.x+other.w);const cy=this.p.constrain(this.y,other.y,other.y+other.h);
-            const d=this.p.dist(this.x,this.y,cx,cy);return d<this.radius*0.3;
+            if(other.isOctagon){
+              const dx=this.x-(other.x+other.size/2);
+              const dy=this.y-(other.y+other.size/2);
+              const sumR=this.radius+other.size/2;
+              return dx*dx+dy*dy < sumR*sumR;
+            }
+            const cx = Math.max(other.x, Math.min(this.x, other.x+other.w));
+            const cy = Math.max(other.y, Math.min(this.y, other.y+other.h));
+            const dx = this.x-cx, dy=this.y-cy;
+            const r = this.radius*0.3; // unchanged gameplay fudge
+            return dx*dx+dy*dy < r*r;
           }
         }
 
         class Shape {
           p:any;isOctagon:boolean;verticalMode:boolean;x=0;y=0;vx=0;vy=0;w=0;h=0;size=0;c:any;rotation=0;rotationSpeed=0;
-          constructor(p:any,startOff:boolean,isOct:boolean,vertical:boolean){this.p=p;this.isOctagon=isOct;this.verticalMode=vertical;this.reset(startOff);}
+          private GOLD:any[];
+          constructor(p:any,startOff:boolean,isOct:boolean,vertical:boolean, GOLD:any[]){this.p=p;this.isOctagon=isOct;this.verticalMode=vertical;this.GOLD=GOLD;this.reset(startOff);}
           reset(startOff:boolean){
+            const ww = window.innerWidth;
+            const wh = window.innerHeight;
             if(this.verticalMode){
               this.x=this.p.random(this.p.width);
               if(this.isOctagon){
                 this.y=startOff?-this.p.random(30,60):this.p.random(this.p.height);this.vx=this.p.random(-1.2,1.2);
                 if(this.p.random()<0.1)this.vy=this.p.random(6,9);else if(this.p.random()<0.2)this.vy=this.p.random(0.5,1.5);else this.vy=this.p.random(2,5);
-                this.size=25;this.c=this.p.random(GOLD_COLORS);
+                this.size=25;this.c=this.p.random(this.GOLD);
               } else {
                 this.y=startOff?-this.p.random(60,120):this.p.random(this.p.height);this.vx=this.p.random(-0.5,0.5);this.vy=this.p.random(1,3);
                 this.w=this.p.random(28,70);this.h=this.p.random(28,70);this.c=this.p.color(235,235,255);
@@ -709,29 +742,29 @@ export default function GameCanvas({
             } else {
               this.x=startOff?this.p.width+this.p.random(10,40):this.p.random(this.p.width);this.y=this.p.random(this.p.height);
               if(this.isOctagon){
-                let baseX=this.p.random(-2.5,-0.5);if(window.innerWidth>=1025&&window.innerWidth>window.innerHeight)baseX*=4.5;
+                let baseX=this.p.random(-2.5,-0.5);if(ww>=1025&&ww>wh)baseX*=4.5;
                 if(this.p.random()<0.1)baseX*=2;else if(this.p.random()<0.2)baseX*=0.5;this.vx=baseX;this.vy=this.p.random(-0.3,0.3);this.size=25;
-                this.c=this.p.random(GOLD_COLORS);
+                this.c=this.p.random(this.GOLD);
               } else {
                 this.vx=this.p.random(-3,-1);this.vy=this.p.random(-0.5,0.5);
-                if(window.innerWidth>=1025&&window.innerWidth>window.innerHeight){this.w=this.p.random(33,105);this.h=this.p.random(33,105);}
+                if(ww>=1025&&ww>wh){this.w=this.p.random(33,105);this.h=this.p.random(33,105);}
                 else{this.w=this.p.random(30,75);this.h=this.p.random(30,75);}this.c=this.p.color(235,235,255);
               }
             }
             this.rotation=0;this.rotationSpeed=this.p.random(-1,1);
           }
           update(delta:number){this.x+=this.vx*delta;this.y+=this.vy*delta;this.rotation+=this.rotationSpeed*delta;}
-          display(){
-            this.p.push();
-            this.p.translate(this.x+(this.isOctagon?this.size/2:this.w/2),this.y+(this.isOctagon?this.size/2:this.h/2));
-            this.p.rotate(this.p.radians(this.rotation));this.p.fill(this.c);this.p.noStroke();
-            if(this.isOctagon)this.drawOctagon(0,0,this.size);else{this.p.rectMode(this.p.CENTER);this.p.rect(0,0,this.w,this.h);}
-            this.p.pop();
+          display(pAny:any){
+            pAny.push();
+            pAny.translate(this.x+(this.isOctagon?this.size/2:this.w/2),this.y+(this.isOctagon?this.size/2:this.h/2));
+            pAny.rotate(pAny.radians(this.rotation));pAny.fill(this.c);pAny.noStroke();
+            if(this.isOctagon)this.drawOctagon(pAny,0,0,this.size);else{pAny.rectMode(pAny.CENTER);pAny.rect(0,0,this.w,this.h);}
+            pAny.pop();
           }
-          drawOctagon(x:number,y:number,size:number){
-            const step=this.p.TWO_PI/8;this.p.beginShape();
-            for(let i=0;i<8;i++){const ang=i*step;const px=x+this.p.cos(ang)*size/2;const py=y+this.p.sin(ang)*size/2;this.p.vertex(px,py);}
-            this.p.endShape(this.p.CLOSE);
+          drawOctagon(pAny:any,x:number,y:number,size:number){
+            const step=pAny.TWO_PI/8;pAny.beginShape();
+            for(let i=0;i<8;i++){const ang=i*step;const px=x+Math.cos(ang)*size/2;const py=y+Math.sin(ang)*size/2;pAny.vertex(px,py);}
+            pAny.endShape(pAny.CLOSE);
           }
           overlaps(o:any){
             const w1=this.isOctagon?this.size:this.w;const h1=this.isOctagon?this.size:this.h;const w2=o.isOctagon?o.size:o.w;const h2=o.isOctagon?o.size:o.h;
@@ -752,32 +785,38 @@ export default function GameCanvas({
           p:any;x:number;y:number;vx:number;vy:number;lifespan:number;c:any;
           constructor(p:any,x:number,y:number,lifespan=255,c=p.color(255,215,0),srcVx=0,srcVy=0,mul:number|null=null){
             this.p=p;this.x=x;this.y=y;this.lifespan=lifespan;this.c=c;
-            const srcSpeed=Math.sqrt(srcVx*srcVx+srcVy*srcVy);let speed=p.map(srcSpeed,0,5,1,3);speed=p.constrain(speed,1.2,3.5);if(mul!=null)speed*=mul;
+            const srcSpeed=Math.hypot(srcVx,srcVy);
+            let speed=p.map(srcSpeed,0,5,1,3);speed=p.constrain(speed,1.2,3.5);if(mul!=null)speed*=mul;
             const ang=p.random(0,p.TWO_PI);this.vx=Math.cos(ang)*speed+srcVx*0.1;this.vy=Math.sin(ang)*speed+srcVy*0.1;
           }
           update(delta:number){this.x+=this.vx*delta;this.y+=this.vy*delta;this.lifespan-=1*delta;}
-          display(){this.p.noStroke();this.p.fill(this.c.levels[0],this.c.levels[1],this.c.levels[2],this.lifespan);this.p.ellipse(this.x,this.y,4,4);}
+          display(pAny:any){pAny.noStroke();pAny.fill(this.c.levels[0],this.c.levels[1],this.c.levels[2],this.lifespan);pAny.ellipse(this.x,this.y,4,4);}
           isDead(){return this.lifespan<=0;}
         }
 
         class Projectile {
-          p:any;x:number;y:number;vx:number;vy:number;radius:number;lifespan:number;trail:{x:number;y:number;alpha:number}[];color:any;
+          p:any;x:number;y:number;vx:number;vy:number;ux:number;uy:number;radius:number;lifespan:number;trail:{x:number;y:number;alpha:number}[];color:any;
           minSpeed=0.6;maxSpeed=12;speed=this.minSpeed;targetSpeed=8;acceleration=3;
           constructor(p:any,x:number,y:number,vx:number,vy:number){
-            this.p=p;this.x=x;this.y=y;const mag=Math.sqrt(vx*vx+vy*vy)||1;const dx=vx/mag;const dy=vy/mag;this.vx=dx*this.speed;this.vy=dy*this.speed;this.radius=6;this.lifespan=500;this.trail=[];this.color=p.color(200,150,255);
+            this.p=p;this.x=x;this.y=y;
+            const mag=Math.hypot(vx,vy)||1;
+            this.ux=vx/mag;this.uy=vy/mag;
+            this.vx=this.ux*this.speed;this.vy=this.uy*this.speed;this.radius=6;this.lifespan=500;this.trail=[];this.color=p.color(200,150,255);
           }
           update(delta:number){
+            // accelerate speed toward target, direction unchanged
             this.speed+=(this.targetSpeed-this.speed)*this.acceleration*delta;
             if(this.speed<this.minSpeed)this.speed=this.minSpeed;if(this.speed>this.maxSpeed)this.speed=this.maxSpeed;
-            const mag=Math.sqrt(this.vx*this.vx+this.vy*this.vy)||1;const dx=this.vx/mag;const dy=this.vy/mag;this.vx=dx*this.speed;this.vy=dy*this.speed;
-            this.x+=this.vx*delta;this.y+=this.vy*delta;this.lifespan-=1*delta;this.trail.push({x:this.x,y:this.y,alpha:160});if(this.trail.length>20)this.trail.shift();
+            this.vx=this.ux*this.speed;this.vy=this.uy*this.speed;
+            this.x+=this.vx*delta;this.y+=this.vy*delta;this.lifespan-=1*delta;
+            this.trail.push({x:this.x,y:this.y,alpha:160});if(this.trail.length>20)this.trail.shift();
             for(let i=0;i<this.trail.length;i++)this.trail[i].alpha*=0.8;
           }
-          display(){
-            for(let i=0;i<this.trail.length;i++){const t=this.trail[i];this.p.fill(200,150,255,t.alpha);this.p.noStroke();this.p.ellipse(t.x,t.y,this.radius*2,this.radius*2);}
-            this.p.fill(this.color);this.p.noStroke();this.p.ellipse(this.x,this.y,this.radius*2,this.radius*2);
+          display(pAny:any){
+            for(let i=0;i<this.trail.length;i++){const t=this.trail[i];pAny.fill(200,150,255,t.alpha);pAny.noStroke();pAny.ellipse(t.x,t.y,this.radius*2,this.radius*2);}
+            pAny.fill(this.color);pAny.noStroke();pAny.ellipse(this.x,this.y,this.radius*2,this.radius*2);
           }
-          isDead(){return this.lifespan<=0||this.x<0||this.x>this.p.width||this.y<0||this.y>this.p.height;}
+          isDead(vw:number,vh:number){return this.lifespan<=0||this.x<0||this.x>vw||this.y<0||this.y>vh;}
         }
 
         class RectangleProjectile {
@@ -787,12 +826,12 @@ export default function GameCanvas({
             this.lifespan=80;this.maxLifespan=this.lifespan;this.color=p.color(color);this.rotation=p.random(360);this.rotationSpeed=p.random(-20,20);
           }
           update(delta:number){this.x+=this.vx*delta;this.y+=this.vy*delta;this.lifespan-=1*delta;this.rotation+=this.rotationSpeed*delta;}
-          display(){
-            this.p.push();this.p.translate(this.x,this.y);this.p.rotate(this.p.radians(this.rotation));
-            const a=this.p.map(this.lifespan,0,this.maxLifespan,0,255);this.p.fill(this.color.levels[0],this.color.levels[1],this.color.levels[2],a);
-            this.p.noStroke();this.p.rectMode(this.p.CENTER);this.p.rect(0,0,this.size,this.size);this.p.pop();
+          display(pAny:any){
+            pAny.push();pAny.translate(this.x,this.y);pAny.rotate(pAny.radians(this.rotation));
+            const a=pAny.map(this.lifespan,0,this.maxLifespan,0,255);pAny.fill(this.color.levels[0],this.color.levels[1],this.color.levels[2],a);
+            pAny.noStroke();pAny.rectMode(pAny.CENTER);pAny.rect(0,0,this.size,this.size);pAny.pop();
           }
-          isDead(){return this.lifespan<=0||this.x<-50||this.x>this.p.width+50||this.y<-50||this.y>this.p.height+50;}
+          isDead(vw:number,vh:number){return this.lifespan<=0||this.x<-50||this.x>vw+50||this.y<-50||this.y>vh+50;}
         }
       }; // end sketch
 

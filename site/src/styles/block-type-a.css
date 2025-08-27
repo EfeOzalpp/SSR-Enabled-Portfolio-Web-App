@@ -78,8 +78,15 @@
 
 .embedded-app {
   touch-action: pan-y;
-  overscroll-behavior: contain;
+  overscroll-behavior: auto;
   -webkit-overflow-scrolling: touch;
   overflow-y: auto;
   max-height: 100%;
+}
+
+/* Outer scroller */
+.SnappyScrollThingy {
+  overscroll-behavior: auto;     /* ensure it can receive chained scrolls */
+  scroll-snap-type: y mandatory; /* your snapping stays intact */
+  -webkit-overflow-scrolling: touch; /* nice momentum on iOS */
 }

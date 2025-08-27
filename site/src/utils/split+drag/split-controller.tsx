@@ -1,14 +1,18 @@
-// utils/split-controller.tsx
 import React, { useRef, useEffect, useLayoutEffect, useState } from 'react';
 import lottie from 'lottie-web';
-import { useProjectVisibility } from './context-providers/project-context';
-import arrowData2 from '../svg/arrow2.json';
-import { applySplitStyle, MIN_PORTRAIT_SPLIT } from '../ssr/logic/apply-split-style';
+import { useProjectVisibility } from '../context-providers/project-context';
+import arrowData2 from '../../svg/arrow2.json';
+import {
+  applySplitStyle,
+  getPortraitMinSplit,
+} from '../../ssr/logic/apply-split-style';
 
 type SplitDragHandlerProps = {
   split: number;
   setSplit: React.Dispatch<React.SetStateAction<number>>;
-  ids?: { m1: string; m2: string }; // optional (used for ssr components)
+  ids?: { m1: string; m2: string }; // optional (used by SSR-enhanced blocks)
+  /** Optional per-instance override (else it uses viewport-based rules). */
+  minPortraitSplit?: number;
 };
 
 const FLOOR_EPS = 0.25;
@@ -17,7 +21,12 @@ const PULSE_FADE_MS = 1500;
 const PULSE_HOLD_MS = 180;
 const PULSE_COOLDOWN_MS = 700;
 
-const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, ids }) => {
+const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({
+  split,
+  setSplit,
+  ids,
+  minPortraitSplit,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { setIsDragging } = useProjectVisibility();
 
@@ -33,6 +42,13 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
   );
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
+  // keep a live min floor based on viewport width (unless override provided)
+  const minRef = useRef<number>(
+    typeof minPortraitSplit === 'number'
+      ? minPortraitSplit
+      : getPortraitMinSplit(typeof window !== 'undefined' ? window.innerWidth : undefined)
+  );
+
   // pinch-to-reset helpers
   const initialPinchDistance = useRef<number | null>(null);
   const pinchTriggeredRef = useRef(false);
@@ -46,32 +62,28 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
     let currentSegment: [number, number] | null = null;
 
     return (segment: [number, number], holdFrame: number) => {
-      const arrowAnim = arrowAnimRef.current;
-      if (!arrowAnim) return;
+      const anim = arrowAnimRef.current;
+      if (!anim) return;
 
       if (lastCompleteHandler) {
-        arrowAnim.removeEventListener('complete', lastCompleteHandler as any);
+        anim.removeEventListener('complete', lastCompleteHandler as any);
         lastCompleteHandler = null;
       }
 
       currentSegment = segment;
 
       const onComplete = () => {
-        arrowAnim.removeEventListener('complete', onComplete as any);
+        anim.removeEventListener('complete', onComplete as any);
         lastCompleteHandler = null;
-        const currentFrame = (arrowAnim as any).currentFrame ?? 0;
-        if (
-          currentSegment &&
-          currentSegment[1] !== undefined &&
-          Math.abs(currentFrame - currentSegment[1]) <= 2
-        ) {
-          arrowAnim.goToAndStop(holdFrame, true);
+        const currentFrame = (anim as any).currentFrame ?? 0;
+        if (currentSegment && Math.abs(currentFrame - currentSegment[1]) <= 2) {
+          anim.goToAndStop(holdFrame, true);
         }
       };
 
       lastCompleteHandler = onComplete;
-      arrowAnim.addEventListener('complete', onComplete as any);
-      arrowAnim.playSegments(segment, true);
+      anim.addEventListener('complete', onComplete as any);
+      anim.playSegments(segment, true);
     };
   })();
 
@@ -96,30 +108,38 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
     }
   };
 
-  // Initial apply
+  // Initial apply (SSR ids only)
   useLayoutEffect(() => {
-    if (!ids) return; // only if ids are given
+    if (!ids) return;
     const portraitNow = window.innerHeight > window.innerWidth;
     setIsPortrait(portraitNow);
-    applySplitStyle(splitRef.current, portraitNow, ids);
-  }, [ids]);
+    minRef.current =
+      typeof minPortraitSplit === 'number'
+        ? minPortraitSplit
+        : getPortraitMinSplit(window.innerWidth);
+    applySplitStyle(splitRef.current, portraitNow, ids, minRef.current);
+  }, [ids, minPortraitSplit]);
 
   // Resize/orientation listener
   useEffect(() => {
     const handleResize = () => {
       const portraitNow = window.innerHeight > window.innerWidth;
       setIsPortrait(portraitNow);
-      if (ids) applySplitStyle(splitRef.current, portraitNow, ids);
+      minRef.current =
+        typeof minPortraitSplit === 'number'
+          ? minPortraitSplit
+          : getPortraitMinSplit(window.innerWidth);
+      if (ids) applySplitStyle(splitRef.current, portraitNow, ids, minRef.current);
     };
     window.addEventListener('resize', handleResize, { passive: true });
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
     return () => window.removeEventListener('resize', handleResize);
-  }, [ids]);
+  }, [ids, minPortraitSplit]);
 
   // Sync DOM on split/orientation change
   useEffect(() => {
     splitRef.current = split;
-    if (ids) applySplitStyle(split, isPortrait, ids);
+    if (ids) applySplitStyle(split, isPortrait, ids, minRef.current);
   }, [split, isPortrait, ids]);
 
   const handlePointerMove = (clientX: number, clientY: number) => {
@@ -127,20 +147,30 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
 
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const isNowPortrait = vh > vw;
+    const portraitNow = vh > vw;
 
-    let next = isNowPortrait ? (clientY / vh) * 100 : (clientX / vw) * 100;
-    next = isNowPortrait
-      ? Math.max(MIN_PORTRAIT_SPLIT, Math.min(100, next))
-      : Math.max(0, Math.min(100, next));
+    // live recompute (covers device rotation while dragging)
+    const minPortrait =
+      typeof minPortraitSplit === 'number' ? minPortraitSplit : getPortraitMinSplit(vw);
+
+    let next = portraitNow ? (clientY / vh) * 100 : (clientX / vw) * 100;
+
+    if (portraitNow) {
+      const TOP = minPortrait;
+      const BOTTOM = 100 - minPortrait;
+      next = Math.max(TOP, Math.min(BOTTOM, next));
+
+      // pulse when user hits either floor
+      if (next <= TOP + FLOOR_EPS || next >= BOTTOM - FLOOR_EPS) {
+        pulseLottie();
+      }
+    } else {
+      next = Math.max(0, Math.min(100, next));
+    }
 
     splitRef.current = next;
     setSplit(next);
-    if (ids) applySplitStyle(next, isNowPortrait, ids);
-
-    if (isNowPortrait && next <= MIN_PORTRAIT_SPLIT + FLOOR_EPS) {
-      pulseLottie();
-    }
+    if (ids) applySplitStyle(next, portraitNow, ids, minPortrait);
   };
 
   const handleMouseMove = (e: MouseEvent) => handlePointerMove(e.clientX, e.clientY);
@@ -163,7 +193,7 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
           setIsDragging(false);
           splitRef.current = 50;
           setSplit(50);
-          if (ids) applySplitStyle(50, isPortrait, ids);
+          if (ids) applySplitStyle(50, isPortrait, ids, minRef.current);
           initialPinchDistance.current = null;
         }
       }
@@ -175,10 +205,10 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
     isDraggingRef.current = true;
     setIsDragging(true);
 
-    const arrowAnim = arrowAnimRef.current;
-    if (arrowAnim) {
-      if (isTouchDevice) arrowAnim.playSegments([0, 25], true);
-      else arrowAnim.goToAndStop(25, true);
+    const anim = arrowAnimRef.current;
+    if (anim) {
+      if (isTouchDevice) anim.playSegments([0, 25], true);
+      else anim.goToAndStop(25, true);
     }
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -191,11 +221,11 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
     isDraggingRef.current = false;
     setIsDragging(false);
 
-    const arrowAnim = arrowAnimRef.current;
-    if (arrowAnim) {
-      if (isTouchDevice) arrowAnim.playSegments([25, 75], true);
-      else if (isHoveringRef.current) arrowAnim.goToAndStop(25, true);
-      else arrowAnim.playSegments([25, 75], true);
+    const anim = arrowAnimRef.current;
+    if (anim) {
+      if (isTouchDevice) anim.playSegments([25, 75], true);
+      else if (isHoveringRef.current) anim.goToAndStop(25, true);
+      else anim.playSegments([25, 75], true);
     }
 
     window.removeEventListener('mousemove', handleMouseMove);
@@ -233,17 +263,35 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({ split, setSplit, id
       const t = e.changedTouches[0];
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const isNowPortrait = vh > vw;
-      endSplit = isNowPortrait ? (t.clientY / vh) * 100 : (t.clientX / vw) * 100;
-      endSplit = isNowPortrait
-        ? Math.max(MIN_PORTRAIT_SPLIT, Math.min(100, endSplit))
-        : Math.max(0, Math.min(100, endSplit));
+      const portraitNow = vh > vw;
+      endSplit = portraitNow ? (t.clientY / vh) * 100 : (t.clientX / vw) * 100;
+
+      const minPortrait =
+        typeof minPortraitSplit === 'number' ? minPortraitSplit : getPortraitMinSplit(vw);
+
+      if (portraitNow) {
+        const TOP = minPortrait;
+        const BOTTOM = 100 - minPortrait;
+        endSplit = Math.max(TOP, Math.min(BOTTOM, endSplit));
+      } else {
+        endSplit = Math.max(0, Math.min(100, endSplit));
+      }
     }
     stopDragging();
-    if (endSplit <= MIN_PORTRAIT_SPLIT + FLOOR_EPS) {
-      await pulseLottie();
-      arrowAnimRef.current?.playSegments([25, 75], true);
+
+    if (isPortrait) {
+      const minPortrait =
+        typeof minPortraitSplit === 'number'
+          ? minPortraitSplit
+          : getPortraitMinSplit(window.innerWidth);
+      const TOP = minPortrait;
+      const BOTTOM = 100 - minPortrait;
+      if (endSplit <= TOP + FLOOR_EPS || endSplit >= BOTTOM - FLOOR_EPS) {
+        await pulseLottie();
+        arrowAnimRef.current?.playSegments([25, 75], true);
+      }
     }
+
     initialPinchDistance.current = null;
     pinchTriggeredRef.current = false;
   };

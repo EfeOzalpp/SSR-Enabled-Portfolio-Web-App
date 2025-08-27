@@ -160,6 +160,51 @@ const setupIntersectionObserver = (pauseAnimation, rootElement = document) => {
 
 /***/ }),
 
+/***/ "./src/dynamic-app/lib/palette-controller.ts":
+/*!***************************************************!*\
+  !*** ./src/dynamic-app/lib/palette-controller.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   computeStateFromPalette: () => (/* binding */ computeStateFromPalette),
+/* harmony export */   resolvePalette: () => (/* binding */ resolvePalette)
+/* harmony export */ });
+// src/dynamic-app/lib/palette-controller.ts
+
+const WHITE = '#FFFFFF';
+
+// resolve alt → palette (handles trailing spaces too)
+function resolvePalette(altRaw, colorMapping) {
+  if (!altRaw) return null;
+  const exact = colorMapping[altRaw];
+  if (Array.isArray(exact)) return exact;
+  const trimmed = colorMapping[altRaw.trim()];
+  if (Array.isArray(trimmed)) return trimmed;
+  return null;
+}
+
+// compute state from a quartet
+function computeStateFromPalette(q, win = window) {
+  const palette = q ?? [WHITE, WHITE, WHITE, WHITE];
+  const [c0, c1, c2, c3] = palette;
+
+  // desktop/mobile branching for first slot
+  const isDesktop = win.innerWidth >= 1024;
+  const first = isDesktop ? c1 ?? WHITE : c0 ?? WHITE;
+  const movingText = [first, c1 ?? WHITE, c3 ?? c2 ?? WHITE];
+  const activeColor = c2 ?? WHITE;
+  return {
+    activeColor,
+    movingText,
+    lastKnown: activeColor
+  };
+}
+
+/***/ }),
+
 /***/ "./src/dynamic-app/lib/svg-icon-map.ts":
 /*!*********************************************!*\
   !*** ./src/dynamic-app/lib/svg-icon-map.ts ***!
@@ -344,7 +389,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../styles/dynamic-app/misc.css?raw */ "./src/styles/dynamic-app/misc.css?raw");
 /* harmony import */ var _styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(_styles_dynamic_app_misc_css_raw__WEBPACK_IMPORTED_MODULE_9__);
 /* harmony import */ var _dynamic_app_lib_svg_icon_map__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../dynamic-app/lib/svg-icon-map */ "./src/dynamic-app/lib/svg-icon-map.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _lib_palette_controller__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../lib/palette-controller */ "./src/dynamic-app/lib/palette-controller.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
 
@@ -356,6 +402,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// use the actual export you have
+
+
+// local types to satisfy TS based on your controller’s API
 
 // client-only chunks
 const Navigation = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])({
@@ -627,7 +677,7 @@ function NavigationPortal(props) {
     setTarget(document.getElementById('dynamic-nav-mount'));
   }, []);
   if (!target) return null;
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(Navigation, {
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(Navigation, {
     items: props.items,
     customArrowIcon2: props.arrow1,
     customArrowIcon: props.arrow2,
@@ -642,11 +692,11 @@ function FireworksPortal(props) {
     setTarget(document.getElementById('dynamic-fireworks-mount'));
   }, []);
   if (!target) return null;
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(FireworksDisplay, {
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(FireworksDisplay, {
     colorMapping: _dynamic_app_lib_colorString__WEBPACK_IMPORTED_MODULE_7__.colorMapping,
     items: props.items,
-    activeColor: "#FFFFFF",
-    lastKnownColor: "#FFFFFF",
+    activeColor: props.activeColor,
+    lastKnownColor: props.lastKnownColor,
     onToggleFireworks: props.onToggleFireworks || (() => {})
   }), target);
 }
@@ -656,7 +706,7 @@ function TitlePortal(props) {
     setTarget(document.getElementById('dynamic-title-mount'));
   }, []);
   if (!target) return null;
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(TitleDivider, {
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(TitleDivider, {
     svgIcon: props.logoSvg || '',
     movingTextColors: props.movingTextColors || ['#FFFFFF', '#FFFFFF', '#FFFFFF'],
     pauseAnimation: !!props.pauseAnimation
@@ -668,9 +718,9 @@ function PausePortal(props) {
     setTarget(document.getElementById('dynamic-pause-mount'));
   }, []);
   if (!target) return null;
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)("div", {
     className: "pause-button-wrapper",
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(PauseButton, {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(PauseButton, {
       toggleP5Animation: props.onToggle
     })
   }), target);
@@ -681,7 +731,7 @@ function FooterPortal(props) {
     setTarget(document.getElementById('dynamic-footer-mount'));
   }, []);
   if (!target) return null;
-  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(Footer, {
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_2__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(Footer, {
     customArrowIcon2: props.arrow1,
     linkArrowIcon: props.linkArrowIcon
   }), target);
@@ -691,32 +741,25 @@ function FooterPortal(props) {
 function DynamicThemeRoute() {
   const ssr = (0,_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_3__.useSsrData)();
   const preload = ssr?.preloaded?.dynamicTheme;
-
-  // state
   const [items, setItems] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(Array.isArray(preload?.images) ? preload.images : []);
   const [icons, setIcons] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)((0,_dynamic_app_lib_svg_icon_map__WEBPACK_IMPORTED_MODULE_10__.normalizeIconMap)(preload?.icons || {}));
   const [pauseAnimation, setPauseAnimation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [activeColor, setActiveColor] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('#FFFFFF');
-
-  // wire PauseButton ↔ FireworksDisplay
+  const [movingTextColors, setMovingTextColors] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(['#FFFFFF', '#FFFFFF', '#FFFFFF']);
+  const [lastKnownColor, setLastKnownColor] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('#FFFFFF');
   const fwToggleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const handleSetToggleFireworks = fn => {
     fwToggleRef.current = fn;
   };
   const handlePauseToggle = isEnabled => {
-    // isEnabled=true means animations ON → pauseAnimation false
     setPauseAnimation(!isEnabled);
     try {
       fwToggleRef.current?.(isEnabled);
     } catch {}
   };
-
-  // hydrate from SSR payload
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (preload) (0,_preload_dynamic_app_route__WEBPACK_IMPORTED_MODULE_5__.primeDynamicThemeFromSSR)(preload);
   }, [preload]);
-
-  // prime from window bootstrap if present
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const w = typeof window !== 'undefined' ? window : null;
     const boot = w?.__DYNAMIC_THEME_PRELOAD__;
@@ -726,8 +769,6 @@ function DynamicThemeRoute() {
       (0,_preload_dynamic_app_route__WEBPACK_IMPORTED_MODULE_5__.primeDynamicThemeFromSSR)(boot);
     }
   }, []);
-
-  // client-only ensure (no reseed)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     let dead = false;
     (async () => {
@@ -742,9 +783,7 @@ function DynamicThemeRoute() {
     return () => {
       dead = true;
     };
-  }, []); // once
-
-  // FINAL FALLBACK: fetch icons on client if still missing
+  }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     let dead = false;
     (async () => {
@@ -765,42 +804,50 @@ function DynamicThemeRoute() {
     };
   }, [icons]);
 
-  // enhance SSR snapshot (HQ image upgrade + DOM-driven SortBy + color from order)
+  // compute palette-driven state from the enhancer (which gives a Quartet)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (typeof window !== 'undefined') (0,_ssr_dynamic_app_UIcards_sort__WEBPACK_IMPORTED_MODULE_6__.enhanceDynamicThemeSSR)({
-      onColorChange: (alt, colors) => {
-        if (Array.isArray(colors) && colors[2]) setActiveColor(colors[2]);
+      onColorChange: (_alt, palette) => {
+        // only accept quartets
+        if (!Array.isArray(palette) || palette.length < 4) return;
+        const {
+          activeColor: nextActive,
+          movingText: nextTriplet,
+          lastKnown
+        } = (0,_lib_palette_controller__WEBPACK_IMPORTED_MODULE_11__.computeStateFromPalette)(palette);
+        if (nextActive !== activeColor) {
+          setActiveColor(nextActive);
+          setLastKnownColor(lastKnown ?? nextActive);
+        }
+        setMovingTextColors(nextTriplet);
       }
     });
-  }, []);
-
-  // props for portals
+  }, [activeColor]);
   const propsMemo = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => ({
     items,
     arrow1: icons['arrow1'] || '',
-    // Navigation.customArrowIcon2 + Footer.customArrowIcon2
     arrow2: icons['arrow2'] || '',
-    // Navigation.customArrowIcon
     linkArrowIcon: icons['link-icon'] || '',
-    // Footer.linkArrowIcon
-    logoSmall: icons['logo-small-1'] || '' // TitleDivider.svgIcon
+    logoSmall: icons['logo-small-1'] || ''
   }), [items, icons]);
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.Fragment, {
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(DynamicTheme, {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(NavigationPortal, {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.Fragment, {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(DynamicTheme, {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(NavigationPortal, {
       items: propsMemo.items,
       arrow1: propsMemo.arrow1,
       arrow2: propsMemo.arrow2,
       activeColor: activeColor
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(FireworksPortal, {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(FireworksPortal, {
       items: propsMemo.items,
+      activeColor: activeColor,
+      lastKnownColor: lastKnownColor,
       onToggleFireworks: handleSetToggleFireworks
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(TitlePortal, {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(TitlePortal, {
       logoSvg: propsMemo.logoSmall,
-      movingTextColors: ['#FFFFFF', '#FFFFFF', '#FFFFFF'],
+      movingTextColors: movingTextColors,
       pauseAnimation: pauseAnimation
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(PausePortal, {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(PausePortal, {
       onToggle: handlePauseToggle
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(FooterPortal, {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_12__.jsx)(FooterPortal, {
       arrow1: propsMemo.arrow1,
       linkArrowIcon: propsMemo.linkArrowIcon
     })]

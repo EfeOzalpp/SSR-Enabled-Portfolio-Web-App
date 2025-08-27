@@ -6,6 +6,22 @@ import { ProjectPane } from './project-pane';
 import { useSsrData } from './context-providers/ssr-data-context';
 import { seededShuffle } from './seed';
 
+/* ===========================
+   Synthetic Drag: Type Augments
+   =========================== */
+declare global {
+  interface DocumentEventMap {
+    'synthetic-drag': CustomEvent<{
+      phase: 'start' | 'move' | 'end';
+      direction: 'up' | 'down';
+      magnitude: number;     // px intention applied to the OUTER scroller
+      velocity?: number;     // px/ms (optional)
+      source: 'touch' | 'wheel';
+      ts: number;            // performance.now()
+    }>;
+  }
+}
+
 const ScrollController = () => {
   const { scrollContainerRef, focusedProjectKey, currentIndex } = useProjectVisibility();
   const { seed = 12345 } = useSsrData() || {};
@@ -30,6 +46,7 @@ const ScrollController = () => {
     return () => window.removeEventListener('resize', updateViewportStyle);
   }, []);
 
+  // temporarily disable snap after index changes, to allow smooth momentum handoff
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -38,6 +55,7 @@ const ScrollController = () => {
     return () => clearTimeout(timeout);
   }, [currentIndex, scrollContainerRef]);
 
+  // hide non-focused cards while focused
   useEffect(() => {
     if (focusedProjectKey) {
       const keysToHide = projects.filter(p => p.key !== focusedProjectKey).map(p => p.key);
@@ -52,150 +70,99 @@ const ScrollController = () => {
     if (focusedProjectKey) setJustExitedFocusKey(focusedProjectKey);
   }, [focusedProjectKey]);
 
-  /**
-   * Global, capture-phase edge handoff for both wheel & touch.
-   * - Uses composedPath() so it works through Shadow DOM.
-   * - Finds the nearest scrollable in the path (overflow:auto/scroll and scrollHeight > clientHeight).
-   * - When at top/bottom edge, prevents default and scrolls the outer container instead.
-   * - Enabled only while #block-dynamic is in view.
-   */
+  /* ===========================
+     Edge signalling only (no cancel, no programmatic scroll)
+     =========================== */
   useEffect(() => {
-    const outer = scrollContainerRef.current;
-    if (!outer) return;
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
 
-    let enabled = false;
-    let hostIO: IntersectionObserver | null = null;
+    let cleanupFns: Array<() => void> = [];
+    const observer = new MutationObserver(() => {
+      const embeddedEl = document.querySelector('.embedded-app') as HTMLElement | null;
+      if (!embeddedEl) return;
+      if (cleanupFns.length > 0) return;
 
-    // Track a single active touch gesture
-    let activeScrollEl: HTMLElement | null = null;
-    let touchActive = false;
-    let lastY = 0;
+      const atTop = () => embeddedEl.scrollTop <= 0;
+      const atBottom = () => embeddedEl.scrollTop + embeddedEl.clientHeight >= embeddedEl.scrollHeight - 1;
 
-    const getPath = (e: Event): EventTarget[] =>
-      (e as any).composedPath ? (e as any).composedPath() : [e.target as EventTarget];
+      const fireSyntheticDrag = (
+        phase: 'start' | 'move' | 'end',
+        direction: 'up' | 'down',
+        magnitude: number,
+        source: 'touch' | 'wheel',
+        velocity?: number
+      ) => {
+        const evt = new CustomEvent('synthetic-drag', {
+          detail: { phase, direction, magnitude, velocity, source, ts: performance.now() },
+          bubbles: true,
+          composed: true,
+        });
+        scrollContainer.dispatchEvent(evt);
+      };
 
-    const isScrollableEl = (el: HTMLElement) => {
-      const cs = getComputedStyle(el);
-      const canScrollY = (cs.overflowY === 'auto' || cs.overflowY === 'scroll');
-      return canScrollY && el.scrollHeight > el.clientHeight;
-    };
+      // TOUCH — passive; never preventDefault; only emit synthetic-drag at edges
+      let lastY = 0;
+      let lastTs = 0;
 
-    const findScrollableInPath = (path: EventTarget[]): HTMLElement | null => {
-      for (const t of path) {
-        if (!(t instanceof HTMLElement)) continue;
-        // Prefer an explicit marker if you use one:
-        if (t.classList?.contains('embedded-app')) return t;
-        if (isScrollableEl(t)) return t;
-      }
-      return null;
-    };
+      const handleTouchStart = (e: TouchEvent) => {
+        if (e.touches.length === 1) {
+          lastY = e.touches[0].clientY;
+          lastTs = performance.now();
+          fireSyntheticDrag('start', 'down', 0, 'touch');
+        }
+      };
 
-    const atTop = (el: HTMLElement) => el.scrollTop <= 0;
-    const atBottom = (el: HTMLElement) => (el.scrollTop + el.clientHeight) >= (el.scrollHeight - 1);
+      const handleTouchMove = (e: TouchEvent) => {
+        if (e.touches.length !== 1) return;
+        const y = e.touches[0].clientY;
+        const dy = y - lastY; // >0 down, <0 up
+        const now = performance.now();
+        const dt = Math.max(1, now - lastTs);
+        const velocity = Math.abs(dy) / dt; // px/ms
+        lastY = y;
+        lastTs = now;
 
-    // ----- Wheel (desktop, trackpads) -----
-    const onWheel = (e: WheelEvent) => {
-      if (!enabled) return;
-      const path = getPath(e);
-      const scrollEl = findScrollableInPath(path);
-      if (!scrollEl) return;
+        // Only announce when the inner scroller is at an edge and user drags further toward that edge
+        if ((dy > 0 && atTop()) || (dy < 0 && atBottom())) {
+          fireSyntheticDrag('move', dy < 0 ? 'down' : 'up', Math.abs(dy), 'touch', velocity);
+        }
+      };
 
-      // If the inner can still scroll, let it handle
-      const goingDown = e.deltaY > 0;
-      if (goingDown && !atBottom(scrollEl)) return;
-      if (!goingDown && !atTop(scrollEl)) return;
+      const handleTouchEnd = () => {
+        fireSyntheticDrag('end', 'down', 0, 'touch');
+      };
 
-      // Edge hit: hand off to outer
-      e.preventDefault();
-      outer.scrollBy({ top: e.deltaY > 0 ? 300 : -300, behavior: 'smooth' });
-    };
+      embeddedEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+      embeddedEl.addEventListener('touchmove', handleTouchMove, { passive: true });
+      embeddedEl.addEventListener('touchend', handleTouchEnd, { passive: true });
 
-    // ----- Touch (mobile) -----
-    const onTouchStart = (e: TouchEvent) => {
-      if (!enabled) return;
-      if (e.touches.length !== 1) return;
-      const path = getPath(e);
-      activeScrollEl = findScrollableInPath(path);
-      touchActive = true;
-      lastY = e.touches[0].clientY;
-    };
+      // WHEEL — passive; emit synthetic-drag only at edges
+      const handleWheel = (e: WheelEvent) => {
+        const { deltaY } = e;
+        const top = atTop();
+        const bottom = atBottom();
+        if ((deltaY < 0 && top) || (deltaY > 0 && bottom)) {
+          fireSyntheticDrag('move', deltaY > 0 ? 'down' : 'up', Math.min(600, Math.abs(deltaY)), 'wheel');
+        }
+      };
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (!enabled || !touchActive || e.touches.length !== 1) return;
+      embeddedEl.addEventListener('wheel', handleWheel, { passive: true });
 
-      const y = e.touches[0].clientY;
-      const dy = y - lastY; // finger down => dy>0, finger up => dy<0
-      lastY = y;
+      cleanupFns = [
+        () => embeddedEl.removeEventListener('touchstart', handleTouchStart),
+        () => embeddedEl.removeEventListener('touchmove', handleTouchMove),
+        () => embeddedEl.removeEventListener('touchend', handleTouchEnd),
+        () => embeddedEl.removeEventListener('wheel', handleWheel),
+      ];
+    });
 
-      // If no dedicated scroll el was captured, try again dynamically
-      if (!activeScrollEl) {
-        const path = getPath(e);
-        activeScrollEl = findScrollableInPath(path);
-      }
-      const el = activeScrollEl;
-
-      if (!el) return;
-
-      const canScroll = el.scrollHeight > el.clientHeight;
-      const hitTop = !canScroll || atTop(el);
-      const hitBottom = !canScroll || atBottom(el);
-
-      // Pulling down at top => scroll outer up; pulling up at bottom => scroll outer down
-      if ((dy > 0 && hitTop) || (dy < 0 && hitBottom)) {
-        // Important: passive MUST be false for this to take effect
-        e.preventDefault();
-        // Use sync scrollTop change for immediate response on iOS
-        outer.scrollTop -= dy;
-      }
-    };
-
-    const onTouchEnd = () => {
-      touchActive = false;
-      activeScrollEl = null;
-    };
-
-    const enable = () => {
-      if (enabled) return;
-      enabled = true;
-      // capture:true so we see events before inner handlers; passive:false where we may call preventDefault
-      window.addEventListener('wheel', onWheel as EventListener, { capture: true, passive: false });
-      window.addEventListener('touchstart', onTouchStart as EventListener, { capture: true, passive: true });
-      window.addEventListener('touchmove', onTouchMove as EventListener, { capture: true, passive: false });
-      window.addEventListener('touchend', onTouchEnd as EventListener, { capture: true, passive: true });
-      window.addEventListener('touchcancel', onTouchEnd as EventListener, { capture: true, passive: true });
-    };
-
-    const disable = () => {
-      if (!enabled) return;
-      enabled = false;
-      window.removeEventListener('wheel', onWheel as EventListener, { capture: true } as any);
-      window.removeEventListener('touchstart', onTouchStart as EventListener, { capture: true } as any);
-      window.removeEventListener('touchmove', onTouchMove as EventListener, { capture: true } as any);
-      window.removeEventListener('touchend', onTouchEnd as EventListener, { capture: true } as any);
-      window.removeEventListener('touchcancel', onTouchEnd as EventListener, { capture: true } as any);
-      touchActive = false;
-      activeScrollEl = null;
-    };
-
-    // Gate by host visibility so we don't run globally all the time
-    const host = document.getElementById('block-dynamic');
-    if (host && 'IntersectionObserver' in window) {
-      hostIO = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) enable();
-          else disable();
-        },
-        { threshold: [0, 0.2] }
-      );
-      hostIO.observe(host);
-    } else {
-      // Fallback: just enable
-      enable();
-    }
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      if (hostIO) hostIO.disconnect();
-      disable();
+      observer.disconnect();
+      cleanupFns.forEach(fn => fn());
+      cleanupFns = [];
     };
   }, [scrollContainerRef]);
 
@@ -205,6 +172,30 @@ const ScrollController = () => {
     const cleanup = attachOpacityObserver(blockIds, focusedProjectKey);
     return cleanup;
   }, [blockIds, focusedProjectKey]);
+
+  // Example consumer — left in place to react to synthetic-drag if you want
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const onSynthetic = (e: Event) => {
+      const { direction, magnitude, phase, source, velocity } = (e as CustomEvent).detail as {
+        phase: 'start' | 'move' | 'end';
+        direction: 'up' | 'down';
+        magnitude: number;
+        source: 'touch' | 'wheel';
+        velocity?: number;
+      };
+      // Example reaction (disabled):
+      // if (phase === 'move') {
+      //   const bias = direction === 'down' ? 0.9 : -0.9;
+      //   el.scrollBy({ top: window.innerHeight * bias, behavior: 'smooth' });
+      // }
+    };
+
+    el.addEventListener('synthetic-drag', onSynthetic as EventListener);
+    return () => el.removeEventListener('synthetic-drag', onSynthetic as EventListener);
+  }, [scrollContainerRef]);
 
   return (
     <div
@@ -220,7 +211,12 @@ const ScrollController = () => {
         msOverflowStyle: 'none',
       }}
     >
-      <style>{`.SnappyScrollThingy::-webkit-scrollbar { display: none; }`}</style>
+      <style>{`
+        .SnappyScrollThingy::-webkit-scrollbar { display: none; }
+        /* Allow native edge handoff */
+        .SnappyScrollThingy { overscroll-behavior: auto; }
+        .embedded-app { touch-action: pan-y; overscroll-behavior: auto; }
+      `}</style>
 
       {projects.map((item, idx) => {
         const isFocused = focusedProjectKey === item.key;

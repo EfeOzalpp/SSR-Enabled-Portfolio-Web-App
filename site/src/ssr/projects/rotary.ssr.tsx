@@ -1,10 +1,11 @@
-// rotary.ssr.tsx
+// src/ssr/projects/rotary.ssr.tsx
 import type { SsrDescriptor } from '../types';
 import { getProjectData } from '../../utils/get-project-data';
 import {
   getMediumImageUrl,
   getHighQualityImageUrl,
 } from '../../utils/media-providers/image-builder';
+import PannableViewport from '../../utils/split+drag/pannable-object-position';
 
 export const rotarySSR: SsrDescriptor = {
   fetch: () => getProjectData('rotary-lamp'),
@@ -36,18 +37,19 @@ export const rotarySSR: SsrDescriptor = {
         {/* LEFT / TOP container */}
         <div id="rotary-media-1-container" className="media-content-1" style={{ position: 'absolute' }}>
           {m1Medium && (
-            <img
-              id="rotary-media-1"
-              className="media-item-1 tooltip-rotary-lamp"
-              src={m1Medium}
-              // only set data attr if different / available
-              {...(m1High ? { 'data-src-full': m1High } : {})}
-              alt={m1?.alt ?? 'Rotary Lamp media'}
-              draggable={false}
-              decoding="async"
-              fetchPriority="high"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
+            <PannableViewport sensitivity={2}>
+              <img
+                id="rotary-media-1"
+                className="media-item-1 tooltip-rotary-lamp"
+                src={m1Medium}
+                {...(m1High ? { 'data-src-full': m1High } : {})}
+                alt={m1?.alt ?? 'Rotary Lamp media'}
+                draggable={false}
+                decoding="async"
+                fetchPriority="high"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </PannableViewport>
           )}
         </div>
 
@@ -57,17 +59,19 @@ export const rotarySSR: SsrDescriptor = {
         {/* RIGHT / BOTTOM container */}
         <div id="rotary-media-2-container" className="media-content-2" style={{ position: 'absolute' }}>
           {m2Medium && (
-            <img
-              id="rotary-media-2"
-              className="media-item-2 tooltip-rotary-lamp"
-              src={m2Medium}
-              {...(m2High ? { 'data-src-full': m2High } : {})}
-              alt={m2?.alt ?? 'Rotary Lamp media'}
-              draggable={false}
-              decoding="async"
-              fetchPriority="high"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
+            <PannableViewport sensitivity={2}>
+              <img
+                id="rotary-media-2"
+                className="media-item-2 tooltip-rotary-lamp"
+                src={m2Medium}
+                {...(m2High ? { 'data-src-full': m2High } : {})}
+                alt={m2?.alt ?? 'Rotary Lamp media'}
+                draggable={false}
+                decoding="async"
+                fetchPriority="high"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </PannableViewport>
           )}
         </div>
       </section>
