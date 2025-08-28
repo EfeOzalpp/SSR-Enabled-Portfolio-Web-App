@@ -10,7 +10,7 @@ type LoadingScreenProps = {
   delayMs?: number;
 };
 
-const LoadingScreen = ({ isFullScreen = true, delayMs = 200 }: LoadingScreenProps) => {
+const LoadingScreen = ({ isFullScreen = true, delayMs = 400 }: LoadingScreenProps) => {
   const container = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState(70); // default to largest
   const [show, setShow] = useState(false);

@@ -31,21 +31,6 @@ const ScrollController = () => {
   const [invisibleKeys, setInvisibleKeys] = useState<Set<string>>(new Set());
   const projectRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const [viewportStyle, setViewportStyle] = useState({ height: '98dvh', paddingBottom: '2dvh' });
-
-  const updateViewportStyle = () => {
-    const width = window.innerWidth;
-    if (width >= 1025) setViewportStyle({ height: '96dvh', paddingBottom: '4dvh' });
-    else if (width >= 768) setViewportStyle({ height: '92dvh', paddingBottom: '8dvh' });
-    else setViewportStyle({ height: '98dvh', paddingBottom: '2dvh' });
-  };
-
-  useEffect(() => {
-    updateViewportStyle();
-    window.addEventListener('resize', updateViewportStyle);
-    return () => window.removeEventListener('resize', updateViewportStyle);
-  }, []);
-
   // temporarily disable snap after index changes, to allow smooth momentum handoff
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -202,11 +187,9 @@ const ScrollController = () => {
       ref={scrollContainerRef}
       className="SnappyScrollThingy"
       style={{
-        height: viewportStyle.height,
         overflowY: 'scroll',
         scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
         scrollBehavior: 'smooth',
-        paddingBottom: viewportStyle.paddingBottom,
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
       }}
@@ -225,7 +208,6 @@ const ScrollController = () => {
           <ProjectPane
             key={item.key}
             item={item}
-            viewportHeight={viewportStyle.height}
             isFocused={isFocused}
             isHidden={isHidden}
             isFirst={idx === 0}

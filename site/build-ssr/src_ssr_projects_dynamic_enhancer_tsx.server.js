@@ -541,7 +541,7 @@ function LoadingHub({
   progress = null,
   cycleMs = 1400,
   animMs = 900,
-  delayMs = 200
+  delayMs = 400
 }) {
   const [lineIndex, setLineIndex] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);

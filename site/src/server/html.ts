@@ -13,30 +13,46 @@ function readFirst(paths: string[]): string {
   return '';
 }
 
-/** Prefix helper (unchanged) */
+/** Prefix helper */
 export function prefixCss(css: string, prefix = '#efe-portfolio') {
+  // 1) Recurse into @media blocks and prefix their inner rules only.
   css = css.replace(/@media[^{]+\{([\s\S]*?)\}/g, (full, inner) => {
     const prefixedInner = prefixCss(inner, prefix);
     return full.replace(inner, prefixedInner);
   });
 
-  return css.replace(/(^|\})\s*([^{@}][^{]*)\{/g, (m, brace, selector) => {
-    const sel = selector.trim();
-    if (
-      sel.startsWith('html') ||
-      sel.startsWith('body') ||
-      sel.startsWith(':root') ||
-      sel.includes('#dynamic-theme') ||
-      sel.includes('#shadow-dynamic-app') ||
-      sel.includes('::slotted')
-    ) {
-      return `${brace} ${sel}{`;
-    }
-    const parts = sel.split(',').map(s => s.trim()).filter(Boolean);
-    const prefixed = parts.map(s => `${prefix} ${s}`).join(', ');
-    return `${brace} ${prefixed}{`;
+  // 2) Remove block comments so a comment before @media isn't misread as a selector token.
+  //    (Safe for critical inline CSS; you weren’t using comments there for logic.)
+  css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // 3) Prefix normal rule selectors (skip at-rules and special roots).
+  return css.replace(/(^|})\s*([^@}{][^{}]*)\{/g, (m, brace, selectorList) => {
+    const selectors = selectorList
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const safeSelectors = selectors.map(sel => {
+      // leave these alone
+      if (
+        sel.startsWith('html') ||
+        sel.startsWith('body') ||
+        sel.startsWith(':root') ||
+        sel.includes('#dynamic-theme') ||
+        sel.includes('#shadow-dynamic-app') ||
+        sel.includes('::slotted') ||
+        sel.startsWith('@') ||                 // any at-rule safety
+        sel === 'from' || sel === 'to' || /\d+%$/.test(sel) // keyframes stages
+      ) {
+        return sel;
+      }
+      return `${prefix} ${sel}`;
+    }).join(', ');
+
+    return `${brace} ${safeSelectors}{`;
   });
 }
+
 
 /** Build limited font preloads from the blocks actually emitted */
 function buildFontPreloads(fontCssBlocks: string[], limit = 4): string[] {

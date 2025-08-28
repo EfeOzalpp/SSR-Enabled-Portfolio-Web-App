@@ -18,8 +18,6 @@ import GameInputGuards from '../logic/game-input-guards';
 import desktopOnboarding from '../../svg/desktop-onboarding.json';
 import mobileOnboarding from '../../svg/mobile-onboarding.json';
 
-import '../../styles/block-type-g.css';
-
 const GAME_MODE_CLASS = 'game-mode-active';
 const activateGameMode = () => document.body.classList.add(GAME_MODE_CLASS);
 const deactivateGameMode = () => document.body.classList.remove(GAME_MODE_CLASS);

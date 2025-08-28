@@ -17855,20 +17855,32 @@ function readFirst(paths) {
   return '';
 }
 
-/** Prefix helper (unchanged) */
+/** Prefix helper */
 function prefixCss(css, prefix = '#efe-portfolio') {
+  // 1) Recurse into @media blocks and prefix their inner rules only.
   css = css.replace(/@media[^{]+\{([\s\S]*?)\}/g, (full, inner) => {
     const prefixedInner = prefixCss(inner, prefix);
     return full.replace(inner, prefixedInner);
   });
-  return css.replace(/(^|\})\s*([^{@}][^{]*)\{/g, (m, brace, selector) => {
-    const sel = selector.trim();
-    if (sel.startsWith('html') || sel.startsWith('body') || sel.startsWith(':root') || sel.includes('#dynamic-theme') || sel.includes('#shadow-dynamic-app') || sel.includes('::slotted')) {
-      return `${brace} ${sel}{`;
-    }
-    const parts = sel.split(',').map(s => s.trim()).filter(Boolean);
-    const prefixed = parts.map(s => `${prefix} ${s}`).join(', ');
-    return `${brace} ${prefixed}{`;
+
+  // 2) Remove block comments so a comment before @media isn't misread as a selector token.
+  //    (Safe for critical inline CSS; you weren’t using comments there for logic.)
+  css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // 3) Prefix normal rule selectors (skip at-rules and special roots).
+  return css.replace(/(^|})\s*([^@}{][^{}]*)\{/g, (m, brace, selectorList) => {
+    const selectors = selectorList.split(',').map(s => s.trim()).filter(Boolean);
+    const safeSelectors = selectors.map(sel => {
+      // leave these alone
+      if (sel.startsWith('html') || sel.startsWith('body') || sel.startsWith(':root') || sel.includes('#dynamic-theme') || sel.includes('#shadow-dynamic-app') || sel.includes('::slotted') || sel.startsWith('@') ||
+      // any at-rule safety
+      sel === 'from' || sel === 'to' || /\d+%$/.test(sel) // keyframes stages
+      ) {
+        return sel;
+      }
+      return `${prefix} ${sel}`;
+    }).join(', ');
+    return `${brace} ${safeSelectors}{`;
   });
 }
 
@@ -19223,7 +19235,7 @@ const dynamicLoaders = {
   shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
 };
 const gameLoaders = {
-  components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
+  components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
   game: () => Promise.all(/*! import() | game */[__webpack_require__.e("src_components_rock-escapade_game-canvas_tsx"), __webpack_require__.e("game")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx"))
 };
 
@@ -19312,7 +19324,7 @@ function useProjectLoader(key) {
     }
     if (key === 'game') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"), __webpack_require__.e("src_ssr_projects_game_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/game.enhancer */ "./src/ssr/projects/game.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136"), __webpack_require__.e("src_ssr_projects_game_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/game.enhancer */ "./src/ssr/projects/game.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), " ", (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {}), "         "]
@@ -19940,17 +19952,6 @@ module.exports = require("lodash/uniq.js");
 
 "use strict";
 module.exports = require("lodash/uniqBy.js");
-
-/***/ }),
-
-/***/ "lottie-react":
-/*!*******************************!*\
-  !*** external "lottie-react" ***!
-  \*******************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("lottie-react");
 
 /***/ }),
 

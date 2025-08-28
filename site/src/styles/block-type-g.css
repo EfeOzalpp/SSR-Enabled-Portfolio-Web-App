@@ -42,7 +42,7 @@
 @keyframes blink-opacity { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
 /* exit */
-.block-g-exit { position: fixed; bottom: 24px; left: 24px; background: rgb(45 45 45 / 70%); color: white; padding: 4px 32px; cursor: pointer; z-index: 10100; }
+.block-g-exit { position: fixed; bottom: 24px; left: 24px; background: rgb(45 45 45 / 70%); color: white; cursor: pointer; z-index: 10100; }
 .block-g-exit:hover { background-color: rgb(52, 52, 52); }
 
 /* orientation tweaks */
@@ -65,6 +65,8 @@
   .gameover-text-area { bottom: 168px; }
   .gameover-lottie { width: calc(100% + 32em); margin-top: -168px; }
   .countdown-lottie { transform: scale(0.9); }
+  .block-g-exit {padding: 2px 32px; }
+  h1.onboarding-text {font-size: clamp(2rem, 5.2vw, 2.4rem) !important;}
 }
 
 /* 768–1024px */
@@ -75,9 +77,10 @@
   .block-g-exit h4 { padding-left: 0.4em; padding-right: 0.4em; }
   .block-type-g { height: 92dvh !important; }
   .coin { width: 12em; }
-  .gameover-text-area { bottom: 144px; }
-  .gameover-lottie { width: calc(100% + 24em); margin-top: -144px; }
-  .countdown-lottie { transform: scale(0.8); }
+  .gameover-text-area { bottom: 24dvh; }
+  .gameover-text { color: whitesmoke; position: relative; bottom: 36dvh;}
+  .gameover-lottie { width: calc(100% + 18em); margin-top: -6dvh; }
+  .countdown-lottie { transform: scale(0.5); }
 }
 
 /* ≥ 1025px */
@@ -88,11 +91,9 @@
   .block-type-g { height: 96dvh !important; }
   .block-g-exit h4 { padding-left: 0.3em; padding-right: 0.3em; }
   .coin { width: 18em; }
-  .gameover-text-area { bottom: 64px; }
-  .gameover-lottie { width: 80%; margin-top: -144px; }
-  .gameover-text-area h1 { margin-bottom: 0; }
-  .gameover-coin-count h2 { margin: 0.2em 0 0.6em 0; }
-  .gameover-cta { margin-top: 2.4em; }
+  .gameover-text-area { bottom: 6.4dvh; }
+  .gameover-text { bottom: 60dvh; position: relative; }
+  .gameover-lottie { width: 66%; margin-top: 4dvh; }
   .countdown-lottie { transform: scale(0.65); }
 }
 

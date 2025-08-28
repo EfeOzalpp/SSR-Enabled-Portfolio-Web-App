@@ -15,50 +15,69 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lottie_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-react */ "lottie-react");
-/* harmony import */ var lottie_react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
 /* harmony import */ var _lottie_pauseButton_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lottie/pauseButton.json */ "./src/dynamic-app/lottie/pauseButton.json");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 /* Pause Animation Option - Accessibility */
 
- // Import Lottie React
- // Import your JSON animation
+ // corrected path
+
 
 const PauseButton = ({
   toggleP5Animation
 }) => {
-  const lottieRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(); // Ref for Lottie animation
-  const [isClicked, setIsClicked] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false); // Track click state
-  const [currentFrame, setCurrentFrame] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(3); // Start at frame 3
+  const containerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const animRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [isClicked, setIsClicked] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [currentFrame, setCurrentFrame] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(3);
 
-  // Sync initial state with the fireworks rendering logic
+  // Sync initial state with fireworks logic
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (toggleP5Animation) {
-      toggleP5Animation(!isClicked); // Initial sync
+      toggleP5Animation(!isClicked);
     }
   }, [toggleP5Animation, isClicked]);
+
+  // Setup the lottie instance
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!containerRef.current) return;
+    let mounted = true;
+    _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+      container: containerRef.current,
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      animationData: _lottie_pauseButton_json__WEBPACK_IMPORTED_MODULE_2__
+    }).then(anim => {
+      if (!mounted) return;
+      animRef.current = anim;
+      anim.goToAndStop(currentFrame, true);
+    });
+    return () => {
+      mounted = false;
+      if (animRef.current) {
+        animRef.current.destroy();
+        animRef.current = null;
+      }
+    };
+  }, []);
   const handleMouseEnter = () => {
-    if (lottieRef.current && !isClicked) {
-      // Play the animation from frame 3 to frame 10 on hover
-      lottieRef.current.playSegments([3, 10], true);
+    if (animRef.current && !isClicked) {
+      animRef.current.playSegments([3, 10], true);
     }
   };
   const handleMouseLeave = () => {
-    if (lottieRef.current && !isClicked) {
-      // Pause the animation and leave it at the last hovered frame
-      lottieRef.current.goToAndStop(currentFrame, true);
+    if (animRef.current && !isClicked) {
+      animRef.current.goToAndStop(currentFrame, true);
     }
   };
   const handleClick = event => {
-    event.stopPropagation(); // Prevent the event from reaching parent components
-
-    if (lottieRef.current) {
-      let targetFrame = isClicked ? 3 : 20; // Toggle between frames
-      lottieRef.current.playSegments([currentFrame, targetFrame], true);
+    event.stopPropagation();
+    if (animRef.current) {
+      const targetFrame = isClicked ? 3 : 20;
+      animRef.current.playSegments([currentFrame, targetFrame], true);
       setCurrentFrame(targetFrame);
       setIsClicked(!isClicked);
-
-      // Notify the parent about the toggle
       if (toggleP5Animation) {
         toggleP5Animation(!isClicked);
       }
@@ -66,17 +85,10 @@ const PauseButton = ({
   };
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
     className: "lottie-container",
+    ref: containerRef,
     onMouseEnter: handleMouseEnter,
     onMouseLeave: handleMouseLeave,
-    onClick: handleClick // Trigger click behavior
-    ,
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)((lottie_react__WEBPACK_IMPORTED_MODULE_1___default()), {
-      lottieRef: lottieRef,
-      animationData: _lottie_pauseButton_json__WEBPACK_IMPORTED_MODULE_2__,
-      loop: false // Disable looping
-      ,
-      autoplay: false // Start paused
-    })
+    onClick: handleClick
   });
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PauseButton);

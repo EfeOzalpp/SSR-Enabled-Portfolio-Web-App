@@ -207,11 +207,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _logic_game_input_guards__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../logic/game-input-guards */ "./src/ssr/logic/game-input-guards.tsx");
 /* harmony import */ var _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../svg/desktop-onboarding.json */ "./src/svg/desktop-onboarding.json");
 /* harmony import */ var _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../svg/mobile-onboarding.json */ "./src/svg/mobile-onboarding.json");
-/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../styles/block-type-g.css */ "./src/styles/block-type-g.css");
-/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_14__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/ssr/projects/game.enhancer.tsx
-
 
 
 
@@ -330,14 +327,14 @@ const GameEnhancer = () => {
     return () => io.disconnect();
   }, [sec]);
   if (!sec || !onboardingEl || !rootEl || !shouldMount) return null;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
-    children: [/*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(OnboardingPortal, {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
+    children: [/*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(OnboardingPortal, {
       reset: onboardingReset,
       startAtFrame: stableStartAtForThisMount,
       onInnerMount: handleInnerMount,
       label: stageReady ? 'Click Here to Play!' : 'Loading Game……',
       ctaEnabled: stageReady
-    }), onboardingEl), /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(GameStage, {
+    }), onboardingEl), /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(GameStage, {
       blockId: "block-game",
       container: sec,
       onboardingEl: onboardingEl,
@@ -357,7 +354,7 @@ const OnboardingPortal = ({
   label,
   ctaEnabled,
   loadingLines
-}) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_components_rock_escapade_block_g_onboarding_inner__WEBPACK_IMPORTED_MODULE_3__["default"], {
+}) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_components_rock_escapade_block_g_onboarding_inner__WEBPACK_IMPORTED_MODULE_3__["default"], {
   startAtFrame: startAtFrame,
   onMount: onInnerMount,
   label: label,
@@ -544,39 +541,39 @@ const GameStage = ({
       onboardingEl.style.opacity = '1';
     });
   };
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_logic_game_input_guards__WEBPACK_IMPORTED_MODULE_11__["default"], {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_logic_game_input_guards__WEBPACK_IMPORTED_MODULE_11__["default"], {
       active: started,
       lockBodyScroll: true,
       alsoBlockWheel: true,
       alsoBlockTouch: true,
       allowWhenTyping: true
-    }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_components_rock_escapade_block_g_exit__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_components_rock_escapade_block_g_exit__WEBPACK_IMPORTED_MODULE_4__["default"], {
         onExit: handleExit
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_components_rock_escapade_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_components_rock_escapade_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_5__["default"], {
         coins: coins,
         highScore: displayHigh,
         newHighScore: beatingHighNow
-      }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
+      }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
         className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`,
         style: {
           pointerEvents: 'none'
         }
-      }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
+      }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
         ref: lottieRef,
         id: "lottie-onboarding",
         className: "countdown-lottie",
         style: {
           pointerEvents: 'none'
         }
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_logic_game_over_controller__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_logic_game_over_controller__WEBPACK_IMPORTED_MODULE_6__["default"], {
         score: finalScore,
         highScore: stableHigh,
         onRestart: handleRestart,
         onHide: () => setFinalScore(null)
       })]
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
       load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
       fallback: null
       /* Preload the chunk early so re-mounts are instant */,

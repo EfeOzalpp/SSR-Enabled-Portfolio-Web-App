@@ -691,7 +691,6 @@ __webpack_require__.r(__webpack_exports__);
 
 function ProjectPane({
   item,
-  viewportHeight,
   isFocused,
   isHidden,
   setRef,
@@ -720,7 +719,8 @@ function ProjectPane({
     id: blockId,
     ref: setRef,
     style: {
-      height: isHidden ? '0px' : isFocused ? 'auto' : viewportHeight,
+      // Collapse hidden panes; otherwise sizing is controlled via CSS
+      height: isHidden ? '0px' : undefined,
       overflow: isFocused ? 'visible' : 'hidden',
       scrollSnapAlign: isHidden ? 'none' : 'start'
     },
@@ -810,28 +810,6 @@ const ScrollController = () => {
   const [justExitedFocusKey, setJustExitedFocusKey] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [invisibleKeys, setInvisibleKeys] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Set());
   const projectRefs = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)({});
-  const [viewportStyle, setViewportStyle] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
-    height: '98dvh',
-    paddingBottom: '2dvh'
-  });
-  const updateViewportStyle = () => {
-    const width = window.innerWidth;
-    if (width >= 1025) setViewportStyle({
-      height: '96dvh',
-      paddingBottom: '4dvh'
-    });else if (width >= 768) setViewportStyle({
-      height: '92dvh',
-      paddingBottom: '8dvh'
-    });else setViewportStyle({
-      height: '98dvh',
-      paddingBottom: '2dvh'
-    });
-  };
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    updateViewportStyle();
-    window.addEventListener('resize', updateViewportStyle);
-    return () => window.removeEventListener('resize', updateViewportStyle);
-  }, []);
 
   // temporarily disable snap after index changes, to allow smooth momentum handoff
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -980,11 +958,9 @@ const ScrollController = () => {
     ref: scrollContainerRef,
     className: "SnappyScrollThingy",
     style: {
-      height: viewportStyle.height,
       overflowY: 'scroll',
       scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
       scrollBehavior: 'smooth',
-      paddingBottom: viewportStyle.paddingBottom,
       scrollbarWidth: 'none',
       msOverflowStyle: 'none'
     },
@@ -1000,7 +976,6 @@ const ScrollController = () => {
       const isHidden = invisibleKeys.has(item.key);
       return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_project_pane__WEBPACK_IMPORTED_MODULE_4__.ProjectPane, {
         item: item,
-        viewportHeight: viewportStyle.height,
         isFocused: isFocused,
         isHidden: isHidden,
         isFirst: idx === 0,

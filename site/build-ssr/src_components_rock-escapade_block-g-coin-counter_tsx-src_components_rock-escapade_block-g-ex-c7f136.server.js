@@ -1,5 +1,5 @@
-exports.id = "src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b";
-exports.ids = ["src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b"];
+exports.id = "src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136";
+exports.ids = ["src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136"];
 exports.modules = {
 
 /***/ "./src/components/rock-escapade/block-g-coin-counter.tsx":
@@ -265,11 +265,6 @@ const BlockGGameOver = ({
               color: newHighScore ? 'rgb(255 230 203)' : 'rgb(222 202 250)'
             },
             children: newHighScore ? 'New High Score!' : 'Game Over'
-          }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
-            style: {
-              margin: '8px 0'
-            },
-            children: "\u2014"
           }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
             className: "gameover-coin-count",
             children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("h2", {
@@ -542,16 +537,6 @@ const GameOverController = ({
   });
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GameOverController);
-
-/***/ }),
-
-/***/ "./src/styles/block-type-g.css":
-/*!*************************************!*\
-  !*** ./src/styles/block-type-g.css ***!
-  \*************************************/
-/***/ (() => {
-
-
 
 /***/ }),
 
@@ -919,7 +904,7 @@ function LoadingHub({
   progress = null,
   cycleMs = 1400,
   animMs = 900,
-  delayMs = 200
+  delayMs = 400
 }) {
   const [lineIndex, setLineIndex] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
@@ -991,4 +976,4 @@ function LoadingHub({
 
 };
 ;
-//# sourceMappingURL=src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-2fb78b.server.js.map
+//# sourceMappingURL=src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136.server.js.map

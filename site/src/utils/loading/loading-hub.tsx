@@ -23,7 +23,7 @@ export default function LoadingHub({
   progress = null,
   cycleMs = 1400,
   animMs = 900,
-  delayMs = 200,
+  delayMs = 400,
 }: LoadingHubProps) {
   const [lineIndex, setLineIndex] = useState(0);
   const [show, setShow] = useState(false);

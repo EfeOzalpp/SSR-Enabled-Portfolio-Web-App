@@ -49,7 +49,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const LoadingScreen = ({
   isFullScreen = true,
-  delayMs = 200
+  delayMs = 400
 }) => {
   const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [size, setSize] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(70); // default to largest

@@ -17,8 +17,8 @@
 
 @media (max-width: 1024px) {
   #custom-global-tooltip {
-    transform: scale(0.7); 
-    padding: 10px 15px 12px 10px;
+    transform: scale(0.82); 
+    padding: 10px 16px 12px 12px;
   }
 }
 

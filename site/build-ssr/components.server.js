@@ -429,6 +429,16 @@ const BlockGOnboarding = ({
 
 /***/ }),
 
+/***/ "./src/styles/block-type-g.css":
+/*!*************************************!*\
+  !*** ./src/styles/block-type-g.css ***!
+  \*************************************/
+/***/ (() => {
+
+
+
+/***/ }),
+
 /***/ "./src/styles/tooltip.css":
 /*!********************************!*\
   !*** ./src/styles/tooltip.css ***!

@@ -102,9 +102,6 @@ const BlockGGameOver: React.FC<Props> = ({ onRestart, visibleTrigger, coins, new
           >
             {newHighScore ? 'New High Score!' : 'Game Over'}
           </h1>
-
-          <div style={{ margin: '8px 0' }}>—</div>
-
           <div className="gameover-coin-count">
             <h2 style={{ color: 'rgb(255, 205, 55)' }}>{coins} Coins Collected</h2>
           </div>

@@ -1,64 +1,82 @@
 /* Pause Animation Option - Accessibility */
 import React, { useRef, useState, useEffect } from 'react';
-import Lottie from 'lottie-react'; // Import Lottie React
-import animationData from '../lottie/pauseButton.json'; // Import your JSON animation
+import lottie from '../../utils/load-lottie'; // corrected path
+import animationData from '../lottie/pauseButton.json';
 
 const PauseButton = ({ toggleP5Animation }) => {
-  const lottieRef = useRef(); // Ref for Lottie animation
-  const [isClicked, setIsClicked] = useState(false); // Track click state
-  const [currentFrame, setCurrentFrame] = useState(3); // Start at frame 3
+  const containerRef = useRef(null);
+  const animRef = useRef(null);
+  const [isClicked, setIsClicked] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(3);
 
-  // Sync initial state with the fireworks rendering logic
+  // Sync initial state with fireworks logic
   useEffect(() => {
     if (toggleP5Animation) {
-      toggleP5Animation(!isClicked); // Initial sync
+      toggleP5Animation(!isClicked);
     }
   }, [toggleP5Animation, isClicked]);
 
+  // Setup the lottie instance
+  useEffect(() => {
+    if (!containerRef.current) return;
+    let mounted = true;
+
+    lottie.loadAnimation({
+      container: containerRef.current,
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      animationData,
+    }).then((anim) => {
+      if (!mounted) return;
+      animRef.current = anim;
+      anim.goToAndStop(currentFrame, true);
+    });
+
+    return () => {
+      mounted = false;
+      if (animRef.current) {
+        animRef.current.destroy();
+        animRef.current = null;
+      }
+    };
+  }, []);
+
   const handleMouseEnter = () => {
-    if (lottieRef.current && !isClicked) {
-      // Play the animation from frame 3 to frame 10 on hover
-      lottieRef.current.playSegments([3, 10], true);
+    if (animRef.current && !isClicked) {
+      animRef.current.playSegments([3, 10], true);
     }
   };
 
   const handleMouseLeave = () => {
-    if (lottieRef.current && !isClicked) {
-      // Pause the animation and leave it at the last hovered frame
-      lottieRef.current.goToAndStop(currentFrame, true);
+    if (animRef.current && !isClicked) {
+      animRef.current.goToAndStop(currentFrame, true);
     }
   };
 
   const handleClick = (event) => {
-    event.stopPropagation(); // Prevent the event from reaching parent components
-  
-    if (lottieRef.current) {
-      let targetFrame = isClicked ? 3 : 20; // Toggle between frames
-      lottieRef.current.playSegments([currentFrame, targetFrame], true);
+    event.stopPropagation();
+
+    if (animRef.current) {
+      const targetFrame = isClicked ? 3 : 20;
+      animRef.current.playSegments([currentFrame, targetFrame], true);
       setCurrentFrame(targetFrame);
       setIsClicked(!isClicked);
-  
-      // Notify the parent about the toggle
+
       if (toggleP5Animation) {
         toggleP5Animation(!isClicked);
       }
     }
   };
-  
+
   return (
     <div
       className="lottie-container"
+      ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={handleClick} // Trigger click behavior
-    >
-      <Lottie
-        lottieRef={lottieRef}
-        animationData={animationData}
-        loop={false} // Disable looping
-        autoplay={false} // Start paused
-      />
-    </div>
+      onClick={handleClick}
+    />
   );
 };
 

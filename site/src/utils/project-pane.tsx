@@ -9,7 +9,6 @@ import { ssrRegistry } from '../ssr/registry';
 
 type Props = {
   item: any;
-  viewportHeight: string;
   isFocused: boolean;
   isHidden: boolean;
   setRef: (el: HTMLDivElement | null) => void;
@@ -18,7 +17,6 @@ type Props = {
 
 export function ProjectPane({
   item,
-  viewportHeight,
   isFocused,
   isHidden,
   setRef,
@@ -53,7 +51,8 @@ export function ProjectPane({
       id={blockId}
       ref={setRef}
       style={{
-        height: isHidden ? '0px' : (isFocused ? 'auto' : viewportHeight),
+        // Collapse hidden panes; otherwise sizing is controlled via CSS
+        height: isHidden ? '0px' : undefined,
         overflow: isFocused ? 'visible' : 'hidden',
         scrollSnapAlign: isHidden ? 'none' : 'start',
       }}
