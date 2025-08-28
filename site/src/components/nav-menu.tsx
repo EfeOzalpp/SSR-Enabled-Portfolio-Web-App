@@ -1,6 +1,6 @@
 // src/components/NavMenu.tsx
 import { useEffect, useRef } from "react";
-import lottie from "lottie-web";
+import lottie from "../utils/load-lottie"; // proxy that lazy-loads lottie-web (svg build if you configured it)
 import titleData from "../svg/efeozalp.json";
 import githubData from "../svg/github.json";
 import linkedinData from "../svg/linkedin.json";
@@ -10,115 +10,150 @@ const NavMenu = () => {
   const githubContainer = useRef<HTMLDivElement>(null);
   const linkedinContainer = useRef<HTMLDivElement>(null);
 
-  // Title
+  // Title animation (hover scrubs between frames)
   useEffect(() => {
     const el = lottieContainer.current;
     if (!el) return;
-    const anim = lottie.loadAnimation({
-      container: el,
-      renderer: "svg",
-      loop: false,
-      autoplay: true,
-      animationData: titleData,
-    });
 
-    const stopAt = 175;
-    const startHold = 80;
+    let anim: any;
+    let mounted = true;
 
-    const stepToFrame = (target: number) => {
-      const step = () => {
-        const cur = anim.currentFrame;
-        if (Math.abs(cur - target) <= 1) {
-          anim.goToAndStop(target, true);
-          return;
-        }
-        anim.goToAndStop(cur + (cur < target ? 1 : -1), true);
+    (async () => {
+      anim = await lottie.loadAnimation({
+        container: el,
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        animationData: titleData,
+      });
+      if (!mounted) return;
+
+      const stopAt = 175;
+      const startHold = 80;
+
+      const stepToFrame = (target: number) => {
+        const step = () => {
+          if (!anim) return;
+          const cur = anim.currentFrame;
+          if (Math.abs(cur - target) <= 1) {
+            anim.goToAndStop(target, true);
+            return;
+          }
+          anim.goToAndStop(cur + (cur < target ? 1 : -1), true);
+          requestAnimationFrame(step);
+        };
         requestAnimationFrame(step);
       };
-      requestAnimationFrame(step);
-    };
 
-    const onEnterFrame = () => {
-      if (anim.currentFrame >= stopAt) {
-        anim.removeEventListener("enterFrame", onEnterFrame);
-        anim.goToAndStop(stopAt, true);
-      }
-    };
+      const onEnterFrame = () => {
+        if (anim.currentFrame >= stopAt) {
+          anim.removeEventListener("enterFrame", onEnterFrame);
+          anim.goToAndStop(stopAt, true);
+        }
+      };
+      const onEnter = () => stepToFrame(startHold);
+      const onLeave = () => stepToFrame(stopAt);
 
-    const onEnter = () => stepToFrame(startHold);
-    const onLeave = () => stepToFrame(stopAt);
+      el.addEventListener("mouseenter", onEnter);
+      el.addEventListener("mouseleave", onLeave);
+      anim.addEventListener("enterFrame", onEnterFrame);
 
-    el.addEventListener("mouseenter", onEnter);
-    el.addEventListener("mouseleave", onLeave);
-    anim.addEventListener("enterFrame", onEnterFrame);
+      // cleanup listeners on effect re-run (component unmount cleanup below)
+      return () => {
+        el.removeEventListener("mouseenter", onEnter);
+        el.removeEventListener("mouseleave", onLeave);
+        anim?.removeEventListener("enterFrame", onEnterFrame);
+      };
+    })();
 
     return () => {
-      el.removeEventListener("mouseenter", onEnter);
-      el.removeEventListener("mouseleave", onLeave);
-      anim.removeEventListener("enterFrame", onEnterFrame);
-      anim.destroy();
+      mounted = false;
+      anim?.destroy?.();
+      anim = null as any;
     };
   }, []);
 
-  // GitHub
+  // GitHub animation (auto plays to a frame, then holds)
   useEffect(() => {
     const el = githubContainer.current;
     if (!el) return;
-    const anim = lottie.loadAnimation({
-      container: el,
-      renderer: "svg",
-      loop: false,
-      autoplay: false,
-      animationData: githubData,
-    });
-    anim.goToAndStop(0, true);
-    const stopAt = 26;
+
+    let anim: any;
+    let mounted = true;
+    let timer: number | null = null;
+
     const onEnterFrame = () => {
-      if (anim.currentFrame >= stopAt) {
+      if (anim.currentFrame >= 26) {
         anim.removeEventListener("enterFrame", onEnterFrame);
-        anim.goToAndStop(stopAt, true);
+        anim.goToAndStop(26, true);
       }
     };
-    const t = setTimeout(() => {
-      anim.play();
-      anim.addEventListener("enterFrame", onEnterFrame);
-    }, 1600);
+
+    (async () => {
+      anim = await lottie.loadAnimation({
+        container: el,
+        renderer: "svg",
+        loop: false,
+        autoplay: false,
+        animationData: githubData,
+      });
+      if (!mounted) return;
+
+      anim.goToAndStop(0, true);
+      timer = window.setTimeout(() => {
+        anim.play();
+        anim.addEventListener("enterFrame", onEnterFrame);
+      }, 1600);
+    })();
 
     return () => {
-      clearTimeout(t);
-      anim.removeEventListener("enterFrame", onEnterFrame);
-      anim.destroy();
+      mounted = false;
+      if (timer != null) window.clearTimeout(timer);
+      anim?.removeEventListener?.("enterFrame", onEnterFrame);
+      anim?.destroy?.();
+      anim = null as any;
     };
   }, []);
 
-  // LinkedIn
+  // LinkedIn animation (auto plays to a frame, then holds)
   useEffect(() => {
     const el = linkedinContainer.current;
     if (!el) return;
-    const anim = lottie.loadAnimation({
-      container: el,
-      renderer: "svg",
-      loop: false,
-      autoplay: false,
-      animationData: linkedinData,
-    });
-    anim.goToAndStop(0, true);
-    const stopAt = 20;
+
+    let anim: any;
+    let mounted = true;
+    let timer: number | null = null;
+
     const onEnterFrame = () => {
-      if (anim.currentFrame >= stopAt) {
+      if (anim.currentFrame >= 20) {
         anim.removeEventListener("enterFrame", onEnterFrame);
-        anim.goToAndStop(stopAt, true);
+        anim.goToAndStop(20, true);
       }
     };
-    const t = setTimeout(() => {
-      anim.play();
-      anim.addEventListener("enterFrame", onEnterFrame);
-    }, 1200);
+
+    (async () => {
+      anim = await lottie.loadAnimation({
+        container: el,
+        renderer: "svg",
+        loop: false,
+        autoplay: false,
+        animationData: linkedinData,
+      });
+      if (!mounted) return;
+
+      anim.goToAndStop(0, true);
+      timer = window.setTimeout(() => {
+        anim.play();
+        anim.addEventListener("enterFrame", onEnterFrame);
+      }, 1200);
+    })();
 
     return () => {
-      clearTimeout(t);
-      anim.removeEventListener("enterFrame", onEnterFrame);
-      anim.destroy();
+      mounted = false;
+      if (timer != null) window.clearTimeout(timer);
+      anim?.removeEventListener?.("enterFrame", onEnterFrame);
+      anim?.destroy?.();
+      anim = null as any;
     };
   }, []);
 

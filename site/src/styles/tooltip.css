@@ -2,7 +2,7 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(12px);
   position: absolute;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .tooltip-tag {
@@ -17,14 +17,14 @@
 
 @media (max-width: 1024px) {
   #custom-global-tooltip {
-    transform: scale(0.64); 
+    transform: scale(0.7); 
     padding: 10px 15px 12px 10px;
   }
 }
 
 @media (max-width: 768px) {
   #custom-global-tooltip {
-    transform: scale(0.7); 
+    transform: scale(0.75); 
     padding: 6px 8px 4px 8px;
   }
   .tooltip-tag {padding: 3px 3px 4px 4px !important; margin: 1px 0;}
@@ -32,7 +32,7 @@
 
 @media (min-width: 1025px) {
   #custom-global-tooltip {
-    transform: scale(0.78); 
-    padding: 4px 10px 6px 6px !important;
+    transform: scale(0.8); 
+    padding: 6px 10px 8px 8px !important;
   }
 }

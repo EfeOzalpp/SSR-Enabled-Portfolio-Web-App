@@ -224,7 +224,7 @@ const MediaLoader = ({
     return (
       <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
         {!loaded && (
-          <div className="absolute inset-0 z-10">
+          <div className="absolute-inset">
             <LoadingScreen isFullScreen={false} />
           </div>
         )}
@@ -252,13 +252,12 @@ const MediaLoader = ({
   }
 
   // ====== VIDEO ======
-  // Spinner only if NO poster to show and video isn't ready yet
-  const showSpinner = !loaded && !posterUrl;
+  const showSpinner = !loaded;
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
       {showSpinner && (
-        <div className="absolute inset-0 z-10">
+        <div className="absolute-inset">
           <LoadingScreen isFullScreen={false} />
         </div>
       )}

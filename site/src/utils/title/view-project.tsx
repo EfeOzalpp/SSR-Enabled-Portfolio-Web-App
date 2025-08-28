@@ -1,6 +1,6 @@
 // src/utils/title/view-project.tsx
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import lottie, { type AnimationItem } from 'lottie-web';
+import lottie from '../../utils/load-lottie';
 import arrowData from '../../svg/arrow.json';
 import linkData from '../../svg/link.json';
 
@@ -12,18 +12,27 @@ import { seededShuffle } from '../seed';
 
 import TitleObserver from './title-observer';
 
+// Minimal shape for what we use from Lottie
+type AnimationItemLike = {
+  goToAndStop: (value: number, isFrame?: boolean) => void;
+  playSegments: (segments: [number, number] | number[], forceFlag?: boolean) => void;
+  addEventListener: (name: string, cb: () => void) => void;
+  removeEventListener: (name: string, cb: () => void) => void;
+  destroy: () => void;
+};
+
 const ViewProject = () => {
   const { activeTitle } = useActiveTitle();
   const { seed = 12345 } = useSsrData() || {};
   const projects = useMemo(() => seededShuffle(baseProjects, seed), [seed]);
 
   const arrowContainer = useRef<HTMLDivElement>(null);
-  const arrowAnimRef = useRef<AnimationItem | null>(null);
+  const arrowAnimRef = useRef<AnimationItemLike | null>(null);
   const lastTitleRef = useRef(activeTitle);
 
   const [hovered, setHovered] = useState(false);
   const [showBackground, setShowBackground] = useState(true);
-  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentProject = useMemo(
     () => projects.find((p) => p.title === activeTitle),
@@ -34,7 +43,7 @@ const ViewProject = () => {
   const getBackgroundColor = () => {
     const colorInfo = projectColors[activeTitle];
     if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
-    const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.6);
+    const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.8);
     return `rgba(${colorInfo.rgb}, ${alpha})`;
   };
 
@@ -44,30 +53,52 @@ const ViewProject = () => {
     hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 1500);
   };
 
+  // (Re)create arrow/link Lottie when title changes
   useEffect(() => {
-    const animationData = activeTitle === 'Dynamic App' ? linkData : arrowData;
-    const anim = lottie.loadAnimation({
-      container: arrowContainer.current!,
-      renderer: 'svg',
-      loop: false,
-      autoplay: false,
-      animationData,
-    });
-    arrowAnimRef.current = anim;
-    anim.goToAndStop(40, true);
+    const el = arrowContainer.current;
+    if (!el) return;
 
-    const onDomLoaded = () => {
-      const svg = arrowContainer.current?.querySelector('svg');
-      if (svg) svg.classList.add('arrow-svg');
-    };
-    anim.addEventListener('DOMLoaded', onDomLoaded);
+    let anim: AnimationItemLike | null = null;
+    let mounted = true;
+
+    (async () => {
+      const animationData = activeTitle === 'Dynamic App' ? linkData : arrowData;
+
+      // NOTE: proxy returns a Promise -> await the instance
+      anim = await lottie.loadAnimation({
+        container: el,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        animationData,
+      });
+
+      if (!mounted || !anim) return;
+
+      arrowAnimRef.current = anim;
+      anim.goToAndStop(40, true);
+
+      const onDomLoaded = () => {
+        const svg = el.querySelector('svg');
+        if (svg) svg.classList.add('arrow-svg');
+      };
+
+      anim.addEventListener('DOMLoaded', onDomLoaded);
+
+      // cleanup listeners if effect re-runs (component unmount cleanup below)
+      return () => {
+        anim?.removeEventListener('DOMLoaded', onDomLoaded);
+      };
+    })();
 
     return () => {
-      anim.removeEventListener('DOMLoaded', onDomLoaded);
-      anim.destroy();
+      mounted = false;
+      arrowAnimRef.current?.destroy();
+      arrowAnimRef.current = null;
     };
   }, [activeTitle]);
 
+  // Play a segment when the title actually changes
   useEffect(() => {
     if (lastTitleRef.current !== activeTitle) {
       arrowAnimRef.current?.playSegments([40, 90], true);
@@ -76,29 +107,22 @@ const ViewProject = () => {
     }
   }, [activeTitle]);
 
-  // ✨ Only trigger on mouse move if the cursor is in the bottom 30% of the viewport.
-  // Touch interactions stay as-is (always trigger).
+  // Trigger background fade on user motion (bottom ~35% of viewport) or touch
   useEffect(() => {
-    const handleMouseMove = (e: globalThis.MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
       const viewportH = window.innerHeight || document.documentElement.clientHeight;
-      const isInBottom30 = e.clientY >= viewportH * 0.65;
-      if (isInBottom30) {
-        triggerBackgroundFade();
-      }
+      if (e.clientY >= viewportH * 0.65) triggerBackgroundFade();
     };
-
-    const handleTouchInteraction = () => {
-      triggerBackgroundFade();
-    };
+    const handleTouch = () => triggerBackgroundFade();
 
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchstart', handleTouchInteraction, { passive: true });
-    window.addEventListener('touchmove', handleTouchInteraction, { passive: true });
+    window.addEventListener('touchstart', handleTouch, { passive: true });
+    window.addEventListener('touchmove', handleTouch, { passive: true });
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchstart', handleTouchInteraction);
-      window.removeEventListener('touchmove', handleTouchInteraction);
+      window.removeEventListener('touchstart', handleTouch);
+      window.removeEventListener('touchmove', handleTouch);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, []);

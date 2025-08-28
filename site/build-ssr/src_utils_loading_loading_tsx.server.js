@@ -48,20 +48,29 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const LoadingScreen = ({
-  isFullScreen = true
+  isFullScreen = true,
+  delayMs = 200
 }) => {
   const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [size, setSize] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(70); // default to largest
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
 
+  // Delay before showing loader
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    // Determine viewport width and apply appropriate size
+    const t = setTimeout(() => setShow(true), delayMs);
+    return () => clearTimeout(t);
+  }, [delayMs]);
+
+  // Lottie setup (only if visible)
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!show || !container.current) return;
     const width = window.innerWidth;
     if (width <= 767) {
       setSize(32);
     } else if (width <= 1024) {
-      setSize(48);
+      setSize(40);
     } else {
-      setSize(70);
+      setSize(56);
     }
     const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
       container: container.current,
@@ -71,7 +80,14 @@ const LoadingScreen = ({
       animationData: _svg_loading_json__WEBPACK_IMPORTED_MODULE_2__
     });
     return () => anim.destroy();
-  }, []);
+  }, [show]);
+  if (!show) {
+    // Empty placeholder to keep structure aligned
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+      className: `loading-screen-wrapper ${isFullScreen ? 'fullscreen' : 'contained'}`,
+      "aria-hidden": "true"
+    });
+  }
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
     className: `loading-screen-wrapper ${isFullScreen ? 'fullscreen' : 'contained'}`,
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {

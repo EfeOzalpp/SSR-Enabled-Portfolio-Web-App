@@ -4,18 +4,14 @@ import '../../styles/loading-hub.css';
 type LoadingHubProps = {
   keyword?: string;
   lines?: string[];
-  /** Fixed height so layout doesn’t jump */
   minHeight?: number | string;
-  /** Extra className to theme per block */
   className?: string;
-  /** ARIA label for screen readers */
   ariaLabel?: string;
-  /** Optional % if you fake/stream progress */
   progress?: number | null;
-  /** Full cycle time per line (ms) */
   cycleMs?: number;
-  /** Animation length inside that cycle (ms) */
   animMs?: number;
+  /** Delay before showing loader (ms) */
+  delayMs?: number;
 };
 
 export default function LoadingHub({
@@ -27,10 +23,18 @@ export default function LoadingHub({
   progress = null,
   cycleMs = 1400,
   animMs = 900,
+  delayMs = 200,
 }: LoadingHubProps) {
   const [lineIndex, setLineIndex] = useState(0);
+  const [show, setShow] = useState(false);
 
-  // rotate through provided lines (no-op if only one)
+  // --- delay before showing loader ---
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), delayMs);
+    return () => clearTimeout(t);
+  }, [delayMs]);
+
+  // rotate through provided lines
   const hasMultiple = lines.length > 1;
   useEffect(() => {
     if (!hasMultiple) return;
@@ -53,6 +57,11 @@ export default function LoadingHub({
     srRef.current.textContent = `${Math.round(progress)}%`;
   }, [progress]);
 
+  if (!show) {
+    // render an invisible placeholder with locked height
+    return <div style={style} aria-hidden="true" />;
+  }
+
   return (
     <div
       className={`loading-hub loading-hub--text ${className || ''}`}
@@ -61,11 +70,9 @@ export default function LoadingHub({
       aria-live="polite"
       aria-label={ariaLabel}
       data-keyword={keyword || undefined}
-      // expose anim timing to CSS
       data-anim-ms={animMs}
     >
       <div className="loading-hub__copy" aria-hidden={false}>
-        {/* key forces re-mount so the animation restarts */}
         <h2 key={lineIndex} className="loading-hub__line">
           {lines[lineIndex]}
         </h2>
@@ -76,7 +83,6 @@ export default function LoadingHub({
           </div>
         )}
 
-        {/* SR-only percent, updates without layout */}
         <span className="sr-only" ref={srRef} />
       </div>
     </div>

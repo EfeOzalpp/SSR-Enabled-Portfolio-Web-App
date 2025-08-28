@@ -58,18 +58,15 @@ export function ProjectPane({
         scrollSnapAlign: isHidden ? 'none' : 'start',
       }}
     >
-      <div style={{ minHeight: viewportHeight }}>
+      <div className="project-pane-wrapper">
         {isDynamic ? (
           <>
-            {/* 1) Frame (SSR path returns Frame+Enhancer; client-only returns Frame) */}
             <LazyInView
               load={load}
               serverRender={serverRender}
               eager={isFirst}
               allowIdle={true}
             />
-
-            {/* 2) Client-only: mount Shadow app (SSR already has the enhancer) */}
             {!hasSSR && (
               <LazyViewMount
                 load={() => import('../components/dynamic-app/shadow-entry')}
@@ -79,7 +76,7 @@ export function ProjectPane({
                 preloadOnFirstIO
                 observeTargetId={blockId}
                 rootMargin="0px"
-                placeholderMinHeight={360}
+                placeholderMinHeight={0}
                 componentProps={{ blockId }}
               />
             )}
@@ -91,7 +88,7 @@ export function ProjectPane({
             eager={isFirst}
             allowIdle={true}
             observeTargetId={blockId}
-            placeholderMinHeight={360}
+            placeholderMinHeight={0}
           />
         ) : (
           <LazyInView
@@ -100,6 +97,7 @@ export function ProjectPane({
             serverRender={serverRender}
             eager={isFirst}
             allowIdle={false}
+            placeholderMinHeight={0}
           />
         )}
       </div>

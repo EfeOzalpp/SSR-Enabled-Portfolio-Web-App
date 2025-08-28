@@ -918,11 +918,19 @@ function LoadingHub({
   ariaLabel = 'Loading',
   progress = null,
   cycleMs = 1400,
-  animMs = 900
+  animMs = 900,
+  delayMs = 200
 }) {
   const [lineIndex, setLineIndex] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
 
-  // rotate through provided lines (no-op if only one)
+  // --- delay before showing loader ---
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const t = setTimeout(() => setShow(true), delayMs);
+    return () => clearTimeout(t);
+  }, [delayMs]);
+
+  // rotate through provided lines
   const hasMultiple = lines.length > 1;
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (!hasMultiple) return;
@@ -946,15 +954,20 @@ function LoadingHub({
     if (progress == null || !srRef.current) return;
     srRef.current.textContent = `${Math.round(progress)}%`;
   }, [progress]);
+  if (!show) {
+    // render an invisible placeholder with locked height
+    return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      style: style,
+      "aria-hidden": "true"
+    });
+  }
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
     className: `loading-hub loading-hub--text ${className || ''}`,
     style: style,
     role: "status",
     "aria-live": "polite",
     "aria-label": ariaLabel,
-    "data-keyword": keyword || undefined
-    // expose anim timing to CSS
-    ,
+    "data-keyword": keyword || undefined,
     "data-anim-ms": animMs,
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
       className: "loading-hub__copy",

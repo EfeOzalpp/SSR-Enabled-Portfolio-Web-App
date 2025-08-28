@@ -111,6 +111,7 @@ export default function LazyInView({
       className={debugLabel ? `liv--${debugLabel}` : undefined}
       style={{
         width: '100%',
+        height: '100%',
         minHeight: placeholderMinHeight,
         position: 'relative',
         // 👇 First render matches SSR exactly via initialVisible

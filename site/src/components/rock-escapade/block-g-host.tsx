@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import lottie from 'lottie-web';
+import lottie from '../../utils/load-lottie'; 
 
 import BlockGOnboarding from './block-g-onboarding';
 import CoinCounter from './block-g-coin-counter';
@@ -18,9 +18,15 @@ import GameInputGuards from '../../ssr/logic/game-input-guards';
 import '../../styles/block-type-g.css';
 
 const GAME_MODE_CLASS = 'game-mode-active';
-function activateGameMode() { if (typeof document !== 'undefined') document.body.classList.add(GAME_MODE_CLASS); }
-function deactivateGameMode() { if (typeof document !== 'undefined') document.body.classList.remove(GAME_MODE_CLASS); }
-function isFullscreen() { return typeof document !== 'undefined' && !!document.fullscreenElement; }
+function activateGameMode() {
+  if (typeof document !== 'undefined') document.body.classList.add(GAME_MODE_CLASS);
+}
+function deactivateGameMode() {
+  if (typeof document !== 'undefined') document.body.classList.remove(GAME_MODE_CLASS);
+}
+function isFullscreen() {
+  return typeof document !== 'undefined' && !!document.fullscreenElement;
+}
 
 export default function BlockGHost({ blockId }: { blockId: string }) {
   const isRealMobile = useRealMobileViewport();
@@ -75,7 +81,7 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
     activateGameMode();
     setStarted(true);
     setCoins(0);
-    setFinalScore(null);        // hide any lingering overlay
+    setFinalScore(null); // hide any lingering overlay
     setCountdownPhase('lottie');
 
     requestAnimationFrame(() => {
@@ -84,32 +90,51 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
     });
   }, [enterFullscreen, blockId]);
 
-  // Lottie countdown
+  // Lottie countdown (lazy)
   useEffect(() => {
     if (countdownPhase !== 'lottie' || !lottieRef.current) return;
-    const anim = lottie.loadAnimation({
-      container: lottieRef.current,
-      renderer: 'svg',
-      loop: false,
-      autoplay: true,
-      animationData: isRealMobile ? mobileOnboarding : desktopOnboarding,
-    });
-    const onComplete = () => setCountdownPhase('begin');
-    anim.addEventListener('complete', onComplete);
-    return () => { anim.removeEventListener('complete', onComplete); anim.destroy(); };
+
+    let anim: any;
+    let mounted = true;
+
+    (async () => {
+      anim = await lottie.loadAnimation({
+        container: lottieRef.current!,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        animationData: isRealMobile ? mobileOnboarding : desktopOnboarding,
+      });
+      if (!mounted || !anim) return;
+
+      const onComplete = () => setCountdownPhase('begin');
+      anim.addEventListener('complete', onComplete);
+
+      return () => anim?.removeEventListener?.('complete', onComplete);
+    })();
+
+    return () => {
+      mounted = false;
+      anim?.destroy?.();
+    };
   }, [countdownPhase, isRealMobile]);
 
   useEffect(() => {
     if (countdownPhase === 'begin') {
       setShowBeginText(true);
-      const t = setTimeout(() => { setShowBeginText(false); setCountdownPhase(null); }, 1000);
+      const t = setTimeout(() => {
+        setShowBeginText(false);
+        setCountdownPhase(null);
+      }, 1000);
       return () => clearTimeout(t);
     }
   }, [countdownPhase]);
 
   useEffect(() => {
-    if (countdownPhase === 'lottie') { setShowOverlayBg(true); setShouldRenderOverlayBg(true); }
-    else if (countdownPhase === null) {
+    if (countdownPhase === 'lottie') {
+      setShowOverlayBg(true);
+      setShouldRenderOverlayBg(true);
+    } else if (countdownPhase === null) {
       setShowOverlayBg(false);
       const t = setTimeout(() => setShouldRenderOverlayBg(false), 400);
       return () => clearTimeout(t);
@@ -122,9 +147,13 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
     setStageReady(true); // flip CTA from "Loading…" to "Click Here to Play!"
   };
 
-  const handleCoinsChange = (n: number) => { setCoins(n); };
-  const handleGameOver = (finalCoins: number) => { setFinalScore(finalCoins); };
-  const handleRestart = () => { setCountdownPhase(null); restartApi.current?.restart(); setCoins(0); };
+  const handleCoinsChange = (n: number) => setCoins(n);
+  const handleGameOver = (finalCoins: number) => setFinalScore(finalCoins);
+  const handleRestart = () => {
+    setCountdownPhase(null);
+    restartApi.current?.restart();
+    setCoins(0);
+  };
   const handleExit = () => {
     setStarted(false);
     setCountdownPhase(null);
@@ -138,14 +167,17 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
         (document as any).webkitExitFullscreen ||
         (document as any).msExitFullscreen ||
         (document as any).mozCancelFullScreen;
-      try { exit?.call(document); } catch {}
+      try {
+        exit?.call(document);
+      } catch {}
     }
   };
   useEffect(() => () => deactivateGameMode(), []);
 
-  const displayHigh = (finalScore == null ? coins : finalScore) > stableHigh
-    ? (finalScore == null ? coins : finalScore)
-    : stableHigh;
+  const displayHigh =
+    (finalScore == null ? coins : finalScore) > stableHigh
+      ? finalScore == null ? coins : finalScore
+      : stableHigh;
   const beatingHighNow = finalScore == null && coins > stableHigh;
 
   return (
@@ -179,11 +211,19 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
           <CoinCounter coins={coins} highScore={displayHigh} newHighScore={beatingHighNow} />
 
           {shouldRenderOverlayBg && (
-            <div className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`} style={{ pointerEvents: 'none' }} />
+            <div
+              className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`}
+              style={{ pointerEvents: 'none' }}
+            />
           )}
 
           {(countdownPhase === 'lottie' || countdownPhase === 'begin') && (
-            <div ref={lottieRef} id="lottie-onboarding" className="countdown-lottie" style={{ pointerEvents: 'none' }} />
+            <div
+              ref={lottieRef}
+              id="lottie-onboarding"
+              className="countdown-lottie"
+              style={{ pointerEvents: 'none' }}
+            />
           )}
 
           <GameOverController
@@ -195,19 +235,16 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
         </>
       )}
 
-      {/* Lazy + Re-mountable:
-          - Preloads chunk on idle & first IO
-          - Mounts when in view, unmounts when out of view
-          - Placeholder keeps height so IO can measure */}
-<LazyViewMount
+      {/* Lazy + Re-mountable */}
+      <LazyViewMount
         load={() => import('./game-canvas')}
         fallback={null}
         mountMode="io"
         observeTargetId={blockId}
         rootMargin="0px"
-        enterThreshold={0.2}      // start showing after ~20% visible
-        exitThreshold={0.05}      // consider out-of-view at/below 5%
-        unmountDelayMs={150}      // ms! small delay to avoid micro-jitter
+        enterThreshold={0.2}
+        exitThreshold={0.05}
+        unmountDelayMs={150}
         preloadOnIdle
         preloadIdleTimeout={2000}
         preloadOnFirstIO
@@ -220,7 +257,10 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
           pauseWhenHidden: true,
           demoMode: !started,
           overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
-          allowSpawns: !started || (started && (countdownPhase === 'begin' || countdownPhase === null)),
+          allowSpawns:
+            !started ||
+            (started &&
+              (countdownPhase === 'begin' || countdownPhase === null)),
         }}
       />
     </section>

@@ -1,5 +1,6 @@
+// src/utils/title/split-drag-handler.tsx (or your original path)
 import React, { useRef, useEffect, useLayoutEffect, useState } from 'react';
-import lottie from 'lottie-web';
+import lottie from '../../utils/load-lottie'; // <-- lazy proxy (SVG-only build if you configured it)
 import { useProjectVisibility } from '../context-providers/project-context';
 import arrowData2 from '../../svg/arrow2.json';
 import {
@@ -10,8 +11,7 @@ import {
 type SplitDragHandlerProps = {
   split: number;
   setSplit: React.Dispatch<React.SetStateAction<number>>;
-  ids?: { m1: string; m2: string }; // optional (used by SSR-enhanced blocks)
-  /** Optional per-instance override (else it uses viewport-based rules). */
+  ids?: { m1: string; m2: string };
   minPortraitSplit?: number;
 };
 
@@ -20,6 +20,18 @@ const PULSE_LOW_OPACITY = 0.35;
 const PULSE_FADE_MS = 1500;
 const PULSE_HOLD_MS = 180;
 const PULSE_COOLDOWN_MS = 700;
+
+// minimal Lottie shape we use
+type AnimationItemLike = {
+  goToAndStop: (v: number, isFrame?: boolean) => void;
+  playSegments: (seg: [number, number] | number[], force?: boolean) => void;
+  addEventListener: (name: string, cb: () => void) => void;
+  removeEventListener: (name: string, cb: () => void) => void;
+  destroy: () => void;
+  // optional field used in a fallback
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [k: string]: any;
+};
 
 const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({
   split,
@@ -35,26 +47,22 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({
   const isHoveringRef = useRef(false);
 
   const arrowContainer = useRef<HTMLDivElement | null>(null);
-  const arrowAnimRef = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null);
+  const arrowAnimRef = useRef<AnimationItemLike | null>(null);
 
   const [isPortrait, setIsPortrait] = useState(
     typeof window !== 'undefined' ? window.innerHeight > window.innerWidth : false
   );
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-  // keep a live min floor based on viewport width (unless override provided)
   const minRef = useRef<number>(
     typeof minPortraitSplit === 'number'
       ? minPortraitSplit
       : getPortraitMinSplit(typeof window !== 'undefined' ? window.innerWidth : undefined)
   );
 
-  // pinch-to-reset helpers
   const initialPinchDistance = useRef<number | null>(null);
   const pinchTriggeredRef = useRef(false);
   const pinchThreshold = 10;
-
-  // throttle pulse
   const lastPulseAtRef = useRef(0);
 
   const playSegment = (() => {
@@ -149,7 +157,6 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({
     const vh = window.innerHeight;
     const portraitNow = vh > vw;
 
-    // live recompute (covers device rotation while dragging)
     const minPortrait =
       typeof minPortraitSplit === 'number' ? minPortraitSplit : getPortraitMinSplit(vw);
 
@@ -160,7 +167,6 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({
       const BOTTOM = 100 - minPortrait;
       next = Math.max(TOP, Math.min(BOTTOM, next));
 
-      // pulse when user hits either floor
       if (next <= TOP + FLOOR_EPS || next >= BOTTOM - FLOOR_EPS) {
         pulseLottie();
       }
@@ -296,45 +302,61 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({
     pinchTriggeredRef.current = false;
   };
 
+  // INIT LOTTIE (lazy) — await the instance
   useEffect(() => {
-    const anim = lottie.loadAnimation({
-      container: arrowContainer.current!,
-      renderer: 'svg',
-      loop: false,
-      autoplay: false,
-      animationData: arrowData2,
-    });
-    arrowAnimRef.current = anim;
+    let anim: AnimationItemLike | null = null;
+    let mounted = true;
 
-    const container = containerRef.current;
-    if (container) container.style.opacity = '0';
+    (async () => {
+      const el = arrowContainer.current!;
+      anim = await lottie.loadAnimation({
+        container: el,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        animationData: arrowData2,
+      });
+      if (!mounted || !anim) return;
 
-    const playInitial = () => {
-      anim.goToAndStop(0, true);
-      setTimeout(() => anim.playSegments([0, 75], true), 1200);
-      if (container) {
-        setTimeout(() => (container.style.opacity = '1'), 1200);
-      }
-      arrowContainer.current?.querySelector('svg')?.classList.add('drag-arrow');
-    };
+      arrowAnimRef.current = anim;
 
-    anim.addEventListener('DOMLoaded', playInitial);
-    const fallback = setTimeout(() => {
-      // @ts-ignore
-      if (!(anim as any).isLoaded) playInitial();
-    }, 2000);
+      const container = containerRef.current;
+      if (container) container.style.opacity = '0';
+
+      const playInitial = () => {
+        anim!.goToAndStop(0, true);
+        setTimeout(() => anim!.playSegments([0, 75], true), 1200);
+        if (container) {
+          setTimeout(() => (container.style.opacity = '1'), 1200);
+        }
+        arrowContainer.current?.querySelector('svg')?.classList.add('drag-arrow');
+      };
+
+      anim.addEventListener('DOMLoaded', playInitial);
+      const fallback = setTimeout(() => {
+        if (!(anim as any).isLoaded) playInitial();
+      }, 2000);
+
+      // cleanup for this async init
+      return () => {
+        clearTimeout(fallback);
+        anim?.removeEventListener('DOMLoaded', playInitial);
+      };
+    })();
 
     return () => {
-      clearTimeout(fallback);
-      anim.removeEventListener('DOMLoaded', playInitial);
-      anim.destroy();
+      mounted = false;
+      arrowAnimRef.current?.destroy();
+      arrowAnimRef.current = null;
     };
   }, []);
 
+  // Replay on in-view
   useEffect(() => {
     const container = containerRef.current;
     const anim = arrowAnimRef.current;
     if (!container || !anim) return;
+
     let views = 0;
     const io = new IntersectionObserver(
       (entries) => {
@@ -352,14 +374,17 @@ const SplitDragHandler: React.FC<SplitDragHandlerProps> = ({
     return () => io.disconnect();
   }, []);
 
+  // Pointer / touch listeners
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+
     container.addEventListener('mouseenter', handleMouseEnter);
     container.addEventListener('mouseleave', handleMouseLeave);
     container.addEventListener('mousedown', startDragging as any);
     container.addEventListener('touchstart', handleTouchStart as any, { passive: false });
     container.addEventListener('touchend', handleTouchEnd as any, { passive: true });
+
     return () => {
       container.removeEventListener('mouseenter', handleMouseEnter);
       container.removeEventListener('mouseleave', handleMouseLeave);

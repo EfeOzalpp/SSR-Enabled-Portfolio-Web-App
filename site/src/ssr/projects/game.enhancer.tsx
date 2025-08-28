@@ -1,7 +1,7 @@
 // src/ssr/projects/game.enhancer.tsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import lottie from 'lottie-web';
+import lottie from '../../utils/load-lottie'; 
 
 import BlockGOnboarding from '../../components/rock-escapade/block-g-onboarding-inner';
 import ExitButton from '../../components/rock-escapade/block-g-exit';
@@ -51,12 +51,12 @@ const GameEnhancer: React.FC = () => {
   const reapplyOnboarding = useCallback(() => setOnboardingReset(v => v + 1), []);
 
   const stableStartAtForThisMount = useMemo(
-  () => (firstHydrationUsedRef.current ? 0 : 30),
-  [onboardingReset] // ← only recompute when we intentionally remount onboarding
+    () => (firstHydrationUsedRef.current ? 0 : 30),
+    [onboardingReset] // ← only recompute when we intentionally remount onboarding
   );
 
   const handleInnerMount = useCallback(() => {
-  firstHydrationUsedRef.current = true;
+    firstHydrationUsedRef.current = true;
   }, []);
   
   useEffect(() => {
@@ -160,30 +160,30 @@ const GameEnhancer: React.FC = () => {
   );
 };
 
-  // let the portal thread the props to the inner
-  type OnboardingPortalProps = {
-    reset: number;
-    startAtFrame: number;
-    onInnerMount: () => void;
-    label: string;
-    ctaEnabled: boolean;
-    loadingLines?: string[];
-  };
+// let the portal thread the props to the inner
+type OnboardingPortalProps = {
+  reset: number;
+  startAtFrame: number;
+  onInnerMount: () => void;
+  label: string;
+  ctaEnabled: boolean;
+  loadingLines?: string[];
+};
 
-  const OnboardingPortal: React.FC<OnboardingPortalProps> = ({
-    reset, startAtFrame, onInnerMount, label, ctaEnabled, loadingLines
-  }) => (
-    <BlockGOnboarding
-      key={reset}
-      startAtFrame={startAtFrame}
-      onMount={onInnerMount}
-      label={label}
-      ctaEnabled={ctaEnabled}
-      loadingLines={loadingLines}
-    />
-  );
+const OnboardingPortal: React.FC<OnboardingPortalProps> = ({
+  reset, startAtFrame, onInnerMount, label, ctaEnabled, loadingLines
+}) => (
+  <BlockGOnboarding
+    key={reset}
+    startAtFrame={startAtFrame}
+    onMount={onInnerMount}
+    label={label}
+    ctaEnabled={ctaEnabled}
+    loadingLines={loadingLines}
+  />
+);
 
-  export default GameEnhancer;
+export default GameEnhancer;
 
 /* ---------- Stage (mirrors the working BlockGHost behavior) ---------- */
 const GameStage: React.FC<{
@@ -297,19 +297,34 @@ const GameStage: React.FC<{
     };
   }, [onboardingEl, onStart, isStageReady]);
 
-  // Lottie countdown
+  // Lottie countdown (lazy-loaded)
   useEffect(() => {
     if (countdownPhase !== 'lottie' || !lottieRef.current) return;
-    const anim = lottie.loadAnimation({
-      container: lottieRef.current,
-      renderer: 'svg',
-      loop: false,
-      autoplay: true,
-      animationData: isRealMobile ? mobileOnboarding : desktopOnboarding,
-    });
-    const onComplete = () => setCountdownPhase('begin');
-    anim.addEventListener('complete', onComplete);
-    return () => { anim.removeEventListener('complete', onComplete); anim.destroy(); };
+
+    let anim: any;
+    let mounted = true;
+
+    (async () => {
+      anim = await lottie.loadAnimation({
+        container: lottieRef.current!,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        animationData: isRealMobile ? mobileOnboarding : desktopOnboarding,
+      });
+      if (!mounted || !anim) return;
+
+      const onComplete = () => setCountdownPhase('begin');
+      anim.addEventListener('complete', onComplete);
+
+      // local cleanup for this async init (effect will also run its cleanup)
+      return () => anim?.removeEventListener?.('complete', onComplete);
+    })();
+
+    return () => {
+      mounted = false;
+      anim?.destroy?.();
+    };
   }, [countdownPhase, isRealMobile]);
 
   useEffect(() => {
@@ -334,7 +349,7 @@ const GameStage: React.FC<{
   // Canvas bridges
   const handleReady = (api: { restart: () => void }) => {
     restartApi.current = api;
-    onStageReady(true); // flip CTA to "Click to Play!"
+    onStageReady(true); // flips CTA to "Click to Play!"
   };
 
   // If the whole enhancer unmounts, reset readiness
@@ -408,7 +423,6 @@ const GameStage: React.FC<{
       <LazyViewMount
         load={() => import('../../components/rock-escapade/game-canvas')}
         fallback={null}
-        mountMode = 'idle'
         /* Preload the chunk early so re-mounts are instant */
         preloadOnIdle
         preloadIdleTimeout={2000}
@@ -430,4 +444,3 @@ const GameStage: React.FC<{
     </>
   );
 };
-

@@ -301,6 +301,7 @@ function LazyInView({
     className: debugLabel ? `liv--${debugLabel}` : undefined,
     style: {
       width: '100%',
+      height: '100%',
       minHeight: placeholderMinHeight,
       position: 'relative',
       // 👇 First render matches SSR exactly via initialVisible
@@ -724,9 +725,7 @@ function ProjectPane({
       scrollSnapAlign: isHidden ? 'none' : 'start'
     },
     children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-      style: {
-        minHeight: viewportHeight
-      },
+      className: "project-pane-wrapper",
       children: isDynamic ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
         children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
           load: load,
@@ -741,7 +740,7 @@ function ProjectPane({
           preloadOnFirstIO: true,
           observeTargetId: blockId,
           rootMargin: "0px",
-          placeholderMinHeight: 360,
+          placeholderMinHeight: 0,
           componentProps: {
             blockId
           }
@@ -752,13 +751,14 @@ function ProjectPane({
         eager: isFirst,
         allowIdle: true,
         observeTargetId: blockId,
-        placeholderMinHeight: 360
+        placeholderMinHeight: 0
       }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
         load: load,
         fallback: fallbackNode,
         serverRender: serverRender,
         eager: isFirst,
-        allowIdle: false
+        allowIdle: false,
+        placeholderMinHeight: 0
       })
     })
   });
@@ -1121,8 +1121,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
 /* harmony import */ var _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/arrow.json */ "./src/svg/arrow.json");
 /* harmony import */ var _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/link.json */ "./src/svg/link.json");
 /* harmony import */ var _title_context__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./title-context */ "./src/utils/title/title-context.tsx");
@@ -1144,6 +1143,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// Minimal shape for what we use from Lottie
+
 const ViewProject = () => {
   const {
     activeTitle
@@ -1163,7 +1164,7 @@ const ViewProject = () => {
   const getBackgroundColor = () => {
     const colorInfo = _content_utility_color_map__WEBPACK_IMPORTED_MODULE_6__.projectColors[activeTitle];
     if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
-    const alpha = hovered ? 1 : colorInfo.defaultAlpha ?? 0.6;
+    const alpha = hovered ? 1 : colorInfo.defaultAlpha ?? 0.8;
     return `rgba(${colorInfo.rgb}, ${alpha})`;
   };
   const triggerBackgroundFade = () => {
@@ -1171,27 +1172,46 @@ const ViewProject = () => {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 1500);
   };
+
+  // (Re)create arrow/link Lottie when title changes
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const animationData = activeTitle === 'Dynamic App' ? _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
-      container: arrowContainer.current,
-      renderer: 'svg',
-      loop: false,
-      autoplay: false,
-      animationData
-    });
-    arrowAnimRef.current = anim;
-    anim.goToAndStop(40, true);
-    const onDomLoaded = () => {
-      const svg = arrowContainer.current?.querySelector('svg');
-      if (svg) svg.classList.add('arrow-svg');
-    };
-    anim.addEventListener('DOMLoaded', onDomLoaded);
+    const el = arrowContainer.current;
+    if (!el) return;
+    let anim = null;
+    let mounted = true;
+    (async () => {
+      const animationData = activeTitle === 'Dynamic App' ? _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
+
+      // NOTE: proxy returns a Promise -> await the instance
+      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+        container: el,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        animationData
+      });
+      if (!mounted || !anim) return;
+      arrowAnimRef.current = anim;
+      anim.goToAndStop(40, true);
+      const onDomLoaded = () => {
+        const svg = el.querySelector('svg');
+        if (svg) svg.classList.add('arrow-svg');
+      };
+      anim.addEventListener('DOMLoaded', onDomLoaded);
+
+      // cleanup listeners if effect re-runs (component unmount cleanup below)
+      return () => {
+        anim?.removeEventListener('DOMLoaded', onDomLoaded);
+      };
+    })();
     return () => {
-      anim.removeEventListener('DOMLoaded', onDomLoaded);
-      anim.destroy();
+      mounted = false;
+      arrowAnimRef.current?.destroy();
+      arrowAnimRef.current = null;
     };
   }, [activeTitle]);
+
+  // Play a segment when the title actually changes
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (lastTitleRef.current !== activeTitle) {
       arrowAnimRef.current?.playSegments([40, 90], true);
@@ -1200,30 +1220,24 @@ const ViewProject = () => {
     }
   }, [activeTitle]);
 
-  // ✨ Only trigger on mouse move if the cursor is in the bottom 30% of the viewport.
-  // Touch interactions stay as-is (always trigger).
+  // Trigger background fade on user motion (bottom ~35% of viewport) or touch
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const handleMouseMove = e => {
       const viewportH = window.innerHeight || document.documentElement.clientHeight;
-      const isInBottom30 = e.clientY >= viewportH * 0.65;
-      if (isInBottom30) {
-        triggerBackgroundFade();
-      }
+      if (e.clientY >= viewportH * 0.65) triggerBackgroundFade();
     };
-    const handleTouchInteraction = () => {
-      triggerBackgroundFade();
-    };
+    const handleTouch = () => triggerBackgroundFade();
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchstart', handleTouchInteraction, {
+    window.addEventListener('touchstart', handleTouch, {
       passive: true
     });
-    window.addEventListener('touchmove', handleTouchInteraction, {
+    window.addEventListener('touchmove', handleTouch, {
       passive: true
     });
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchstart', handleTouchInteraction);
-      window.removeEventListener('touchmove', handleTouchInteraction);
+      window.removeEventListener('touchstart', handleTouch);
+      window.removeEventListener('touchmove', handleTouch);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, []);

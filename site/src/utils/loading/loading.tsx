@@ -6,25 +6,35 @@ import '../../styles/loading-overlay.css';
 
 type LoadingScreenProps = {
   isFullScreen?: boolean;
+  /** Delay before showing loader (ms) */
+  delayMs?: number;
 };
 
-const LoadingScreen = ({ isFullScreen = true }: LoadingScreenProps) => {
+const LoadingScreen = ({ isFullScreen = true, delayMs = 200 }: LoadingScreenProps) => {
   const container = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState(70); // default to largest
+  const [show, setShow] = useState(false);
 
+  // Delay before showing loader
   useEffect(() => {
-    // Determine viewport width and apply appropriate size
+    const t = setTimeout(() => setShow(true), delayMs);
+    return () => clearTimeout(t);
+  }, [delayMs]);
+
+  // Lottie setup (only if visible)
+  useEffect(() => {
+    if (!show || !container.current) return;
     const width = window.innerWidth;
     if (width <= 767) {
       setSize(32);
     } else if (width <= 1024) {
-      setSize(48);
+      setSize(40);
     } else {
-      setSize(70);
+      setSize(56);
     }
 
     const anim = lottie.loadAnimation({
-      container: container.current!,
+      container: container.current,
       renderer: 'svg',
       loop: true,
       autoplay: true,
@@ -32,7 +42,17 @@ const LoadingScreen = ({ isFullScreen = true }: LoadingScreenProps) => {
     });
 
     return () => anim.destroy();
-  }, []);
+  }, [show]);
+
+  if (!show) {
+    // Empty placeholder to keep structure aligned
+    return (
+      <div
+        className={`loading-screen-wrapper ${isFullScreen ? 'fullscreen' : 'contained'}`}
+        aria-hidden="true"
+      />
+    );
+  }
 
   return (
     <div className={`loading-screen-wrapper ${isFullScreen ? 'fullscreen' : 'contained'}`}>

@@ -241,7 +241,7 @@ const MediaLoader = ({
         height: '100%'
       },
       children: [!loaded && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
-        className: "absolute inset-0 z-10",
+        className: "absolute-inset",
         children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_2__["default"], {
           isFullScreen: false
         })
@@ -268,8 +268,7 @@ const MediaLoader = ({
   }
 
   // ====== VIDEO ======
-  // Spinner only if NO poster to show and video isn't ready yet
-  const showSpinner = !loaded && !posterUrl;
+  const showSpinner = !loaded;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
     ref: containerRef,
     style: {
@@ -278,7 +277,7 @@ const MediaLoader = ({
       height: '100%'
     },
     children: [showSpinner && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
-      className: "absolute inset-0 z-10",
+      className: "absolute-inset",
       children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_2__["default"], {
         isFullScreen: false
       })

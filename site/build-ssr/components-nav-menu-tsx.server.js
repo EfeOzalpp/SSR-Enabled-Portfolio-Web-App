@@ -15,15 +15,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/load-lottie */ "./src/utils/load-lottie.ts");
 /* harmony import */ var _svg_efeozalp_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../svg/efeozalp.json */ "./src/svg/efeozalp.json");
 /* harmony import */ var _svg_github_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../svg/github.json */ "./src/svg/github.json");
 /* harmony import */ var _svg_linkedin_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../svg/linkedin.json */ "./src/svg/linkedin.json");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/components/NavMenu.tsx
 
-
+ // proxy that lazy-loads lottie-web (svg build if you configured it)
 
 
 
@@ -33,107 +32,133 @@ const NavMenu = () => {
   const githubContainer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const linkedinContainer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // Title
+  // Title animation (hover scrubs between frames)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = lottieContainer.current;
     if (!el) return;
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
-      container: el,
-      renderer: "svg",
-      loop: false,
-      autoplay: true,
-      animationData: _svg_efeozalp_json__WEBPACK_IMPORTED_MODULE_2__
-    });
-    const stopAt = 175;
-    const startHold = 80;
-    const stepToFrame = target => {
-      const step = () => {
-        const cur = anim.currentFrame;
-        if (Math.abs(cur - target) <= 1) {
-          anim.goToAndStop(target, true);
-          return;
-        }
-        anim.goToAndStop(cur + (cur < target ? 1 : -1), true);
+    let anim;
+    let mounted = true;
+    (async () => {
+      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+        container: el,
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        animationData: _svg_efeozalp_json__WEBPACK_IMPORTED_MODULE_2__
+      });
+      if (!mounted) return;
+      const stopAt = 175;
+      const startHold = 80;
+      const stepToFrame = target => {
+        const step = () => {
+          if (!anim) return;
+          const cur = anim.currentFrame;
+          if (Math.abs(cur - target) <= 1) {
+            anim.goToAndStop(target, true);
+            return;
+          }
+          anim.goToAndStop(cur + (cur < target ? 1 : -1), true);
+          requestAnimationFrame(step);
+        };
         requestAnimationFrame(step);
       };
-      requestAnimationFrame(step);
-    };
-    const onEnterFrame = () => {
-      if (anim.currentFrame >= stopAt) {
-        anim.removeEventListener("enterFrame", onEnterFrame);
-        anim.goToAndStop(stopAt, true);
-      }
-    };
-    const onEnter = () => stepToFrame(startHold);
-    const onLeave = () => stepToFrame(stopAt);
-    el.addEventListener("mouseenter", onEnter);
-    el.addEventListener("mouseleave", onLeave);
-    anim.addEventListener("enterFrame", onEnterFrame);
+      const onEnterFrame = () => {
+        if (anim.currentFrame >= stopAt) {
+          anim.removeEventListener("enterFrame", onEnterFrame);
+          anim.goToAndStop(stopAt, true);
+        }
+      };
+      const onEnter = () => stepToFrame(startHold);
+      const onLeave = () => stepToFrame(stopAt);
+      el.addEventListener("mouseenter", onEnter);
+      el.addEventListener("mouseleave", onLeave);
+      anim.addEventListener("enterFrame", onEnterFrame);
+
+      // cleanup listeners on effect re-run (component unmount cleanup below)
+      return () => {
+        el.removeEventListener("mouseenter", onEnter);
+        el.removeEventListener("mouseleave", onLeave);
+        anim?.removeEventListener("enterFrame", onEnterFrame);
+      };
+    })();
     return () => {
-      el.removeEventListener("mouseenter", onEnter);
-      el.removeEventListener("mouseleave", onLeave);
-      anim.removeEventListener("enterFrame", onEnterFrame);
-      anim.destroy();
+      mounted = false;
+      anim?.destroy?.();
+      anim = null;
     };
   }, []);
 
-  // GitHub
+  // GitHub animation (auto plays to a frame, then holds)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = githubContainer.current;
     if (!el) return;
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
-      container: el,
-      renderer: "svg",
-      loop: false,
-      autoplay: false,
-      animationData: _svg_github_json__WEBPACK_IMPORTED_MODULE_3__
-    });
-    anim.goToAndStop(0, true);
-    const stopAt = 26;
+    let anim;
+    let mounted = true;
+    let timer = null;
     const onEnterFrame = () => {
-      if (anim.currentFrame >= stopAt) {
+      if (anim.currentFrame >= 26) {
         anim.removeEventListener("enterFrame", onEnterFrame);
-        anim.goToAndStop(stopAt, true);
+        anim.goToAndStop(26, true);
       }
     };
-    const t = setTimeout(() => {
-      anim.play();
-      anim.addEventListener("enterFrame", onEnterFrame);
-    }, 1600);
+    (async () => {
+      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+        container: el,
+        renderer: "svg",
+        loop: false,
+        autoplay: false,
+        animationData: _svg_github_json__WEBPACK_IMPORTED_MODULE_3__
+      });
+      if (!mounted) return;
+      anim.goToAndStop(0, true);
+      timer = window.setTimeout(() => {
+        anim.play();
+        anim.addEventListener("enterFrame", onEnterFrame);
+      }, 1600);
+    })();
     return () => {
-      clearTimeout(t);
-      anim.removeEventListener("enterFrame", onEnterFrame);
-      anim.destroy();
+      mounted = false;
+      if (timer != null) window.clearTimeout(timer);
+      anim?.removeEventListener?.("enterFrame", onEnterFrame);
+      anim?.destroy?.();
+      anim = null;
     };
   }, []);
 
-  // LinkedIn
+  // LinkedIn animation (auto plays to a frame, then holds)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = linkedinContainer.current;
     if (!el) return;
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
-      container: el,
-      renderer: "svg",
-      loop: false,
-      autoplay: false,
-      animationData: _svg_linkedin_json__WEBPACK_IMPORTED_MODULE_4__
-    });
-    anim.goToAndStop(0, true);
-    const stopAt = 20;
+    let anim;
+    let mounted = true;
+    let timer = null;
     const onEnterFrame = () => {
-      if (anim.currentFrame >= stopAt) {
+      if (anim.currentFrame >= 20) {
         anim.removeEventListener("enterFrame", onEnterFrame);
-        anim.goToAndStop(stopAt, true);
+        anim.goToAndStop(20, true);
       }
     };
-    const t = setTimeout(() => {
-      anim.play();
-      anim.addEventListener("enterFrame", onEnterFrame);
-    }, 1200);
+    (async () => {
+      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+        container: el,
+        renderer: "svg",
+        loop: false,
+        autoplay: false,
+        animationData: _svg_linkedin_json__WEBPACK_IMPORTED_MODULE_4__
+      });
+      if (!mounted) return;
+      anim.goToAndStop(0, true);
+      timer = window.setTimeout(() => {
+        anim.play();
+        anim.addEventListener("enterFrame", onEnterFrame);
+      }, 1200);
+    })();
     return () => {
-      clearTimeout(t);
-      anim.removeEventListener("enterFrame", onEnterFrame);
-      anim.destroy();
+      mounted = false;
+      if (timer != null) window.clearTimeout(timer);
+      anim?.removeEventListener?.("enterFrame", onEnterFrame);
+      anim?.destroy?.();
+      anim = null;
     };
   }, []);
   const handleHomeClick = e => {

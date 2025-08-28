@@ -17,6 +17,8 @@ a {text-decoration: none;}
   h3 { font-size: clamp(1.2rem, 3.6vw, 2rem); line-height: 1.2; letter-spacing: 0.07rem; }
   h4 { font-size: clamp(1rem, 2.2vw, 2rem); line-height: 1.2; letter-spacing: 0.07rem; }
   p { font-size: clamp(0.95rem, 3vw, 1rem); line-height: 1.4; }
+  .SnappyScrollThingy {height: 98dvh; padding-bottom: 2dvh;}
+  .project-pane-wrapper {height: 98dvh;}
 }
 
 /* Medium devices */
@@ -26,10 +28,12 @@ a {text-decoration: none;}
   h3 { font-size: clamp(1.2rem, 3vw, 1.6rem); line-height: 1.2; }
   h4 { font-size: clamp(1rem, 2vw, 1.2rem); line-height: 1.2; }
   p { font-size: clamp(1rem, 1vw, 1.1rem); line-height: 1.4; }
+  .SnappyScrollThingy {height: 92dvh; padding-bottom: 8dvh;}
+  .project-pane-wrapper {height: 92dvh;}
 }
 
 /* Large devices */
-@media (min-width: 1025px) and  (max-width: 2024px) {
+@media (min-width: 1025px) {
   html.font-small {
   font-size: 70% !important;
 }
@@ -39,6 +43,8 @@ a {text-decoration: none;}
   h3 { font-size: clamp(1.4rem, 2vw, 2rem); line-height: 1.1; }
   h4 { font-size: clamp(1.1rem, 1.5vw, 1.3rem); line-height: 0.2; }
   p  { font-size: clamp(1.07rem, 0.9vw, 1.2rem); line-height: 1.4; }
+  .SnappyScrollThingy {height: 96dvh; padding-bottom: 4dvh;}
+  .project-pane-wrapper {height: 96dvh;}
 }
 
 /* éxtra Large devices */

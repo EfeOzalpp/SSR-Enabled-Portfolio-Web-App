@@ -15,8 +15,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
 /* harmony import */ var _block_g_onboarding__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./block-g-onboarding */ "./src/components/rock-escapade/block-g-onboarding.tsx");
 /* harmony import */ var _block_g_coin_counter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./block-g-coin-counter */ "./src/components/rock-escapade/block-g-coin-counter.tsx");
 /* harmony import */ var _block_g_exit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./block-g-exit */ "./src/components/rock-escapade/block-g-exit.tsx");
@@ -112,21 +111,27 @@ function BlockGHost({
     });
   }, [enterFullscreen, blockId]);
 
-  // Lottie countdown
+  // Lottie countdown (lazy)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (countdownPhase !== 'lottie' || !lottieRef.current) return;
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
-      container: lottieRef.current,
-      renderer: 'svg',
-      loop: false,
-      autoplay: true,
-      animationData: isRealMobile ? _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_8__ : _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_7__
-    });
-    const onComplete = () => setCountdownPhase('begin');
-    anim.addEventListener('complete', onComplete);
+    let anim;
+    let mounted = true;
+    (async () => {
+      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+        container: lottieRef.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        animationData: isRealMobile ? _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_8__ : _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_7__
+      });
+      if (!mounted || !anim) return;
+      const onComplete = () => setCountdownPhase('begin');
+      anim.addEventListener('complete', onComplete);
+      return () => anim?.removeEventListener?.('complete', onComplete);
+    })();
     return () => {
-      anim.removeEventListener('complete', onComplete);
-      anim.destroy();
+      mounted = false;
+      anim?.destroy?.();
     };
   }, [countdownPhase, isRealMobile]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -155,12 +160,8 @@ function BlockGHost({
     restartApi.current = api;
     setStageReady(true); // flip CTA from "Loading…" to "Click Here to Play!"
   };
-  const handleCoinsChange = n => {
-    setCoins(n);
-  };
-  const handleGameOver = finalCoins => {
-    setFinalScore(finalCoins);
-  };
+  const handleCoinsChange = n => setCoins(n);
+  const handleGameOver = finalCoins => setFinalScore(finalCoins);
   const handleRestart = () => {
     setCountdownPhase(null);
     restartApi.current?.restart();
@@ -234,12 +235,9 @@ function BlockGHost({
       mountMode: "io",
       observeTargetId: blockId,
       rootMargin: "0px",
-      enterThreshold: 0.2 // start showing after ~20% visible
-      ,
-      exitThreshold: 0.05 // consider out-of-view at/below 5%
-      ,
-      unmountDelayMs: 150 // ms! small delay to avoid micro-jitter
-      ,
+      enterThreshold: 0.2,
+      exitThreshold: 0.05,
+      unmountDelayMs: 150,
       preloadOnIdle: true,
       preloadIdleTimeout: 2000,
       preloadOnFirstIO: true,
@@ -599,15 +597,11 @@ function createTooltipDOM() {
 let tooltipEl = null;
 let currentKey = '';
 let hideTimeout = null;
-
-// IO gating state
-let io = null;
-let observedEl = null;
-let visibleEnough = true; // only show/apply when true
-
 const fetchTooltipDataForKey = async key => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
   const bg = bgForKey(key);
+
+  // local fallback
   if (LOCAL_FALLBACK_TAGS[key]) {
     const info = {
       tags: LOCAL_FALLBACK_TAGS[key],
@@ -616,6 +610,8 @@ const fetchTooltipDataForKey = async key => {
     tooltipDataCache[key] = info;
     return info;
   }
+
+  // CMS fetch by slug
   try {
     const client = (await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ../sanity */ "./src/utils/sanity.ts"))).default;
     const res = await client.fetch(`*[_type=="mediaBlock" && slug.current == $key][0]{ tags }`, {
@@ -638,7 +634,6 @@ const fetchTooltipDataForKey = async key => {
 };
 const showTooltip = () => {
   if (!tooltipEl) return;
-  if (!visibleEnough) return; // 🚫 gate: do not show if target < 0.3 visible
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
@@ -649,7 +644,7 @@ const hideTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '0';
   tooltipEl.style.visibility = 'hidden';
-  // keep currentKey so we can re-show quickly if still over same element
+  currentKey = '';
 };
 function positionTooltip(x, y) {
   if (!tooltipEl) return;
@@ -683,28 +678,6 @@ function positionTooltip(x, y) {
   tooltipEl.style.left = `${left}px`;
   tooltipEl.style.top = `${top}px`;
 }
-
-// (new) observe hovered/attached element and gate visibility
-function observeTargetForVisibility(el) {
-  if (!('IntersectionObserver' in window)) {
-    visibleEnough = true;
-    return;
-  }
-  if (!io) {
-    io = new IntersectionObserver(entries => {
-      const e = entries[0];
-      const ratio = e?.intersectionRatio ?? 0;
-      visibleEnough = !!e?.isIntersecting && ratio >= 0.3; // 🔑 gate at 0.3
-      if (!visibleEnough) hideTooltip();
-    }, {
-      root: null,
-      threshold: [0, 0.3, 1]
-    });
-  }
-  if (observedEl) io.unobserve(observedEl);
-  observedEl = el || null;
-  if (observedEl) io.observe(observedEl);
-}
 function initGlobalTooltip(isRealMobile) {
   if (tooltipEl) return () => {};
   tooltipEl = createTooltipDOM();
@@ -717,28 +690,11 @@ function initGlobalTooltip(isRealMobile) {
       hideTooltip();
       return;
     }
-
-    // find a tooltip-* class on the element or ancestors
-    const tooltipHost = el.closest('[class*="tooltip-"]');
-    if (!tooltipHost) {
-      hideTooltip();
-      observeTargetForVisibility(null);
-      return;
-    }
-    const tooltipClass = Array.from(tooltipHost.classList).find(c => c.startsWith('tooltip-'));
+    const tooltipClass = [...el.classList].find(c => c.startsWith('tooltip-'));
     if (!tooltipClass) {
       hideTooltip();
-      observeTargetForVisibility(null);
       return;
     }
-
-    // observe this specific element for visibility gating
-    observeTargetForVisibility(tooltipHost);
-    if (!visibleEnough) {
-      hideTooltip();
-      return;
-    } // don’t apply if under threshold
-
     const key = tooltipClass.replace('tooltip-', '');
     if (key !== currentKey) {
       currentKey = key;
@@ -761,7 +717,6 @@ function initGlobalTooltip(isRealMobile) {
     updateForElement(e.target);
   };
   const checkHoveredElementOnScroll = () => {
-    if (lastMouseX < 0 || lastMouseY < 0) return;
     const el = document.elementFromPoint(lastMouseX, lastMouseY);
     updateForElement(el);
     requestAnimationFrame(() => positionTooltip(lastMouseX, lastMouseY));
@@ -780,6 +735,8 @@ function initGlobalTooltip(isRealMobile) {
   const onMouseOut = e => {
     if (!e.relatedTarget) hideTooltip();
   };
+
+  // only attach scroll observer for non-mobile real viewports
   if (!isRealMobile) window.addEventListener('scroll', onScroll, true);
   document.addEventListener('mousemove', onMouseMove, {
     passive: true
@@ -792,12 +749,6 @@ function initGlobalTooltip(isRealMobile) {
     if (!isRealMobile) window.removeEventListener('scroll', onScroll, true);
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseout', onMouseOut);
-    if (io) {
-      if (observedEl) io.unobserve(observedEl);
-      io.disconnect();
-      io = null;
-      observedEl = null;
-    }
     tooltipEl.remove();
     tooltipEl = null;
     if (hideTimeout) clearTimeout(hideTimeout);

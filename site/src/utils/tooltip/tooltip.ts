@@ -44,22 +44,19 @@ let tooltipEl: HTMLDivElement | null = null;
 let currentKey = '';
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// IO gating state
-let io: IntersectionObserver | null = null;
-let observedEl: Element | null = null;
-let visibleEnough = true; // only show/apply when true
-
 export const fetchTooltipDataForKey = async (key: string): Promise<TooltipInfo> => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
 
   const bg = bgForKey(key);
 
+  // local fallback
   if (LOCAL_FALLBACK_TAGS[key]) {
     const info = { tags: LOCAL_FALLBACK_TAGS[key], backgroundColor: bg };
     tooltipDataCache[key] = info;
     return info;
   }
 
+  // CMS fetch by slug
   try {
     const client = (await import('../sanity')).default;
     const res = await client.fetch<{ tags?: string[] } | null>(
@@ -78,7 +75,6 @@ export const fetchTooltipDataForKey = async (key: string): Promise<TooltipInfo> 
 
 const showTooltip = () => {
   if (!tooltipEl) return;
-  if (!visibleEnough) return; // 🚫 gate: do not show if target < 0.3 visible
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
@@ -90,7 +86,7 @@ const hideTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '0';
   tooltipEl.style.visibility = 'hidden';
-  // keep currentKey so we can re-show quickly if still over same element
+  currentKey = '';
 };
 
 function positionTooltip(x: number, y: number) {
@@ -119,28 +115,6 @@ function positionTooltip(x: number, y: number) {
   tooltipEl.style.top  = `${top}px`;
 }
 
-// (new) observe hovered/attached element and gate visibility
-function observeTargetForVisibility(el: Element | null) {
-  if (!('IntersectionObserver' in window)) {
-    visibleEnough = true;
-    return;
-  }
-  if (!io) {
-    io = new IntersectionObserver(
-      (entries) => {
-        const e = entries[0];
-        const ratio = e?.intersectionRatio ?? 0;
-        visibleEnough = !!e?.isIntersecting && ratio >= 0.3; // 🔑 gate at 0.3
-        if (!visibleEnough) hideTooltip();
-      },
-      { root: null, threshold: [0, 0.3, 1] }
-    );
-  }
-  if (observedEl) io.unobserve(observedEl);
-  observedEl = el || null;
-  if (observedEl) io.observe(observedEl);
-}
-
 export function initGlobalTooltip(isRealMobile: boolean) {
   if (tooltipEl) return () => {};
   tooltipEl = createTooltipDOM();
@@ -152,18 +126,8 @@ export function initGlobalTooltip(isRealMobile: boolean) {
 
   const updateForElement = async (el: Element | null) => {
     if (!(el instanceof HTMLElement)) { hideTooltip(); return; }
-
-    // find a tooltip-* class on the element or ancestors
-    const tooltipHost = el.closest('[class*="tooltip-"]') as HTMLElement | null;
-    if (!tooltipHost) { hideTooltip(); observeTargetForVisibility(null); return; }
-
-    const tooltipClass = Array.from(tooltipHost.classList).find(c => c.startsWith('tooltip-'));
-    if (!tooltipClass) { hideTooltip(); observeTargetForVisibility(null); return; }
-
-    // observe this specific element for visibility gating
-    observeTargetForVisibility(tooltipHost);
-
-    if (!visibleEnough) { hideTooltip(); return; } // don’t apply if under threshold
+    const tooltipClass = [...el.classList].find(c => c.startsWith('tooltip-'));
+    if (!tooltipClass) { hideTooltip(); return; }
 
     const key = tooltipClass.replace('tooltip-', '');
     if (key !== currentKey) {
@@ -187,7 +151,6 @@ export function initGlobalTooltip(isRealMobile: boolean) {
   };
 
   const checkHoveredElementOnScroll = () => {
-    if (lastMouseX < 0 || lastMouseY < 0) return;
     const el = document.elementFromPoint(lastMouseX, lastMouseY);
     updateForElement(el);
     requestAnimationFrame(() => positionTooltip(lastMouseX, lastMouseY));
@@ -206,6 +169,7 @@ export function initGlobalTooltip(isRealMobile: boolean) {
     if (!e.relatedTarget) hideTooltip();
   };
 
+  // only attach scroll observer for non-mobile real viewports
   if (!isRealMobile) window.addEventListener('scroll', onScroll, true);
   document.addEventListener('mousemove', onMouseMove, { passive: true });
   document.addEventListener('mouseout', onMouseOut, { passive: true });
@@ -215,12 +179,6 @@ export function initGlobalTooltip(isRealMobile: boolean) {
     if (!isRealMobile) window.removeEventListener('scroll', onScroll, true);
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseout', onMouseOut);
-    if (io) {
-      if (observedEl) io.unobserve(observedEl);
-      io.disconnect();
-      io = null;
-      observedEl = null;
-    }
     tooltipEl.remove();
     tooltipEl = null;
     if (hideTimeout) clearTimeout(hideTimeout);

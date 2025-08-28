@@ -17371,12 +17371,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_router_dom__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _loadable_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @loadable/component */ "./node_modules/@loadable/component/dist/cjs/loadable.cjs.js");
 /* harmony import */ var _ScopedShell__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ScopedShell */ "./src/ScopedShell.jsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/App.jsx
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils/load-lottie */ "./src/utils/load-lottie.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
 
- // use PascalCase for components
+
+
 
 const Frontpage = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["default"])({
   resolved: {},
@@ -17461,20 +17462,24 @@ const DynamicThemeRoute = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_2__["d
   }
 });
 function App() {
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Routes, {
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    // Eagerly load Lottie right after hydration; stays in its own async chunk.
+    (0,_utils_load_lottie__WEBPACK_IMPORTED_MODULE_4__.loadLottie)();
+  }, []);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Routes, {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
       path: "/",
-      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {})
+      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(Frontpage, {})
       })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
       path: "/home",
-      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(Frontpage, {})
+      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_ScopedShell__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(Frontpage, {})
       })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
       path: "/dynamic-theme/*",
-      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(DynamicThemeRoute, {})
+      element: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(DynamicThemeRoute, {})
     })]
   });
 }
@@ -19419,6 +19424,38 @@ async function getProjectData(key) {
 
 /***/ }),
 
+/***/ "./src/utils/load-lottie.ts":
+/*!**********************************!*\
+  !*** ./src/utils/load-lottie.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   loadLottie: () => (/* binding */ loadLottie)
+/* harmony export */ });
+let _promise = null;
+
+/** Explicit preload trigger (e.g. in App.tsx useEffect) */
+function loadLottie() {
+  if (!_promise) {
+    _promise = Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(__webpack_require__, /*! lottie-web/build/player/lottie_svg */ "lottie-web/build/player/lottie_svg", 23)).then(m => m.default ?? m);
+  }
+  return _promise;
+}
+
+/** Proxy so you can keep `import lottie from '../utils/lottie'` */
+const lottie = new Proxy({}, {
+  get(_target, prop) {
+    return (...args) => loadLottie().then(mod => mod[prop](...args));
+  }
+});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (lottie);
+
+/***/ }),
+
 /***/ "./src/utils/media-providers/image-builder.ts":
 /*!****************************************************!*\
   !*** ./src/utils/media-providers/image-builder.ts ***!
@@ -19925,6 +19962,17 @@ module.exports = require("lottie-react");
 
 "use strict";
 module.exports = require("lottie-web");
+
+/***/ }),
+
+/***/ "lottie-web/build/player/lottie_svg":
+/*!*****************************************************!*\
+  !*** external "lottie-web/build/player/lottie_svg" ***!
+  \*****************************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("lottie-web/build/player/lottie_svg");
 
 /***/ }),
 

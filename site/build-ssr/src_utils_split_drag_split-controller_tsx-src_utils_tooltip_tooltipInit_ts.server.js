@@ -299,14 +299,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lottie-web */ "lottie-web");
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
 /* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
 /* harmony import */ var _svg_arrow2_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/arrow2.json */ "./src/svg/arrow2.json");
 /* harmony import */ var _ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../ssr/logic/apply-split-style */ "./src/ssr/logic/apply-split-style.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/title/split-drag-handler.tsx (or your original path)
 
-
+ // <-- lazy proxy (SVG-only build if you configured it)
 
 
 
@@ -316,6 +316,9 @@ const PULSE_LOW_OPACITY = 0.35;
 const PULSE_FADE_MS = 1500;
 const PULSE_HOLD_MS = 180;
 const PULSE_COOLDOWN_MS = 700;
+
+// minimal Lottie shape we use
+
 const SplitDragHandler = ({
   split,
   setSplit,
@@ -333,16 +336,10 @@ const SplitDragHandler = ({
   const arrowAnimRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const [isPortrait, setIsPortrait] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(typeof window !== 'undefined' ? window.innerHeight > window.innerWidth : false);
   const [isTouchDevice, setIsTouchDevice] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-
-  // keep a live min floor based on viewport width (unless override provided)
   const minRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(typeof window !== 'undefined' ? window.innerWidth : undefined));
-
-  // pinch-to-reset helpers
   const initialPinchDistance = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const pinchTriggeredRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const pinchThreshold = 10;
-
-  // throttle pulse
   const lastPulseAtRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(0);
   const playSegment = (() => {
     let lastCompleteHandler = null;
@@ -421,16 +418,12 @@ const SplitDragHandler = ({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const portraitNow = vh > vw;
-
-    // live recompute (covers device rotation while dragging)
     const minPortrait = typeof minPortraitSplit === 'number' ? minPortraitSplit : (0,_ssr_logic_apply_split_style__WEBPACK_IMPORTED_MODULE_4__.getPortraitMinSplit)(vw);
     let next = portraitNow ? clientY / vh * 100 : clientX / vw * 100;
     if (portraitNow) {
       const TOP = minPortrait;
       const BOTTOM = 100 - minPortrait;
       next = Math.max(TOP, Math.min(BOTTOM, next));
-
-      // pulse when user hits either floor
       if (next <= TOP + FLOOR_EPS || next >= BOTTOM - FLOOR_EPS) {
         pulseLottie();
       }
@@ -543,36 +536,51 @@ const SplitDragHandler = ({
     initialPinchDistance.current = null;
     pinchTriggeredRef.current = false;
   };
+
+  // INIT LOTTIE (lazy) — await the instance
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_1___default().loadAnimation({
-      container: arrowContainer.current,
-      renderer: 'svg',
-      loop: false,
-      autoplay: false,
-      animationData: _svg_arrow2_json__WEBPACK_IMPORTED_MODULE_3__
-    });
-    arrowAnimRef.current = anim;
-    const container = containerRef.current;
-    if (container) container.style.opacity = '0';
-    const playInitial = () => {
-      anim.goToAndStop(0, true);
-      setTimeout(() => anim.playSegments([0, 75], true), 1200);
-      if (container) {
-        setTimeout(() => container.style.opacity = '1', 1200);
-      }
-      arrowContainer.current?.querySelector('svg')?.classList.add('drag-arrow');
-    };
-    anim.addEventListener('DOMLoaded', playInitial);
-    const fallback = setTimeout(() => {
-      // @ts-ignore
-      if (!anim.isLoaded) playInitial();
-    }, 2000);
+    let anim = null;
+    let mounted = true;
+    (async () => {
+      const el = arrowContainer.current;
+      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+        container: el,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        animationData: _svg_arrow2_json__WEBPACK_IMPORTED_MODULE_3__
+      });
+      if (!mounted || !anim) return;
+      arrowAnimRef.current = anim;
+      const container = containerRef.current;
+      if (container) container.style.opacity = '0';
+      const playInitial = () => {
+        anim.goToAndStop(0, true);
+        setTimeout(() => anim.playSegments([0, 75], true), 1200);
+        if (container) {
+          setTimeout(() => container.style.opacity = '1', 1200);
+        }
+        arrowContainer.current?.querySelector('svg')?.classList.add('drag-arrow');
+      };
+      anim.addEventListener('DOMLoaded', playInitial);
+      const fallback = setTimeout(() => {
+        if (!anim.isLoaded) playInitial();
+      }, 2000);
+
+      // cleanup for this async init
+      return () => {
+        clearTimeout(fallback);
+        anim?.removeEventListener('DOMLoaded', playInitial);
+      };
+    })();
     return () => {
-      clearTimeout(fallback);
-      anim.removeEventListener('DOMLoaded', playInitial);
-      anim.destroy();
+      mounted = false;
+      arrowAnimRef.current?.destroy();
+      arrowAnimRef.current = null;
     };
   }, []);
+
+  // Replay on in-view
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const container = containerRef.current;
     const anim = arrowAnimRef.current;
@@ -592,6 +600,8 @@ const SplitDragHandler = ({
     io.observe(container);
     return () => io.disconnect();
   }, []);
+
+  // Pointer / touch listeners
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -709,15 +719,11 @@ function createTooltipDOM() {
 let tooltipEl = null;
 let currentKey = '';
 let hideTimeout = null;
-
-// IO gating state
-let io = null;
-let observedEl = null;
-let visibleEnough = true; // only show/apply when true
-
 const fetchTooltipDataForKey = async key => {
   if (tooltipDataCache[key]) return tooltipDataCache[key];
   const bg = bgForKey(key);
+
+  // local fallback
   if (LOCAL_FALLBACK_TAGS[key]) {
     const info = {
       tags: LOCAL_FALLBACK_TAGS[key],
@@ -726,6 +732,8 @@ const fetchTooltipDataForKey = async key => {
     tooltipDataCache[key] = info;
     return info;
   }
+
+  // CMS fetch by slug
   try {
     const client = (await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ../sanity */ "./src/utils/sanity.ts"))).default;
     const res = await client.fetch(`*[_type=="mediaBlock" && slug.current == $key][0]{ tags }`, {
@@ -748,7 +756,6 @@ const fetchTooltipDataForKey = async key => {
 };
 const showTooltip = () => {
   if (!tooltipEl) return;
-  if (!visibleEnough) return; // 🚫 gate: do not show if target < 0.3 visible
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '1';
   tooltipEl.style.visibility = 'visible';
@@ -759,7 +766,7 @@ const hideTooltip = () => {
   if (hideTimeout) clearTimeout(hideTimeout);
   tooltipEl.style.opacity = '0';
   tooltipEl.style.visibility = 'hidden';
-  // keep currentKey so we can re-show quickly if still over same element
+  currentKey = '';
 };
 function positionTooltip(x, y) {
   if (!tooltipEl) return;
@@ -793,28 +800,6 @@ function positionTooltip(x, y) {
   tooltipEl.style.left = `${left}px`;
   tooltipEl.style.top = `${top}px`;
 }
-
-// (new) observe hovered/attached element and gate visibility
-function observeTargetForVisibility(el) {
-  if (!('IntersectionObserver' in window)) {
-    visibleEnough = true;
-    return;
-  }
-  if (!io) {
-    io = new IntersectionObserver(entries => {
-      const e = entries[0];
-      const ratio = e?.intersectionRatio ?? 0;
-      visibleEnough = !!e?.isIntersecting && ratio >= 0.3; // 🔑 gate at 0.3
-      if (!visibleEnough) hideTooltip();
-    }, {
-      root: null,
-      threshold: [0, 0.3, 1]
-    });
-  }
-  if (observedEl) io.unobserve(observedEl);
-  observedEl = el || null;
-  if (observedEl) io.observe(observedEl);
-}
 function initGlobalTooltip(isRealMobile) {
   if (tooltipEl) return () => {};
   tooltipEl = createTooltipDOM();
@@ -827,28 +812,11 @@ function initGlobalTooltip(isRealMobile) {
       hideTooltip();
       return;
     }
-
-    // find a tooltip-* class on the element or ancestors
-    const tooltipHost = el.closest('[class*="tooltip-"]');
-    if (!tooltipHost) {
-      hideTooltip();
-      observeTargetForVisibility(null);
-      return;
-    }
-    const tooltipClass = Array.from(tooltipHost.classList).find(c => c.startsWith('tooltip-'));
+    const tooltipClass = [...el.classList].find(c => c.startsWith('tooltip-'));
     if (!tooltipClass) {
       hideTooltip();
-      observeTargetForVisibility(null);
       return;
     }
-
-    // observe this specific element for visibility gating
-    observeTargetForVisibility(tooltipHost);
-    if (!visibleEnough) {
-      hideTooltip();
-      return;
-    } // don’t apply if under threshold
-
     const key = tooltipClass.replace('tooltip-', '');
     if (key !== currentKey) {
       currentKey = key;
@@ -871,7 +839,6 @@ function initGlobalTooltip(isRealMobile) {
     updateForElement(e.target);
   };
   const checkHoveredElementOnScroll = () => {
-    if (lastMouseX < 0 || lastMouseY < 0) return;
     const el = document.elementFromPoint(lastMouseX, lastMouseY);
     updateForElement(el);
     requestAnimationFrame(() => positionTooltip(lastMouseX, lastMouseY));
@@ -890,6 +857,8 @@ function initGlobalTooltip(isRealMobile) {
   const onMouseOut = e => {
     if (!e.relatedTarget) hideTooltip();
   };
+
+  // only attach scroll observer for non-mobile real viewports
   if (!isRealMobile) window.addEventListener('scroll', onScroll, true);
   document.addEventListener('mousemove', onMouseMove, {
     passive: true
@@ -902,12 +871,6 @@ function initGlobalTooltip(isRealMobile) {
     if (!isRealMobile) window.removeEventListener('scroll', onScroll, true);
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseout', onMouseOut);
-    if (io) {
-      if (observedEl) io.unobserve(observedEl);
-      io.disconnect();
-      io = null;
-      observedEl = null;
-    }
     tooltipEl.remove();
     tooltipEl = null;
     if (hideTimeout) clearTimeout(hideTimeout);

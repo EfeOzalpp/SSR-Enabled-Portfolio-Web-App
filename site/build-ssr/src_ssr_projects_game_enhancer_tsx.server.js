@@ -195,8 +195,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom */ "react-dom");
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! lottie-web */ "lottie-web");
-/* harmony import */ var lottie_web__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lottie_web__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
 /* harmony import */ var _components_rock_escapade_block_g_onboarding_inner__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../components/rock-escapade/block-g-onboarding-inner */ "./src/components/rock-escapade/block-g-onboarding-inner.tsx");
 /* harmony import */ var _components_rock_escapade_block_g_exit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../components/rock-escapade/block-g-exit */ "./src/components/rock-escapade/block-g-exit.tsx");
 /* harmony import */ var _components_rock_escapade_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../components/rock-escapade/block-g-coin-counter */ "./src/components/rock-escapade/block-g-coin-counter.tsx");
@@ -466,21 +465,29 @@ const GameStage = ({
     };
   }, [onboardingEl, onStart, isStageReady]);
 
-  // Lottie countdown
+  // Lottie countdown (lazy-loaded)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (countdownPhase !== 'lottie' || !lottieRef.current) return;
-    const anim = lottie_web__WEBPACK_IMPORTED_MODULE_2___default().loadAnimation({
-      container: lottieRef.current,
-      renderer: 'svg',
-      loop: false,
-      autoplay: true,
-      animationData: isRealMobile ? _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_13__ : _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_12__
-    });
-    const onComplete = () => setCountdownPhase('begin');
-    anim.addEventListener('complete', onComplete);
+    let anim;
+    let mounted = true;
+    (async () => {
+      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_2__["default"].loadAnimation({
+        container: lottieRef.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        animationData: isRealMobile ? _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_13__ : _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_12__
+      });
+      if (!mounted || !anim) return;
+      const onComplete = () => setCountdownPhase('begin');
+      anim.addEventListener('complete', onComplete);
+
+      // local cleanup for this async init (effect will also run its cleanup)
+      return () => anim?.removeEventListener?.('complete', onComplete);
+    })();
     return () => {
-      anim.removeEventListener('complete', onComplete);
-      anim.destroy();
+      mounted = false;
+      anim?.destroy?.();
     };
   }, [countdownPhase, isRealMobile]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -507,7 +514,7 @@ const GameStage = ({
   // Canvas bridges
   const handleReady = api => {
     restartApi.current = api;
-    onStageReady(true); // flip CTA to "Click to Play!"
+    onStageReady(true); // flips CTA to "Click to Play!"
   };
 
   // If the whole enhancer unmounts, reset readiness
@@ -571,8 +578,7 @@ const GameStage = ({
       })]
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
       load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
-      fallback: null,
-      mountMode: "idle"
+      fallback: null
       /* Preload the chunk early so re-mounts are instant */,
       preloadOnIdle: true,
       preloadIdleTimeout: 2000,
