@@ -11,6 +11,7 @@ import { useSsrData } from '../context-providers/ssr-data-context';
 import { seededShuffle } from '../seed';
 
 import TitleObserver from './title-observer';
+import { useProjectVisibility } from '../context-providers/project-context';
 
 // Minimal shape for what we use from Lottie
 type AnimationItemLike = {
@@ -26,22 +27,34 @@ const ViewProject = () => {
   const { seed = 12345 } = useSsrData() || {};
   const projects = useMemo(() => seededShuffle(baseProjects, seed), [seed]);
 
+  // Focus state shared across app
+  const { focusedProjectKey, setFocusedProjectKey } = useProjectVisibility();
+
+  const focusedProject = useMemo(
+    () => projects.find(p => p.key === focusedProjectKey!),
+    [projects, focusedProjectKey]
+  );
+
+  // Freeze the title (and everything derived from it) when focused
+  const displayTitle = focusedProjectKey ? (focusedProject?.title ?? activeTitle) : activeTitle;
+
   const arrowContainer = useRef<HTMLDivElement>(null);
   const arrowAnimRef = useRef<AnimationItemLike | null>(null);
-  const lastTitleRef = useRef(activeTitle);
+  const lastTitleRef = useRef(displayTitle);
 
   const [hovered, setHovered] = useState(false);
   const [showBackground, setShowBackground] = useState(true);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentProject = useMemo(
-    () => projects.find((p) => p.title === activeTitle),
-    [projects, activeTitle]
+    () => projects.find((p) => p.title === displayTitle),
+    [projects, displayTitle]
   );
   const isLink = currentProject?.isLink;
+  const currentKey = currentProject?.key;
 
   const getBackgroundColor = () => {
-    const colorInfo = projectColors[activeTitle];
+    const colorInfo = projectColors[displayTitle];
     if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
     const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.8);
     return `rgba(${colorInfo.rgb}, ${alpha})`;
@@ -53,7 +66,7 @@ const ViewProject = () => {
     hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 1500);
   };
 
-  // (Re)create arrow/link Lottie when title changes
+  // (Re)create arrow/link Lottie when the *displayed* title changes
   useEffect(() => {
     const el = arrowContainer.current;
     if (!el) return;
@@ -62,9 +75,8 @@ const ViewProject = () => {
     let mounted = true;
 
     (async () => {
-      const animationData = activeTitle === 'Dynamic App' ? linkData : arrowData;
+      const animationData = displayTitle === 'Dynamic App' ? linkData : arrowData;
 
-      // NOTE: proxy returns a Promise -> await the instance
       anim = await lottie.loadAnimation({
         container: el,
         renderer: 'svg',
@@ -85,7 +97,6 @@ const ViewProject = () => {
 
       anim.addEventListener('DOMLoaded', onDomLoaded);
 
-      // cleanup listeners if effect re-runs (component unmount cleanup below)
       return () => {
         anim?.removeEventListener('DOMLoaded', onDomLoaded);
       };
@@ -96,16 +107,16 @@ const ViewProject = () => {
       arrowAnimRef.current?.destroy();
       arrowAnimRef.current = null;
     };
-  }, [activeTitle]);
+  }, [displayTitle]);
 
-  // Play a segment when the title actually changes
+  // Play a segment when the *displayed* title actually changes
   useEffect(() => {
-    if (lastTitleRef.current !== activeTitle) {
+    if (lastTitleRef.current !== displayTitle) {
       arrowAnimRef.current?.playSegments([40, 90], true);
-      lastTitleRef.current = activeTitle;
+      lastTitleRef.current = displayTitle;
       triggerBackgroundFade();
     }
-  }, [activeTitle]);
+  }, [displayTitle]);
 
   // Trigger background fade on user motion (bottom ~35% of viewport) or touch
   useEffect(() => {
@@ -127,19 +138,37 @@ const ViewProject = () => {
     };
   }, []);
 
+  // Toggle the focused project key; ScrollController reacts to this
+  const handleToggleOpen = () => {
+    if (!currentKey) return;
+    const next = focusedProjectKey === currentKey ? null : currentKey;
+    setFocusedProjectKey(next);
+
+    if (next) {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`block-${next}`);
+        el?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      });
+    }
+  };
+
   const Element: any = isLink ? 'a' : 'button';
   const sharedProps = {
     className: `view-project-btn ${!showBackground ? 'no-bg' : ''}`,
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
+    'data-project-key': currentKey ?? undefined,
+    'aria-pressed': currentKey ? focusedProjectKey === currentKey : undefined,
     ...(isLink
       ? { href: '/dynamic-theme', target: '_blank', rel: 'noopener noreferrer' }
-      : {}),
+      : { onClick: handleToggleOpen }
+    ),
   };
 
   return (
     <div className="view-project-wrapper">
-      <TitleObserver />
+      {/* Don’t observe while focused, so title stays frozen */}
+      {!focusedProjectKey && <TitleObserver />}
 
       <Element {...sharedProps}>
         <div
@@ -153,7 +182,7 @@ const ViewProject = () => {
           }}
         />
         <h2 className="project-view" style={{ position: 'relative', zIndex: 1 }}>
-          {activeTitle}
+          {displayTitle}
         </h2>
         <div
           ref={arrowContainer}

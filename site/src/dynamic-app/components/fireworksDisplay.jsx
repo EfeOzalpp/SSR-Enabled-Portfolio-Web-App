@@ -316,16 +316,16 @@ const FireworksDisplay = ({ colorMapping = {}, items = [], lastKnownColor, onTog
             let baseCount;
           if (p.windowWidth < 768) {
             baseCount = type === 'BLINKING'
-              ? p.random(150, 300)
-              : p.random(125, 250);
+              ? p.random(150, 275)
+              : p.random(125, 225);
           } else if (p.windowWidth <= 1024) {
             baseCount = type === 'BLINKING'
-              ? p.random(275, 375)
-              : p.random(200, 300); // Fewer PROJECTILE particles on medium screens
+              ? p.random(275, 325)
+              : p.random(200, 250); // Fewer PROJECTILE particles on medium screens
           } else {
             baseCount = type === 'BLINKING'
-              ? p.random(375, 475)
-              : p.random(400, 500);
+              ? p.random(250, 300)
+              : p.random(300, 350);
             }
             this.numParticles = Math.floor(baseCount);
           }

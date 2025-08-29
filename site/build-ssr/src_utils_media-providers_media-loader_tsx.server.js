@@ -124,12 +124,8 @@ const MediaLoader = ({
 
   // If already cached, skip fade-in
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (type === 'image' && imgRef.current?.complete) {
-      setLoaded(true);
-    }
-    if (type === 'video' && videoRef.current?.readyState >= 2) {
-      setLoaded(true);
-    }
+    if (type === 'image' && imgRef.current?.complete) setLoaded(true);
+    if (type === 'video' && videoRef.current?.readyState >= 2) setLoaded(true);
   }, [type]);
 
   // IMAGE progressive upgrade
@@ -159,37 +155,13 @@ const MediaLoader = ({
     }
   };
 
-  // VIDEO visibility/autoplay
-  (0,_video_observer__WEBPACK_IMPORTED_MODULE_1__.useVideoVisibility)(videoRef, containerRef, type === 'video' && enableVisibilityControl ? 0.4 : undefined);
-
-  // Preload video metadata only when near (avoid overfetch)
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (type !== 'video' || !videoRef.current) return;
-    const v = videoRef.current;
-    let loadedOnce = false;
-    const start = () => {
-      if (loadedOnce) return;
-      loadedOnce = true;
-      v.preload = shouldStart ? preload ?? 'metadata' : preload ?? 'none';
-      try {
-        if (shouldStart && v.preload !== 'none') v.load();
-      } catch {}
-    };
-    if (shouldStart) {
-      start();
-    } else {
-      const t = setTimeout(start, 2000);
-      return () => clearTimeout(t);
-    }
-  }, [type, shouldStart, preload]);
-
-  // ----- Video source parsing + poster URL (for native poster prop) -----
+  // ----- Video source parsing + poster URL -----
   const isVideoSetObj = typeof src === 'object' && src !== null && !('asset' in src) && ('webmUrl' in src || 'mp4Url' in src);
   const vs = isVideoSetObj ? src : undefined;
   const legacyVideoUrl = typeof src === 'string' ? src : undefined;
   const posterUrl = vs?.poster ? typeof vs.poster === 'string' ? vs.poster : (0,_image_builder__WEBPACK_IMPORTED_MODULE_3__.urlFor)(vs.poster).width(1200).quality(80).auto('format').url() : undefined;
 
-  // ✅ Keep native poster visible until the first **painted** frame, then remove it.
+  // ✅ Keep native poster visible until the first *painted* frame, then remove it.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (type !== 'video' || !videoRef.current) return;
     const v = videoRef.current;
@@ -202,7 +174,6 @@ const MediaLoader = ({
       if (typeof anyV.requestVideoFrameCallback === 'function') {
         anyV.requestVideoFrameCallback(() => hidePoster());
       } else {
-        // Fallback: wait until time has advanced and at least a frame is decoded
         const onTime = () => {
           if (v.currentTime > 0 && v.readyState >= 2) {
             v.removeEventListener('timeupdate', onTime);
@@ -210,7 +181,6 @@ const MediaLoader = ({
           }
         };
         v.addEventListener('timeupdate', onTime);
-        // Safety: also hide after ~1.2s if no update (rare)
         const timer = setTimeout(() => {
           v.removeEventListener('timeupdate', onTime);
           hidePoster();
@@ -223,6 +193,112 @@ const MediaLoader = ({
     });
     return () => v.removeEventListener('play', onPlay);
   }, [type]);
+
+  // VIDEO visibility/autoplay (your existing hook takes care of play/pause)
+  (0,_video_observer__WEBPACK_IMPORTED_MODULE_1__.useVideoVisibility)(videoRef, containerRef, type === 'video' && enableVisibilityControl ? 0.35 : undefined);
+
+  // ─────────────────────────────────────────────────────────────
+  // VIDEO RELIABILITY PATCHES
+  // - Kick load when near
+  // - Retry once, then promote preload to 'auto'
+  // - Decode nudge for iOS Safari after loadedmetadata
+  // - Early "loaded" on loadedmetadata to remove spinner sooner
+  // - Gentle play kick when data is ready (muted+inline)
+  // ─────────────────────────────────────────────────────────────
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (type !== 'video' || !videoRef.current) return;
+    const v = videoRef.current;
+    let retryTimer = null;
+    let promoteTimer = null;
+    const clearTimers = () => {
+      if (retryTimer) {
+        window.clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      if (promoteTimer) {
+        window.clearTimeout(promoteTimer);
+        promoteTimer = null;
+      }
+    };
+
+    // If we’re near (or priority), ensure the browser actually fetches metadata
+    const kickLoad = () => {
+      try {
+        // set the DOM property; the attribute React renders can be different and that's OK
+        v.preload = preload ?? 'metadata';
+        if (v.preload !== 'none') v.load(); // important: actually trigger the fetch
+      } catch {}
+    };
+    const nudgeDecode = () => {
+      // iOS Safari sometimes stalls after metadata; a tiny seek wakes decode
+      try {
+        if (v.readyState < 2) return;
+        const t = v.currentTime;
+        v.currentTime = t > 0 ? t : 0.001;
+      } catch {}
+    };
+    const tryPlay = async () => {
+      if (!enableVisibilityControl) return;
+      try {
+        if (v.muted && v.playsInline && v.paused && v.readyState >= 2) {
+          await v.play().catch(() => {});
+        }
+      } catch {}
+    };
+    const onLoadedMeta = () => {
+      // spinner can go away on metadata (poster is still covering until first frame)
+      setLoaded(true);
+      nudgeDecode();
+    };
+    const onLoadedData = () => {
+      setLoaded(true);
+      void tryPlay();
+    };
+    const onCanPlay = () => {
+      setLoaded(true);
+      void tryPlay();
+    };
+    if (shouldStart) {
+      kickLoad();
+
+      // If nothing after ~2.5s, try load() once more
+      retryTimer = window.setTimeout(() => {
+        if (v.readyState < 2) kickLoad();
+      }, 2500);
+
+      // Still nothing after ~5s? Promote preload to 'auto'
+      promoteTimer = window.setTimeout(() => {
+        if (v.readyState < 2) {
+          try {
+            v.preload = 'auto';
+            v.load();
+          } catch {}
+        }
+      }, 5000);
+    }
+    v.addEventListener('loadedmetadata', onLoadedMeta);
+    v.addEventListener('loadeddata', onLoadedData);
+    v.addEventListener('canplay', onCanPlay);
+
+    // Optional: diagnostics for flaky networks
+    const onError = e => console.warn('Video error', e);
+    const onStalled = () => console.warn('Video stalled');
+    const onSuspend = () => {/* benign on many browsers */};
+    v.addEventListener('error', onError);
+    v.addEventListener('stalled', onStalled);
+    v.addEventListener('suspend', onSuspend);
+    return () => {
+      clearTimers();
+      v.removeEventListener('loadedmetadata', onLoadedMeta);
+      v.removeEventListener('loadeddata', onLoadedData);
+      v.removeEventListener('canplay', onCanPlay);
+      v.removeEventListener('error', onError);
+      v.removeEventListener('stalled', onStalled);
+      v.removeEventListener('suspend', onSuspend);
+    };
+  }, [type, shouldStart, preload, enableVisibilityControl,
+  // if any URL changes, re-run the loader watchdog
+  isVideoSetObj, vs && vs.webmUrl || '', vs && vs.mp4Url || '', legacyVideoUrl || '']);
   const hasVideoSource = Boolean(vs?.webmUrl || vs?.mp4Url || legacyVideoUrl);
   if (!src || type === 'video' && !hasVideoSource) return null;
 
@@ -283,8 +359,11 @@ const MediaLoader = ({
       })
     }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("video", {
       id: id,
-      ref: videoRef,
+      ref: videoRef
+      // treat loadeddata & metadata as “ready enough” for UI
+      ,
       onLoadedData: onMediaLoaded,
+      onLoadedMetadata: () => setLoaded(true),
       onError: e => console.warn('Video failed', e),
       className: className,
       style: {
@@ -294,20 +373,24 @@ const MediaLoader = ({
         opacity: loaded ? 1 : 0,
         transition: isSSR ? 'none' : 'opacity 0.3s ease',
         pointerEvents: 'all',
-        zIndex: 1 // keep video above underlying backgrounds; poster is drawn by the video itself
+        zIndex: 1
       },
       loop: loop,
       muted: muted,
       playsInline: playsInline,
       preload: preload ?? 'metadata',
-      controls: controls,
+      controls: controls
+      // If you host poster/video on different origins and ever read pixels to <canvas>,
+      // uncomment next line and ensure CORS headers exist:
+      // crossOrigin="anonymous"
+      ,
       poster: posterRemoved ? undefined : posterUrl,
-      children: [vs?.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
-        src: vs.webmUrl || undefined,
-        type: "video/webm"
-      }), vs?.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
+      children: [vs?.mp4Url && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
         src: vs.mp4Url || undefined,
         type: "video/mp4"
+      }), vs?.webmUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
+        src: vs.webmUrl || undefined,
+        type: "video/webm"
       }), !vs?.webmUrl && !vs?.mp4Url && legacyVideoUrl && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("source", {
         src: legacyVideoUrl || undefined
       })]

@@ -42,6 +42,7 @@
   .block-type-a { height: 96dvh; }
   .device-wrapper { max-width: 146dvh; aspect-ratio: 16 / 10; }
   .screen-overlay { top: 6%; left: 0.5%; width: 99%; height: 88%; }
+  .embedded-app { margin-bottom: 5px;}
 }
 
 /* ≥ 2025px */

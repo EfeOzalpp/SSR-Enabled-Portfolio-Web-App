@@ -21,7 +21,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_scroll_controller_tsx__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils/scroll-controller.tsx */ "./src/utils/scroll-controller.tsx");
 /* harmony import */ var _utils_context_providers_project_context_tsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./utils/context-providers/project-context.tsx */ "./src/utils/context-providers/project-context.tsx");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/FrontPage.jsx
 
 
 
@@ -34,7 +33,7 @@ __webpack_require__.r(__webpack_exports__);
 const NavMenu = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])({
   resolved: {},
   chunkName() {
-    return "components-nav-menu-tsx";
+    return "utils-navigation-nav-menu-tsx";
   },
   isReady(props) {
     const key = this.resolve(props);
@@ -47,7 +46,7 @@ const NavMenu = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])(
     // removed by dead control flow
 {}
   },
-  importAsync: () => __webpack_require__.e(/*! import() | components-nav-menu-tsx */ "components-nav-menu-tsx").then(__webpack_require__.bind(__webpack_require__, /*! ./components/nav-menu.tsx */ "./src/components/nav-menu.tsx")),
+  importAsync: () => __webpack_require__.e(/*! import() | utils-navigation-nav-menu-tsx */ "utils-navigation-nav-menu-tsx").then(__webpack_require__.bind(__webpack_require__, /*! ./utils/navigation/nav-menu.tsx */ "./src/utils/navigation/nav-menu.tsx")),
   requireAsync(props) {
     const key = this.resolve(props);
     this.resolved[key] = false;
@@ -66,7 +65,7 @@ const NavMenu = (0,_loadable_component__WEBPACK_IMPORTED_MODULE_1__["default"])(
   },
   resolve() {
     if (true) {
-      return /*require.resolve*/(/*! ./components/nav-menu.tsx */ "./src/components/nav-menu.tsx");
+      return /*require.resolve*/(/*! ./utils/navigation/nav-menu.tsx */ "./src/utils/navigation/nav-menu.tsx");
     }
     // removed by dead control flow
 {}
@@ -79,18 +78,27 @@ function Frontpage() {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     // --- Clear prehydrate flag ASAP after hydration ---
     const root = document.getElementById('landing');
-    // next paint is fine; ensures initial CSS applied once
     requestAnimationFrame(() => root?.removeAttribute('data-prehydrate'));
 
-    // UX helpers (safe on both SSR/CSR; no DOM read until effect)
+    // Allow pinch-zoom only inside elements that explicitly opt in.
+    const isAllowZoomTarget = ev => {
+      const el = ev?.target;
+      if (!el || typeof el.closest !== 'function') return false;
+      return Boolean(el.closest('[data-allow-zoom="1"], .allow-pinch'));
+    };
+
+    // Prevent global pinch zoom (iOS/Android touchmove and Safari gesture*)
     const preventPinchZoom = event => {
       const tag = event?.target?.tagName?.toLowerCase?.() || '';
-      if (tag === 'video') return;
+      if (tag === 'video') return; // let videos use native gestures
+      if (isAllowZoomTarget(event)) return; // opt-in: allow inside pannable
       if ('touches' in event && event.touches?.length > 1) event.preventDefault();
     };
     const preventGesture = e => {
+      // Safari iOS fires these for pinch
       const tag = e?.target?.tagName?.toLowerCase?.() || '';
       if (tag === 'video') return;
+      if (isAllowZoomTarget(e)) return; // opt-in: allow inside pannable
       e.preventDefault();
     };
     document.addEventListener('touchmove', preventPinchZoom, {
@@ -121,6 +129,21 @@ function Frontpage() {
   });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Frontpage);
+
+/***/ }),
+
+/***/ "./src/components/case-studies/load-focused-details.ts":
+/*!*************************************************************!*\
+  !*** ./src/components/case-studies/load-focused-details.ts ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   loadFocusedDetails: () => (/* binding */ loadFocusedDetails)
+/* harmony export */ });
+// Named chunk keeps it out of the main bundle and gives a stable file name.
+const loadFocusedDetails = () => __webpack_require__.e(/*! import() | focused-details */ "focused-details").then(__webpack_require__.bind(__webpack_require__, /*! ../case-studies/FocusedDetails */ "./src/components/case-studies/FocusedDetails.tsx"));
 
 /***/ }),
 
@@ -191,6 +214,72 @@ const projectColors = {
 
 /***/ }),
 
+/***/ "./src/utils/content-utility/event-mount.tsx":
+/*!***************************************************!*\
+  !*** ./src/utils/content-utility/event-mount.tsx ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ EventMount)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+
+
+function EventMount({
+  load,
+  active,
+  fallback = null,
+  componentProps,
+  fadeMs = 200
+}) {
+  const [Comp, setComp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [visible, setVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const loadingRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // Load code-split chunk when first activated
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!active) {
+      setVisible(false);
+      return;
+    }
+    if (!Comp) {
+      if (!loadingRef.current) loadingRef.current = load().then(mod => {
+        setComp(() => mod.default);
+      });
+    }
+    // show as soon as we have the component
+    let alive = true;
+    (async () => {
+      if (!Comp && loadingRef.current) await loadingRef.current;
+      if (alive) setVisible(true);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [active, load, Comp]);
+  if (!active) return null; // unmount when not active
+  if (!Comp) return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+    children: fallback
+  }); // show fallback until chunk arrives
+
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+    style: {
+      opacity: fadeMs ? visible ? 1 : 0 : 1,
+      transition: fadeMs ? `opacity ${fadeMs}ms ease` : undefined,
+      willChange: fadeMs ? 'opacity' : undefined
+    },
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Comp, {
+      ...(componentProps ?? {})
+    })
+  });
+}
+
+/***/ }),
+
 /***/ "./src/utils/content-utility/lazy-in-view.tsx":
 /*!****************************************************!*\
   !*** ./src/utils/content-utility/lazy-in-view.tsx ***!
@@ -226,7 +315,7 @@ function LazyInView({
 }) {
   const isServer = !hasWindow;
 
-  // ✅ Make SSR and client's first render agree:
+  // Make SSR and client's first render agree:
   // If we SSR-ed content (serverRender) or set eager, start visible; otherwise start hidden.
   const initialVisible = eager || !!serverRender;
   const [isVisible, setIsVisible] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialVisible);
@@ -545,7 +634,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   attachOpacityObserver: () => (/* binding */ attachOpacityObserver)
 /* harmony export */ });
-// opacity observer
+// src/utils/content-utility/opacity-observer.ts
 const attachOpacityObserver = (ids, focusedProjectKey) => {
   const isRealMobile = (() => {
     const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
@@ -559,47 +648,57 @@ const attachOpacityObserver = (ids, focusedProjectKey) => {
     }
     return coarse && touch;
   })();
+  const baseMin = isRealMobile ? 0.1 : 0.3;
+  const focusedId = focusedProjectKey ? `block-${focusedProjectKey}` : null;
+
+  // Per-call guard so re-attaching after focus toggles works
+  const observed = new WeakSet();
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      const target = entry.target;
-      const ratio = entry.intersectionRatio;
-      if (focusedProjectKey) return;
-      const baseMin = isRealMobile ? 0.1 : 0.3;
-      if (ratio >= 0.75) {
-        target.style.opacity = '1';
-      } else {
-        const mappedOpacity = baseMin + ratio / 0.75 * (1 - baseMin);
-        target.style.opacity = mappedOpacity.toString();
+    for (const entry of entries) {
+      const el = entry.target;
+      const ratio = entry.intersectionRatio ?? 0;
+
+      // Focused pane is always fully opaque
+      if (focusedId && el.id === focusedId) {
+        el.style.opacity = '1';
+        continue;
       }
-    });
+
+      // Everyone else keeps mapping based on IO even while focused
+      if (ratio >= 0.75) {
+        el.style.opacity = '1';
+      } else {
+        const mapped = baseMin + ratio / 0.75 * (1 - baseMin);
+        el.style.opacity = String(mapped);
+      }
+    }
   }, {
     threshold: Array.from({
       length: 101
     }, (_, i) => i / 100)
+    // If your panes live inside a custom scroller, pass it here as `root`
+    // root: scrollContainerRef.current,
   });
-  let observedCount = 0;
   const observeTargets = () => {
-    ids.forEach(id => {
-      const el = document.querySelector(id);
-      if (el && !el.dataset._opacity_observed) {
-        el.dataset._opacity_observed = 'true';
+    ids.forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el && !observed.has(el)) {
+        observed.add(el);
         observer.observe(el);
-        observedCount++;
+        // Prime the focused pane immediately so there’s no flash
+        if (focusedId && el.id === focusedId) el.style.opacity = '1';
       }
     });
-    if (observedCount >= ids.length) {
-      mutationObserver.disconnect();
-    }
   };
-  const mutationObserver = new MutationObserver(() => observeTargets());
+  const mo = new MutationObserver(observeTargets);
   observeTargets();
-  mutationObserver.observe(document.body, {
+  mo.observe(document.body, {
     childList: true,
     subtree: true
   });
   return () => {
     observer.disconnect();
-    mutationObserver.disconnect();
+    mo.disconnect();
   };
 };
 
@@ -619,6 +718,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/context-providers/project-context.tsx
 
 
 const ProjectVisibilityContext = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)(undefined);
@@ -632,6 +732,15 @@ const ProjectVisibilityProvider = ({
   const [focusedProjectKey, setFocusedProjectKey] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [previousScrollY, setPreviousScrollY] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const scrollContainerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // The ScrollController will register its implementation here.
+  const alignFnRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(() => {/* no-op by default */});
+  const requestViewportAlign = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(args => {
+    alignFnRef.current?.(args);
+  }, []);
+  const registerViewportAlign = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(fn => {
+    alignFnRef.current = fn || (() => {});
+  }, []);
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(ProjectVisibilityContext.Provider, {
     value: {
       activeProject,
@@ -646,7 +755,9 @@ const ProjectVisibilityProvider = ({
       focusedProjectKey,
       setFocusedProjectKey,
       previousScrollY,
-      setPreviousScrollY
+      setPreviousScrollY,
+      requestViewportAlign,
+      registerViewportAlign
     },
     children: children
   });
@@ -679,20 +790,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _content_utility_component_loader__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
-// src/utils/project-pane.tsx
+/* harmony import */ var _content_utility_event_mount__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./content-utility/event-mount */ "./src/utils/content-utility/event-mount.tsx");
+/* harmony import */ var _components_case_studies_load_focused_details__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../components/case-studies/load-focused-details */ "./src/components/case-studies/load-focused-details.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 
 
 
 
 
+
+
+
+/* event-driven details for case study section */
 
 
 
 function ProjectPane({
   item,
   isFocused,
-  isHidden,
   setRef,
   isFirst = false
 }) {
@@ -709,30 +824,79 @@ function ProjectPane({
   const isDynamic = item.key === 'dynamic';
   const isGame = item.key === 'game';
   const usesCustomLoader = isDynamic || isGame;
-
-  // Generic loader for non-custom blocks
-  const fallbackNode = !payload && isHydrated && !usesCustomLoader ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
+  const fallbackNode = !payload && isHydrated && !usesCustomLoader ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_loading_loading__WEBPACK_IMPORTED_MODULE_3__["default"], {
     isFullScreen: false
   }) : null;
   const blockId = `block-${item.key}`;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
+  const rootRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // --- NEW: delay unmount of focused details on unfocus ---
+  const EXIT_DELAY_MS = 500; // tweak as you like
+  const [activeDelayed, setActiveDelayed] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(isFocused);
+  const exitTimerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    // when focused: cancel any pending turn-off and show immediately
+    if (isFocused) {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+      setActiveDelayed(true);
+    } else {
+      // when unfocusing: wait a bit before turning details off
+      exitTimerRef.current = window.setTimeout(() => {
+        setActiveDelayed(false);
+        exitTimerRef.current = null;
+      }, EXIT_DELAY_MS);
+    }
+    return () => {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+    };
+  }, [isFocused]);
+
+  // intrinsic size hint to keep content-visibility stable
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const el = rootRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight || 0;
+      el.style.setProperty('--cis-block', `${Math.max(400, h)}px`);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (isFocused) {
+      (0,_components_case_studies_load_focused_details__WEBPACK_IMPORTED_MODULE_8__.loadFocusedDetails)();
+    }
+  }, [isFocused]);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
     id: blockId,
-    ref: setRef,
-    style: {
-      // Collapse hidden panes; otherwise sizing is controlled via CSS
-      height: isHidden ? '0px' : undefined,
-      overflow: isFocused ? 'visible' : 'hidden',
-      scrollSnapAlign: isHidden ? 'none' : 'start'
+    ref: el => {
+      setRef(el);
+      rootRef.current = el;
     },
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
+    className: `project-pane ${isFocused ? 'is-focused' : ''}`,
+    style: {
+      scrollSnapAlign: 'start',
+      scrollSnapStop: 'always',
+      contentVisibility: 'auto',
+      containIntrinsicSize: 'var(--cis-block, 600px)',
+      contain: 'layout paint style',
+      overflow: isFocused ? 'visible' : 'hidden'
+    },
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
       className: "project-pane-wrapper",
-      children: isDynamic ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
-        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      children: isDynamic ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
+        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
           load: load,
           serverRender: serverRender,
           eager: isFirst,
           allowIdle: true
-        }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
           load: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
           mountMode: "idle",
           preloadOnIdle: true,
@@ -745,14 +909,14 @@ function ProjectPane({
             blockId
           }
         })]
-      }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
         load: load,
         serverRender: serverRender,
         eager: isFirst,
         allowIdle: true,
         observeTargetId: blockId,
         placeholderMinHeight: 0
-      }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
         load: load,
         fallback: fallbackNode,
         serverRender: serverRender,
@@ -760,7 +924,19 @@ function ProjectPane({
         allowIdle: false,
         placeholderMinHeight: 0
       })
-    })
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_event_mount__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      load: _components_case_studies_load_focused_details__WEBPACK_IMPORTED_MODULE_8__.loadFocusedDetails,
+      active: activeDelayed,
+      fallback: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+        style: {
+          height: '100dvh'
+        }
+      }),
+      componentProps: {
+        title: item.title ?? item.key
+      },
+      fadeMs: 400
+    })]
   });
 }
 
@@ -785,6 +961,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./seed */ "./src/utils/seed/index.ts");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/scroll-controller.tsx
 
 
 
@@ -794,139 +971,444 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* ===========================
-   Synthetic Drag: Type Augments
+   Synthetic Drag & Exit Events
    =========================== */
 
 const ScrollController = () => {
   const {
     scrollContainerRef,
     focusedProjectKey,
-    currentIndex
+    currentIndex,
+    setFocusedProjectKey
   } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_1__.useProjectVisibility)();
   const {
     seed = 12345
   } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__.useSsrData)() || {};
-  const projects = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_seed__WEBPACK_IMPORTED_MODULE_6__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_3__.baseProjects, seed), [seed]);
-  const [justExitedFocusKey, setJustExitedFocusKey] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [invisibleKeys, setInvisibleKeys] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Set());
+
+  // Shuffle once on mount; never recompute order during this session
+  const projectsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)((0,_seed__WEBPACK_IMPORTED_MODULE_6__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_3__.baseProjects, seed));
+  const projects = projectsRef.current;
+
+  // Keep DOM refs to each block for precise scrolling
   const projectRefs = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)({});
 
-  // temporarily disable snap after index changes, to allow smooth momentum handoff
+  // Track last outer scrollTop and direction while focused
+  const lastScrollTopRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(0);
+  const lastScrollDirRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)('down');
+
+  // ---- Tunables ----
+  const VIS_RATIO_TO_EXIT = 0.2; // 20% of any OTHER pane => auto-unfocus
+  const VIS_DWELL_MS = 120; // must remain candidate for this long
+  const MAX_UNLOCK_VH = 0.90; // 90dvh movement cap before details unmount
+  const MIN_LINGER_MS = 280; // require at least this much time before unlock
+  const MAX_LINGER_MS = 800; // (optional) don't linger longer than this
+  const SNAP_RAMP_MS = 400; // proximity ramp
+  const SNAP_KB_FALLBACK_MS = 1200; // snap re-enable fallback
+  const UNLOCK_FALLBACK_MS = 1400; // unlock fallback if scroll events don’t fire
+
+  // Track the last non-null focused key so we can anchor (fallback) on exit
+  const lastFocusedKeyRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (focusedProjectKey) lastFocusedKeyRef.current = focusedProjectKey;
+  }, [focusedProjectKey]);
+
+  // Preferred exit target (set when user scrolls away during focus)
+  const exitTargetKeyRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // Helper: element's offsetTop within a custom scroller
+  const getOffsetTopWithin = (el, scroller) => {
+    const r1 = el.getBoundingClientRect();
+    const r2 = scroller.getBoundingClientRect?.() ?? {
+      top: 0
+    };
+    const st = ('scrollTop' in scroller ? scroller.scrollTop : document.documentElement.scrollTop) || 0;
+    return r1.top - r2.top + st;
+  };
+
+  // Temporarily disable snap after index changes, to allow smooth momentum handoff
+  // Only do this while focused; when NOT focused we want strong snap.
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
+    if (!focusedProjectKey) return; // keep snap strong outside focus
     container.classList.add('no-snap');
     const timeout = setTimeout(() => container.classList.remove('no-snap'), 800);
     return () => clearTimeout(timeout);
-  }, [currentIndex, scrollContainerRef]);
+  }, [currentIndex, focusedProjectKey, scrollContainerRef]);
 
-  // hide non-focused cards while focused
+  /* ===========================
+     Focus entry scroll choreography
+     - On entering focus: align the focused block, then bump ~90dvh
+     =========================== */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (focusedProjectKey) {
-      const keysToHide = projects.filter(p => p.key !== focusedProjectKey).map(p => p.key);
-      setInvisibleKeys(new Set(keysToHide));
+    if (!focusedProjectKey) return;
+    const scroller = scrollContainerRef.current ?? document.scrollingElement;
+    if (!scroller) return;
+    const targetEl = projectRefs.current[focusedProjectKey] ?? document.getElementById(`block-${focusedProjectKey}`);
+    const getViewportH = () => scroller?.clientHeight || scroller?.getBoundingClientRect?.().height || (window.visualViewport?.height ?? window.innerHeight ?? document.documentElement.clientHeight ?? 0);
+    requestAnimationFrame(() => {
+      if (targetEl?.scrollIntoView) {
+        targetEl.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth'
+        });
+      }
+      const bump = Math.round(getViewportH() * 0.9);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          scroller.scrollBy?.({
+            top: bump,
+            left: 0,
+            behavior: 'smooth'
+          });
+        });
+      });
+    });
+  }, [focusedProjectKey, scrollContainerRef]);
+
+  // --------------------------
+  // Scrolling helpers
+  // --------------------------
+  const setScrollTop = (scroller, top) => {
+    if ('scrollTop' in scroller) {
+      scroller.scrollTop = top;
     } else {
-      const timeout = setTimeout(() => setInvisibleKeys(new Set()), 400);
-      return () => clearTimeout(timeout);
+      scroller.scrollTo?.({
+        top,
+        left: 0,
+        behavior: 'auto'
+      });
     }
-  }, [focusedProjectKey, projects]);
+  };
+
+  // Kill inertia, then instantly place (used for re-anchors after layout changes)
+  const hardPlaceAtKey = key => {
+    const scroller = scrollContainerRef.current ?? document.scrollingElement;
+    if (!scroller) return;
+    const el = projectRefs.current[key] ?? document.getElementById(`block-${key}`);
+    if (!el) return;
+    const targetTop = getOffsetTopWithin(el, scroller);
+    const prevBehavior = scroller.style.scrollBehavior;
+    const prevOverflow = scroller.style.overflowY;
+    scroller.style.scrollBehavior = 'auto';
+    scroller.style.overflowY = 'hidden';
+    // @ts-ignore force sync
+    void scroller.offsetHeight;
+    setScrollTop(scroller, targetTop);
+
+    // @ts-ignore force sync
+    void scroller.offsetHeight;
+    scroller.style.overflowY = prevOverflow || 'scroll';
+    scroller.style.scrollBehavior = prevBehavior || '';
+    lastScrollTopRef.current = scroller.scrollTop || 0;
+  };
+
+  // Kill inertia, then tween to a key over ~260ms ease-out (nice transition)
+  const animatePlaceToKey = (key, ms = 260) => {
+    const scroller = scrollContainerRef.current ?? document.scrollingElement;
+    if (!scroller) return;
+    const el = projectRefs.current[key] ?? document.getElementById(`block-${key}`);
+    if (!el) return;
+    const targetTop = getOffsetTopWithin(el, scroller);
+    const startTop = scroller.scrollTop || 0;
+    const delta = targetTop - startTop;
+    if (Math.abs(delta) < 1) {
+      hardPlaceAtKey(key);
+      return;
+    }
+    const reduce = typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+    const duration = reduce ? 80 : ms;
+    const start = performance.now();
+    const prevBehavior = scroller.style.scrollBehavior;
+    const prevOverflow = scroller.style.overflowY;
+    scroller.style.scrollBehavior = 'auto';
+    scroller.style.overflowY = 'hidden';
+
+    // cubic ease-out
+    const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+    let raf = 0;
+    const step = now => {
+      const t = Math.min(1, (now - start) / duration);
+      const y = startTop + delta * easeOutCubic(t);
+      setScrollTop(scroller, y);
+      if (t < 1) {
+        raf = requestAnimationFrame(step);
+      } else {
+        // restore
+        scroller.style.overflowY = prevOverflow || 'scroll';
+        scroller.style.scrollBehavior = prevBehavior || '';
+        lastScrollTopRef.current = scroller.scrollTop || 0;
+      }
+    };
+
+    // start
+    // @ts-ignore
+    void scroller.offsetHeight;
+    raf = requestAnimationFrame(step);
+    return () => raf && cancelAnimationFrame(raf);
+  };
+
+  /* ===========================
+     AUTO-UNFOCUS while focused:
+     - If any OTHER pane is ≥ 20% visible (and remains for VIS_DWELL_MS),
+       we exit focus and force the exit target to the *adjacent* pane
+       in the scroll direction (no skipping).
+     =========================== */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (focusedProjectKey) setJustExitedFocusKey(focusedProjectKey);
-  }, [focusedProjectKey]);
+    const scroller = scrollContainerRef.current ?? document.scrollingElement;
+    if (!focusedProjectKey || !scroller) return;
+    let raf = 0;
+    let dwellTimer = null;
+    let pendingKey = null;
+    const getViewportH = () => scroller?.clientHeight || scroller?.getBoundingClientRect?.().height || (window.visualViewport?.height ?? window.innerHeight ?? document.documentElement.clientHeight ?? 0);
+    const focusedIdx = projects.findIndex(p => p.key === focusedProjectKey);
+    const clampAdjacentKey = dir => {
+      if (focusedIdx < 0) return null;
+      const nextIdx = dir === 'down' ? Math.min(focusedIdx + 1, projects.length - 1) : Math.max(focusedIdx - 1, 0);
+      if (nextIdx === focusedIdx) return null;
+      return projects[nextIdx].key;
+    };
+    const pickCandidate = () => {
+      const vh = getViewportH();
+      const viewportCenter = vh * 0.5;
+      let bestKey = null;
+      let bestDist = Infinity;
+      for (const p of projects) {
+        if (p.key === focusedProjectKey) continue;
+        const el = document.getElementById(`block-${p.key}`);
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.bottom <= 0 || r.top >= vh) continue;
+        const visible = Math.min(r.bottom, vh) - Math.max(r.top, 0);
+        const ratio = Math.max(0, visible) / Math.max(1, r.height);
+        if (ratio < VIS_RATIO_TO_EXIT) continue;
+        const center = r.top + r.height / 2;
+        const dist = Math.abs(center - viewportCenter);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestKey = p.key;
+        }
+      }
+      return bestKey;
+    };
+    const onTick = () => {
+      raf = 0;
+      const curr = scroller.scrollTop || 0;
+      const dir = curr < lastScrollTopRef.current ? 'up' : curr > lastScrollTopRef.current ? 'down' : lastScrollDirRef.current;
+      lastScrollDirRef.current = dir;
+      lastScrollTopRef.current = curr;
+      const anyVisibleOther = Boolean(pickCandidate());
+      if (anyVisibleOther) {
+        const neighbor = clampAdjacentKey(dir) ?? pickCandidate();
+        if (neighbor && pendingKey !== neighbor) {
+          pendingKey = neighbor;
+          if (dwellTimer) window.clearTimeout(dwellTimer);
+          dwellTimer = window.setTimeout(() => {
+            exitTargetKeyRef.current = neighbor; // lock to adjacent pane
+            setFocusedProjectKey(null); // triggers robust exit
+          }, VIS_DWELL_MS);
+        }
+      } else {
+        pendingKey = null;
+        if (dwellTimer) {
+          window.clearTimeout(dwellTimer);
+          dwellTimer = null;
+        }
+      }
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(onTick);
+    };
+    scroller.addEventListener('scroll', onScroll, {
+      passive: true
+    });
+    onScroll(); // prime once
+
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+      if (dwellTimer) window.clearTimeout(dwellTimer);
+    };
+  }, [focusedProjectKey, projects, scrollContainerRef, setFocusedProjectKey]);
+
+  /* ===========================
+     Focus EXIT choreography (robust)
+     - Tween to adjacent pane (soft), cancel inertia first
+     - Re-anchor after the old focused block collapses (hard)
+     =========================== */
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Only act when we EXIT focus (focusedProjectKey === null)
+    if (focusedProjectKey) return;
+    const preferredKey = exitTargetKeyRef.current || lastFocusedKeyRef.current;
+    if (!preferredKey) return;
+    const scroller = scrollContainerRef.current ?? document.scrollingElement;
+
+    // Prevent native snap fighting us during the handoff
+    container.classList.add('no-snap');
+
+    // Tell panes which key is exiting (kept for existing listeners)
+    document.dispatchEvent(new CustomEvent('focus-exit-start', {
+      detail: {
+        key: preferredKey
+      }
+    }));
+
+    // 1) Tween to the intended neighbor after killing inertia
+    const cancelTween = animatePlaceToKey(preferredKey, 260);
+
+    // 2) Re-anchor once the old focused block actually shrinks (details unmount)
+    const oldKey = lastFocusedKeyRef.current;
+    const oldEl = oldKey ? projectRefs.current[oldKey] ?? document.getElementById(`block-${oldKey}`) : null;
+    let ro = null;
+    if (oldEl && typeof ResizeObserver !== 'undefined') {
+      let prevH = oldEl.offsetHeight || 0;
+      ro = new ResizeObserver(() => {
+        const h = oldEl.offsetHeight || 0;
+        // height dropped => layout shifted; re-anchor once
+        if (h < prevH - 8) {
+          hardPlaceAtKey(preferredKey);
+          ro?.disconnect();
+          ro = null;
+        }
+        prevH = h;
+      });
+      ro.observe(oldEl);
+    }
+
+    // 3) Small dwell, then unlock + gently re-enable snapping (proximity ramp)
+    const unlockTimer = setTimeout(() => {
+      document.dispatchEvent(new CustomEvent('focus-exit-unlock', {
+        detail: {
+          key: preferredKey
+        }
+      }));
+      requestAnimationFrame(() => {
+        container.classList.add('snap-proximity');
+        container.classList.remove('no-snap');
+        const ramp = setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
+        cleanupFns.push(() => clearTimeout(ramp));
+      });
+
+      // Clear the used target
+      exitTargetKeyRef.current = null;
+    }, MIN_LINGER_MS);
+
+    // Fallback re-anchor in case RO is not available / missed (covers EXIT_DELAY_MS + fade)
+    const postTimer = setTimeout(() => hardPlaceAtKey(preferredKey), 900);
+    const cleanupFns = [() => typeof cancelTween === 'function' && cancelTween(), () => clearTimeout(unlockTimer), () => clearTimeout(postTimer), () => ro?.disconnect?.()];
+    return () => {
+      cleanupFns.forEach(fn => fn());
+    };
+  }, [focusedProjectKey, scrollContainerRef]);
 
   /* ===========================
      Edge signalling only (no cancel, no programmatic scroll)
+     (rebinding-safe version so it survives DOM swaps)
      =========================== */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
-    let cleanupFns = [];
-    const observer = new MutationObserver(() => {
-      const embeddedEl = document.querySelector('.embedded-app');
-      if (!embeddedEl) return;
-      if (cleanupFns.length > 0) return;
-      const atTop = () => embeddedEl.scrollTop <= 0;
-      const atBottom = () => embeddedEl.scrollTop + embeddedEl.clientHeight >= embeddedEl.scrollHeight - 1;
-      const fireSyntheticDrag = (phase, direction, magnitude, source, velocity) => {
-        const evt = new CustomEvent('synthetic-drag', {
-          detail: {
-            phase,
-            direction,
-            magnitude,
-            velocity,
-            source,
-            ts: performance.now()
-          },
-          bubbles: true,
-          composed: true
-        });
-        scrollContainer.dispatchEvent(evt);
-      };
-
-      // TOUCH — passive; never preventDefault; only emit synthetic-drag at edges
-      let lastY = 0;
-      let lastTs = 0;
-      const handleTouchStart = e => {
-        if (e.touches.length === 1) {
-          lastY = e.touches[0].clientY;
-          lastTs = performance.now();
-          fireSyntheticDrag('start', 'down', 0, 'touch');
-        }
-      };
-      const handleTouchMove = e => {
-        if (e.touches.length !== 1) return;
-        const y = e.touches[0].clientY;
-        const dy = y - lastY; // >0 down, <0 up
-        const now = performance.now();
-        const dt = Math.max(1, now - lastTs);
-        const velocity = Math.abs(dy) / dt; // px/ms
-        lastY = y;
-        lastTs = now;
-
-        // Only announce when the inner scroller is at an edge and user drags further toward that edge
-        if (dy > 0 && atTop() || dy < 0 && atBottom()) {
-          fireSyntheticDrag('move', dy < 0 ? 'down' : 'up', Math.abs(dy), 'touch', velocity);
-        }
-      };
-      const handleTouchEnd = () => {
-        fireSyntheticDrag('end', 'down', 0, 'touch');
-      };
-      embeddedEl.addEventListener('touchstart', handleTouchStart, {
+    let attachedEl = null;
+    const atTop = el => el.scrollTop <= 0;
+    const atBottom = el => {
+      // DPR-aware cushion so sticky/footer/safe-area rounding doesn't block the handoff
+      const EPS = Math.max(16, Math.ceil((window.devicePixelRatio || 1) * 20)); // ~16–24px
+      const max = el.scrollHeight - el.clientHeight;
+      return max - el.scrollTop <= EPS;
+    };
+    const fireSyntheticDrag = (phase, direction, magnitude, source, velocity) => {
+      const evt = new CustomEvent('synthetic-drag', {
+        detail: {
+          phase,
+          direction,
+          magnitude,
+          velocity,
+          source,
+          ts: performance.now()
+        },
+        bubbles: true,
+        composed: true
+      });
+      scrollContainer.dispatchEvent(evt);
+    };
+    let lastY = 0;
+    let lastTs = 0;
+    const handleTouchStart = e => {
+      if (!attachedEl) return;
+      if (e.touches.length === 1) {
+        lastY = e.touches[0].clientY;
+        lastTs = performance.now();
+        fireSyntheticDrag('start', 'down', 0, 'touch');
+      }
+    };
+    const handleTouchMove = e => {
+      if (!attachedEl) return;
+      if (e.touches.length !== 1) return;
+      const y = e.touches[0].clientY;
+      const dy = y - lastY; // >0 down, <0 up
+      const now = performance.now();
+      const dt = Math.max(1, now - lastTs);
+      const velocity = Math.abs(dy) / dt;
+      lastY = y;
+      lastTs = now;
+      if (dy > 0 && atTop(attachedEl) || dy < 0 && atBottom(attachedEl)) {
+        fireSyntheticDrag('move', dy < 0 ? 'down' : 'up', Math.min(600, Math.abs(dy)), 'touch', velocity);
+      }
+    };
+    const handleTouchEnd = () => {
+      fireSyntheticDrag('end', 'down', 0, 'touch');
+    };
+    const handleWheel = e => {
+      if (!attachedEl) return;
+      const {
+        deltaY
+      } = e;
+      const top = atTop(attachedEl);
+      const bottom = atBottom(attachedEl);
+      if (deltaY < 0 && top || deltaY > 0 && bottom) {
+        fireSyntheticDrag('move', deltaY > 0 ? 'down' : 'up', Math.min(600, Math.abs(deltaY)), 'wheel');
+      }
+    };
+    const cleanupFrom = el => {
+      if (!el) return;
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
+      el.removeEventListener('wheel', handleWheel);
+    };
+    const maybeAttach = () => {
+      const el = document.querySelector('.embedded-app');
+      if (!el || el === attachedEl) return;
+      cleanupFrom(attachedEl);
+      attachedEl = el;
+      attachedEl.addEventListener('touchstart', handleTouchStart, {
         passive: true
       });
-      embeddedEl.addEventListener('touchmove', handleTouchMove, {
+      attachedEl.addEventListener('touchmove', handleTouchMove, {
         passive: true
       });
-      embeddedEl.addEventListener('touchend', handleTouchEnd, {
+      attachedEl.addEventListener('touchend', handleTouchEnd, {
         passive: true
       });
-
-      // WHEEL — passive; emit synthetic-drag only at edges
-      const handleWheel = e => {
-        const {
-          deltaY
-        } = e;
-        const top = atTop();
-        const bottom = atBottom();
-        if (deltaY < 0 && top || deltaY > 0 && bottom) {
-          fireSyntheticDrag('move', deltaY > 0 ? 'down' : 'up', Math.min(600, Math.abs(deltaY)), 'wheel');
-        }
-      };
-      embeddedEl.addEventListener('wheel', handleWheel, {
+      attachedEl.addEventListener('wheel', handleWheel, {
         passive: true
       });
-      cleanupFns = [() => embeddedEl.removeEventListener('touchstart', handleTouchStart), () => embeddedEl.removeEventListener('touchmove', handleTouchMove), () => embeddedEl.removeEventListener('touchend', handleTouchEnd), () => embeddedEl.removeEventListener('wheel', handleWheel)];
-    });
-    observer.observe(document.body, {
+    };
+    const mo = new MutationObserver(maybeAttach);
+    mo.observe(document.body, {
       childList: true,
       subtree: true
     });
+    maybeAttach();
     return () => {
-      observer.disconnect();
-      cleanupFns.forEach(fn => fn());
-      cleanupFns = [];
+      mo.disconnect();
+      cleanupFrom(attachedEl);
+      attachedEl = null;
     };
-  }, [scrollContainerRef]);
+  }, [scrollContainerRef, focusedProjectKey]);
   const blockIds = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.map(p => `#block-${p.key}`), [projects]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const cleanup = (0,_content_utility_opacity_observer__WEBPACK_IMPORTED_MODULE_2__.attachOpacityObserver)(blockIds, focusedProjectKey);
@@ -937,20 +1419,7 @@ const ScrollController = () => {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
-    const onSynthetic = e => {
-      const {
-        direction,
-        magnitude,
-        phase,
-        source,
-        velocity
-      } = e.detail;
-      // Example reaction (disabled):
-      // if (phase === 'move') {
-      //   const bias = direction === 'down' ? 0.9 : -0.9;
-      //   el.scrollBy({ top: window.innerHeight * bias, behavior: 'smooth' });
-      // }
-    };
+    const onSynthetic = _e => {};
     el.addEventListener('synthetic-drag', onSynthetic);
     return () => el.removeEventListener('synthetic-drag', onSynthetic);
   }, [scrollContainerRef]);
@@ -959,6 +1428,7 @@ const ScrollController = () => {
     className: "SnappyScrollThingy",
     style: {
       overflowY: 'scroll',
+      // STRONG snap whenever not focused; focus mode disables via inline/logic above.
       scrollSnapType: focusedProjectKey ? 'none' : 'y mandatory',
       scrollBehavior: 'smooth',
       scrollbarWidth: 'none',
@@ -970,14 +1440,16 @@ const ScrollController = () => {
         /* Allow native edge handoff */
         .SnappyScrollThingy { overscroll-behavior: auto; }
         .embedded-app { touch-action: pan-y; overscroll-behavior: auto; }
+
+        /* Snap control helpers */
+        .SnappyScrollThingy.no-snap { scroll-snap-type: none !important; }
+        .SnappyScrollThingy.snap-proximity { scroll-snap-type: y proximity !important; }
       `
     }), projects.map((item, idx) => {
       const isFocused = focusedProjectKey === item.key;
-      const isHidden = invisibleKeys.has(item.key);
       return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_project_pane__WEBPACK_IMPORTED_MODULE_4__.ProjectPane, {
         item: item,
         isFocused: isFocused,
-        isHidden: isHidden,
         isFirst: idx === 0,
         setRef: el => {
           projectRefs.current[item.key] = el;
@@ -1044,7 +1516,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _title_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./title-context */ "./src/utils/title/title-context.tsx");
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../seed */ "./src/utils/seed/index.ts");
-// src/utils/title/title-observer.tsx
+/* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
+
 
 
 
@@ -1055,29 +1528,110 @@ const TitleObserver = () => {
     setActiveTitle
   } = (0,_title_context__WEBPACK_IMPORTED_MODULE_2__.useActiveTitle)();
   const {
+    focusedProjectKey
+  } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_5__.useProjectVisibility)();
+  const {
     seed = 12345
   } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_3__.useSsrData)() || {};
-  const projects = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_seed__WEBPACK_IMPORTED_MODULE_4__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_1__.baseProjects, seed), [seed]);
+
+  // Stable order for this session
+  const projectsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)((0,_seed__WEBPACK_IMPORTED_MODULE_4__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_1__.baseProjects, seed));
+  const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const observerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const moRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // Helper: pick the element whose center is closest to viewport center
+  const pickCenteredNow = () => {
+    // While focused, never mutate the title from visibility.
+    if (focusedProjectKey) return;
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    const viewportCenter = vh * 0.5;
+    let bestTitle = null;
+    let bestDist = Infinity;
+    for (const p of projectsRef.current) {
+      const el = document.getElementById(`block-${p.key}`);
+      if (!el || el.style.display === 'none') continue;
+      const r = el.getBoundingClientRect();
+      if (r.bottom <= 0 || r.top >= vh) continue;
+      const center = r.top + r.height / 2;
+      const dist = Math.abs(center - viewportCenter);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestTitle = p.title;
+      }
+    }
+    if (bestTitle && bestTitle !== lastTitleRef.current) {
+      lastTitleRef.current = bestTitle;
+      setActiveTitle(bestTitle);
+    }
+  };
+
+  // Build observer once
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        const target = entry.target;
-        if (entry.intersectionRatio > 0.55) {
-          const match = projects.find(p => target.id.includes(p.key));
-          if (match) setActiveTitle(match.title);
-        }
-      });
+    const io = new IntersectionObserver(() => {
+      if (focusedProjectKey) return; // ignore while focused
+      requestAnimationFrame(pickCenteredNow);
     }, {
-      threshold: Array.from({
-        length: 101
-      }, (_, i) => i / 100)
+      threshold: [0, 0.25, 0.5, 0.75, 1]
     });
-    projects.forEach(p => {
-      const el = document.querySelector(`#block-${p.key}`);
-      if (el) observer.observe(el);
+    observerRef.current = io;
+
+    // Observe all blocks that exist (will keep observing through display:none)
+    for (const p of projectsRef.current) {
+      const el = document.getElementById(`block-${p.key}`);
+      if (el) io.observe(el);
+    }
+
+    // Also react to late-mounted blocks
+    const mo = new MutationObserver(() => {
+      const cur = observerRef.current;
+      if (!cur) return;
+      for (const p of projectsRef.current) {
+        const el = document.getElementById(`block-${p.key}`);
+        if (el) cur.observe(el);
+      }
     });
-    return () => observer.disconnect();
-  }, [projects, setActiveTitle]);
+    mo.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    moRef.current = mo;
+
+    // Initial pick
+    requestAnimationFrame(pickCenteredNow);
+    return () => {
+      io.disconnect();
+      mo.disconnect();
+      observerRef.current = null;
+      moRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // once per mount
+
+  // NEW: Freeze title on focus & pause the observer; resume on unfocus
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const io = observerRef.current;
+    if (focusedProjectKey) {
+      // 1) Set title to the focused project's title exactly once on enter
+      const focused = projectsRef.current.find(p => p.key === focusedProjectKey);
+      if (focused && focused.title !== lastTitleRef.current) {
+        lastTitleRef.current = focused.title;
+        setActiveTitle(focused.title);
+      }
+      // 2) Pause the observer work during focus
+      io?.disconnect();
+    } else {
+      // Resubscribe and immediately pick based on visibility when leaving focus
+      if (io) {
+        for (const p of projectsRef.current) {
+          const el = document.getElementById(`block-${p.key}`);
+          if (el) io.observe(el);
+        }
+      }
+      requestAnimationFrame(pickCenteredNow);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedProjectKey, setActiveTitle]);
   return null;
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TitleObserver);
@@ -1105,8 +1659,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
 /* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../seed */ "./src/utils/seed/index.ts");
 /* harmony import */ var _title_observer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./title-observer */ "./src/utils/title/title-observer.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/utils/title/view-project.tsx
+
 
 
 
@@ -1128,16 +1684,27 @@ const ViewProject = () => {
     seed = 12345
   } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_7__.useSsrData)() || {};
   const projects = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_seed__WEBPACK_IMPORTED_MODULE_8__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_5__.baseProjects, seed), [seed]);
+
+  // Focus state shared across app
+  const {
+    focusedProjectKey,
+    setFocusedProjectKey
+  } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_10__.useProjectVisibility)();
+  const focusedProject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.find(p => p.key === focusedProjectKey), [projects, focusedProjectKey]);
+
+  // Freeze the title (and everything derived from it) when focused
+  const displayTitle = focusedProjectKey ? focusedProject?.title ?? activeTitle : activeTitle;
   const arrowContainer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const arrowAnimRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(activeTitle);
+  const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(displayTitle);
   const [hovered, setHovered] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [showBackground, setShowBackground] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const hideTimeoutRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const currentProject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.find(p => p.title === activeTitle), [projects, activeTitle]);
+  const currentProject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.find(p => p.title === displayTitle), [projects, displayTitle]);
   const isLink = currentProject?.isLink;
+  const currentKey = currentProject?.key;
   const getBackgroundColor = () => {
-    const colorInfo = _content_utility_color_map__WEBPACK_IMPORTED_MODULE_6__.projectColors[activeTitle];
+    const colorInfo = _content_utility_color_map__WEBPACK_IMPORTED_MODULE_6__.projectColors[displayTitle];
     if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
     const alpha = hovered ? 1 : colorInfo.defaultAlpha ?? 0.8;
     return `rgba(${colorInfo.rgb}, ${alpha})`;
@@ -1148,16 +1715,14 @@ const ViewProject = () => {
     hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 1500);
   };
 
-  // (Re)create arrow/link Lottie when title changes
+  // (Re)create arrow/link Lottie when the *displayed* title changes
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = arrowContainer.current;
     if (!el) return;
     let anim = null;
     let mounted = true;
     (async () => {
-      const animationData = activeTitle === 'Dynamic App' ? _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
-
-      // NOTE: proxy returns a Promise -> await the instance
+      const animationData = displayTitle === 'Dynamic App' ? _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
       anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
         container: el,
         renderer: 'svg',
@@ -1173,8 +1738,6 @@ const ViewProject = () => {
         if (svg) svg.classList.add('arrow-svg');
       };
       anim.addEventListener('DOMLoaded', onDomLoaded);
-
-      // cleanup listeners if effect re-runs (component unmount cleanup below)
       return () => {
         anim?.removeEventListener('DOMLoaded', onDomLoaded);
       };
@@ -1184,16 +1747,16 @@ const ViewProject = () => {
       arrowAnimRef.current?.destroy();
       arrowAnimRef.current = null;
     };
-  }, [activeTitle]);
+  }, [displayTitle]);
 
-  // Play a segment when the title actually changes
+  // Play a segment when the *displayed* title actually changes
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (lastTitleRef.current !== activeTitle) {
+    if (lastTitleRef.current !== displayTitle) {
       arrowAnimRef.current?.playSegments([40, 90], true);
-      lastTitleRef.current = activeTitle;
+      lastTitleRef.current = displayTitle;
       triggerBackgroundFade();
     }
-  }, [activeTitle]);
+  }, [displayTitle]);
 
   // Trigger background fade on user motion (bottom ~35% of viewport) or touch
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -1216,22 +1779,42 @@ const ViewProject = () => {
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, []);
+
+  // Toggle the focused project key; ScrollController reacts to this
+  const handleToggleOpen = () => {
+    if (!currentKey) return;
+    const next = focusedProjectKey === currentKey ? null : currentKey;
+    setFocusedProjectKey(next);
+    if (next) {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`block-${next}`);
+        el?.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth'
+        });
+      });
+    }
+  };
   const Element = isLink ? 'a' : 'button';
   const sharedProps = {
     className: `view-project-btn ${!showBackground ? 'no-bg' : ''}`,
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
+    'data-project-key': currentKey ?? undefined,
+    'aria-pressed': currentKey ? focusedProjectKey === currentKey : undefined,
     ...(isLink ? {
       href: '/dynamic-theme',
       target: '_blank',
       rel: 'noopener noreferrer'
-    } : {})
+    } : {
+      onClick: handleToggleOpen
+    })
   };
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
     className: "view-project-wrapper",
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_title_observer__WEBPACK_IMPORTED_MODULE_9__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(Element, {
+    children: [!focusedProjectKey && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_title_observer__WEBPACK_IMPORTED_MODULE_9__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(Element, {
       ...sharedProps,
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
         className: `view-project-background ${!showBackground ? 'no-bg' : ''}`,
         style: {
           backgroundColor: getBackgroundColor(),
@@ -1240,14 +1823,14 @@ const ViewProject = () => {
           borderRadius: 'inherit',
           zIndex: 0
         }
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("h2", {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("h2", {
         className: "project-view",
         style: {
           position: 'relative',
           zIndex: 1
         },
-        children: activeTitle
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
+        children: displayTitle
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
         ref: arrowContainer,
         className: "view-project-arrow",
         style: {

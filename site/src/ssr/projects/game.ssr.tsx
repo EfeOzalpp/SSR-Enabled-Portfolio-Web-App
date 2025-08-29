@@ -6,7 +6,6 @@ import {
   getHighQualityImageUrl,
 } from '../../utils/media-providers/image-builder';
 
-
 type CoinDoc = { alt?: string; image?: any };
 
 export const gameSSR: SsrDescriptor = {

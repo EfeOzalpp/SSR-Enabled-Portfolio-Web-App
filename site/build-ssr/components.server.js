@@ -512,6 +512,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/context-providers/project-context.tsx
 
 
 const ProjectVisibilityContext = /*#__PURE__*/(0,react__WEBPACK_IMPORTED_MODULE_0__.createContext)(undefined);
@@ -525,6 +526,15 @@ const ProjectVisibilityProvider = ({
   const [focusedProjectKey, setFocusedProjectKey] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [previousScrollY, setPreviousScrollY] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const scrollContainerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // The ScrollController will register its implementation here.
+  const alignFnRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(() => {/* no-op by default */});
+  const requestViewportAlign = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(args => {
+    alignFnRef.current?.(args);
+  }, []);
+  const registerViewportAlign = react__WEBPACK_IMPORTED_MODULE_0___default().useCallback(fn => {
+    alignFnRef.current = fn || (() => {});
+  }, []);
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(ProjectVisibilityContext.Provider, {
     value: {
       activeProject,
@@ -539,7 +549,9 @@ const ProjectVisibilityProvider = ({
       focusedProjectKey,
       setFocusedProjectKey,
       previousScrollY,
-      setPreviousScrollY
+      setPreviousScrollY,
+      requestViewportAlign,
+      registerViewportAlign
     },
     children: children
   });

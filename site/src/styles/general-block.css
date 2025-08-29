@@ -51,6 +51,7 @@ button.view-project-btn { -webkit-appearance: none; appearance: none; background
   .github-lottie { width: 2.6em !important; }
   .linkedin-lottie { width: 2.6em !important; }
   .split-arrow svg {transform: scale(0.82) !important; }
+  .pane-placeholder { height: 98dvh;}
 }
 
 @media (orientation: portrait) and (max-width: 1024px) and (min-width: 768px) {
@@ -72,6 +73,7 @@ button.view-project-btn { -webkit-appearance: none; appearance: none; background
   .github-lottie { width: 2.4em !important; }
   .linkedin-lottie { width: 2.4em !important; }
   .title-lottie { width: 11.2em !important; }
+  .pane-placeholder { height: 92dvh;}
 }
 
 @media (min-width: 1025px) {
@@ -85,5 +87,12 @@ button.view-project-btn { -webkit-appearance: none; appearance: none; background
   .nav-menu { padding-bottom: 4px; }
   .nav-right { padding-right: 28px; gap: 24px !important; }
   .arrow-svg { filter: drop-shadow(0 0px 18px rgba(0,0,0,0.6)); }
-  .split-arrow { scale: 0.6; }
+  .split-arrow { scale: 0.6; left: -0.6em; position: relative;}
+  .pane-placeholder { height: 96dvh;}
 }
+
+.SnappyScrollThingy.focus-locked {overscroll-behavior: contain; }
+.SnappyScrollThingy.no-smooth { scroll-behavior: auto !important; }
+.SnappyScrollThingy.no-snap        { scroll-snap-type: none !important; }
+.SnappyScrollThingy.snap-proximity { scroll-snap-type: y proximity !important; }
+.SnappyScrollThingy.snap-strong    { scroll-snap-type: y mandatory !important; } /* NEW */

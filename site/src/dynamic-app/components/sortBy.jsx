@@ -41,9 +41,10 @@ function SortBy({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState('random');
 
-  // Base dataset from preload
+  // force re-shuffle even when already on "random"
+  const [randomTick, setRandomTick] = useState(0);
+
   const [baseItems, setBaseItems] = useState([]);
-  // Derived list shown in UI
   const [items, setItems] = useState([]);
 
   const dropdownRef = useRef(null);
@@ -53,6 +54,7 @@ function SortBy({
 
   const handleOptionClick = (value) => {
     setSelectedValue(value);
+    if (value === 'random') setRandomTick(t => t + 1); // re-shuffle on every click
     setIsOpen(false);
   };
 
@@ -93,12 +95,18 @@ function SortBy({
     return () => { cancelled = true; };
   }, []);
 
-  // 2) Derive items whenever base or sort option changes (no network here)
+  // 2) Derive items whenever base or sort option changes
+  //    When random is selected, reshuffle on every randomTick bump
   useEffect(() => {
-    const derived = localSort(baseItems, selectedValue);
+    let derived = [];
+    if (selectedValue === 'random') {
+      derived = shuffleArray(baseItems);
+    } else {
+      derived = localSort(baseItems, selectedValue);
+    }
     setItems(derived);
     onFetchItems?.(derived);
-  }, [baseItems, selectedValue, onFetchItems]);
+  }, [baseItems, selectedValue, randomTick, onFetchItems]);
 
   // Responsive index logic for color sampling
   const [screenWidth, setScreenWidth] = useState(

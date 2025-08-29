@@ -1,9 +1,9 @@
 // src/components/NavMenu.tsx
 import { useEffect, useRef } from "react";
-import lottie from "../utils/load-lottie"; // proxy that lazy-loads lottie-web (svg build if you configured it)
-import titleData from "../svg/efeozalp.json";
-import githubData from "../svg/github.json";
-import linkedinData from "../svg/linkedin.json";
+import lottie from "../load-lottie"; // proxy that lazy-loads lottie-web (svg build if you configured it)
+import titleData from "../../svg/efeozalp.json";
+import githubData from "../../svg/github.json";
+import linkedinData from "../../svg/linkedin.json";
 
 const NavMenu = () => {
   const lottieContainer = useRef<HTMLDivElement>(null);

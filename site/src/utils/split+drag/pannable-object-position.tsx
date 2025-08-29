@@ -3,68 +3,67 @@ import React, { useEffect, useRef } from 'react';
 type Sensitivity = number | { x?: number; y?: number };
 
 /**
- * Wrap a single <img> or <video>. Lets users drag to pan the media
- * inside its container by adjusting CSS `object-position`.
- *
- * - Works with object-fit: cover (default).
- * - Handles mouse/touch via Pointer Events (with safe fallbacks).
- * - Only pans on axes where the covered media is larger than the box.
- * - While dragging, sets data-gesture-lock="1" so outer scroll handoff ignores it.
+ * Wraps a single <img> or <video>.
+ * - Pan by dragging (via CSS object-position)
+ * - Zoom inside the component only (pinch on touch devices, Ctrl+wheel on desktop)
+ * - Double-click resets both pan and zoom
+ * - Marks itself with data-allow-zoom="1" so the page-level blocker skips it
  */
 export default function PannableViewport({
   className,
   style,
   children,
   sensitivity = 1.75,
+  minScale = 1,
+  maxScale = 3,
 }: {
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
   sensitivity?: Sensitivity;
+  minScale?: number;
+  maxScale?: number;
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
+  const scaleRef = useRef(1);
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
 
-    // Find first img/video under this wrapper
-    const media = host.querySelector('img, video') as
-      | HTMLImageElement
-      | HTMLVideoElement
-      | null;
+    const media = host.querySelector('img, video') as HTMLImageElement | HTMLVideoElement | null;
     if (!media) return;
 
     const styleMedia = (media as HTMLElement).style;
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+    // Object-fit defaults and object-position baseline
     if (!styleMedia.objectFit) styleMedia.objectFit = 'cover';
-    // Make sure SSR and client match by forcing a default
     const computed = window.getComputedStyle(media);
     if (!computed.objectPosition || computed.objectPosition === 'initial') {
-      styleMedia.objectPosition = '50% 50%'; // only if truly missing
+      styleMedia.objectPosition = '50% 50%';
     }
     (media as any).draggable = false;
 
+    // Element-scoped zoom via transform scale
+    styleMedia.transformOrigin = '50% 50%';
+    const applyScale = (s: number) => {
+      scaleRef.current = clamp(s, minScale, maxScale);
+      styleMedia.transform = scaleRef.current === 1 ? '' : `scale(${scaleRef.current})`;
+    };
+
     const sensX =
-      typeof sensitivity === 'number'
-        ? sensitivity
-        : Math.max(0.1, Math.min(10, sensitivity?.x ?? 1));
+      typeof sensitivity === 'number' ? sensitivity : clamp(sensitivity?.x ?? 1, 0.1, 10);
     const sensY =
-      typeof sensitivity === 'number'
-        ? sensitivity
-        : Math.max(0.1, Math.min(10, sensitivity?.y ?? 1));
+      typeof sensitivity === 'number' ? sensitivity : clamp(sensitivity?.y ?? 1, 0.1, 10);
 
-    let cw = 0,
-      ch = 0; // container box
-    let mw = 0,
-      mh = 0; // intrinsic media
-    let dispW = 0,
-      dispH = 0; // displayed (covered) size
+    let cw = 0, ch = 0; // container
+    let mw = 0, mh = 0; // intrinsic
+    let dispW = 0, dispH = 0;
 
-    let canPanX = false,
-      canPanY = false;
-    let pctPerPxX = 0,
-      pctPerPxY = 0;
+    let canPanX = false, canPanY = false;
+    let pctPerPxX = 0, pctPerPxY = 0;
 
     const parseOP = () => {
       const op = window.getComputedStyle(media).objectPosition || '50% 50%';
@@ -72,40 +71,34 @@ export default function PannableViewport({
       const toPct = (v: string) => {
         if (v.endsWith('%')) return parseFloat(v);
         const n = parseFloat(v);
-        return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 50;
+        return Number.isFinite(n) ? clamp(n, 0, 100) : 50;
       };
       return [toPct(oxRaw), toPct(oyRaw)] as [number, number];
     };
 
     const setOP = (xPct: number, yPct: number) => {
-      const x = Math.max(0, Math.min(100, xPct));
-      const y = Math.max(0, Math.min(100, yPct));
+      const x = clamp(xPct, 0, 100);
+      const y = clamp(yPct, 0, 100);
       styleMedia.objectPosition = `${x}% ${y}%`;
     };
 
     const computeCover = () => {
       const rect = host.getBoundingClientRect();
-      cw = rect.width;
-      ch = rect.height;
+      cw = rect.width; ch = rect.height;
 
       if (media instanceof HTMLImageElement) {
-        mw = media.naturalWidth || 0;
-        mh = media.naturalHeight || 0;
+        mw = media.naturalWidth || 0; mh = media.naturalHeight || 0;
       } else if (media instanceof HTMLVideoElement) {
-        mw = media.videoWidth || 0;
-        mh = media.videoHeight || 0;
+        mw = media.videoWidth || 0; mh = media.videoHeight || 0;
       }
 
       if (!mw || !mh || !cw || !ch) {
-        dispW = dispH = 0;
-        canPanX = canPanY = false;
-        pctPerPxX = pctPerPxY = 0;
+        dispW = dispH = 0; canPanX = canPanY = false; pctPerPxX = pctPerPxY = 0;
         return;
       }
 
-      const scale = Math.max(cw / mw, ch / mh);
-      dispW = mw * scale;
-      dispH = mh * scale;
+      const scale = Math.max(cw / mw, ch / mh); // cover
+      dispW = mw * scale; dispH = mh * scale;
 
       const overflowX = dispW - cw;
       const overflowY = dispH - ch;
@@ -117,28 +110,25 @@ export default function PannableViewport({
       pctPerPxY = canPanY ? (100 / overflowY) * sensY : 0;
     };
 
-    // initial compute
     computeCover();
 
-    // Safe ResizeObserver
+    // Resize observer to keep math fresh
     let ro: ResizeObserver | null = null;
     if ('ResizeObserver' in window) {
       ro = new ResizeObserver(() => computeCover());
       ro.observe(host);
     }
 
-    // For videos, wait for metadata to get intrinsic size
-    let onMeta: any = null;
+    // Videos: wait for metadata for intrinsic sizes
+    let onMeta: (() => void) | null = null;
     if (media instanceof HTMLVideoElement) {
       onMeta = () => computeCover();
       media.addEventListener('loadedmetadata', onMeta);
     }
 
-    // Drag state
-    let startX = 0,
-      startY = 0;
-    let startOPX = 50,
-      startOPY = 50;
+    // Drag-to-pan
+    let startX = 0, startY = 0;
+    let startOPX = 50, startOPY = 50;
 
     const setGestureLock = (on: boolean) => {
       draggingRef.current = on;
@@ -158,11 +148,8 @@ export default function PannableViewport({
       if ((e.target as HTMLElement)?.closest('a,button,[role="button"]')) return;
 
       const [ox, oy] = parseOP();
-      startOPX = ox;
-      startOPY = oy;
-
-      startX = e.clientX;
-      startY = e.clientY;
+      startOPX = ox; startOPY = oy;
+      startX = e.clientX; startY = e.clientY;
 
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       setGestureLock(true);
@@ -172,8 +159,7 @@ export default function PannableViewport({
       if (!draggingRef.current) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      let nextX = startOPX;
-      let nextY = startOPY;
+      let nextX = startOPX, nextY = startOPY;
       if (canPanX) nextX = startOPX + dx * pctPerPxX;
       if (canPanY) nextY = startOPY + dy * pctPerPxY;
       setOP(nextX, nextY);
@@ -185,15 +171,43 @@ export default function PannableViewport({
       setGestureLock(false);
     };
 
-    const onDblClick = () => setOP(50, 50);
+    // Double-click to reset both pan and zoom
+    const onDblClick = () => {
+      setOP(50, 50);
+      applyScale(1);
+    };
 
-    // Safe pointer events
+    // Element-scoped zoom
+    // Desktop/trackpad: Ctrl + wheel is treated as pinch by browsers
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;       // only consume pinch-zoom wheels
+      e.preventDefault();           // keep zoom local to this element
+      const delta = -e.deltaY;      // wheel up -> zoom in
+      const next = scaleRef.current * (1 + delta * 0.0015);
+      applyScale(next);
+    };
+
+    // iOS Safari: gesture events
+    let startScale = 1;
+    const onGestureStart = () => { startScale = scaleRef.current; };
+    const onGestureChange = (e: any) => {
+      const rel = typeof e?.scale === 'number' ? e.scale : 1;
+      applyScale(startScale * rel);
+    };
+    const onGestureEnd = () => {};
+
+    // Listeners
     if ('PointerEvent' in window) {
       host.addEventListener('pointerdown', onPointerDown);
       window.addEventListener('pointermove', onPointerMove, { passive: true });
       window.addEventListener('pointerup', endDrag as any, { passive: true });
     }
     host.addEventListener('dblclick', onDblClick);
+
+    host.addEventListener('wheel', onWheel, { passive: false });
+    host.addEventListener('gesturestart', onGestureStart as any);
+    host.addEventListener('gesturechange', onGestureChange as any);
+    host.addEventListener('gestureend', onGestureEnd as any);
 
     return () => {
       ro?.disconnect();
@@ -206,15 +220,22 @@ export default function PannableViewport({
         window.removeEventListener('pointerup', endDrag as any);
       }
       host.removeEventListener('dblclick', onDblClick);
+      host.removeEventListener('wheel', onWheel as any);
+      host.removeEventListener('gesturestart', onGestureStart as any);
+      host.removeEventListener('gesturechange', onGestureChange as any);
+      host.removeEventListener('gestureend', onGestureEnd as any);
+
       setGestureLock(false);
+      applyScale(1);
     };
-  }, [sensitivity]);
+  }, [sensitivity, minScale, maxScale]);
 
   return (
     <div
       ref={hostRef}
       className={['pannable-viewport', className].filter(Boolean).join(' ')}
       data-gesture-lock={draggingRef.current ? '1' : undefined}
+      data-allow-zoom="1" // opt-in so FrontPage allows pinch here
       style={{
         position: 'relative',
         width: '100%',

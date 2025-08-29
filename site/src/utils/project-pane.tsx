@@ -1,5 +1,4 @@
-// src/utils/project-pane.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import LazyInView from './content-utility/lazy-in-view';
 import LazyViewMount from './content-utility/lazy-view-mount';
 import LoadingScreen from './loading/loading';
@@ -7,10 +6,13 @@ import { useProjectLoader } from './content-utility/component-loader';
 import { useSsrData } from './context-providers/ssr-data-context';
 import { ssrRegistry } from '../ssr/registry';
 
+/* event-driven details for case study section */
+import EventMount from './content-utility/event-mount';
+import { loadFocusedDetails } from '../components/case-studies/load-focused-details';
+
 type Props = {
   item: any;
   isFocused: boolean;
-  isHidden: boolean;
   setRef: (el: HTMLDivElement | null) => void;
   isFirst?: boolean;
 };
@@ -18,7 +20,6 @@ type Props = {
 export function ProjectPane({
   item,
   isFocused,
-  isHidden,
   setRef,
   isFirst = false,
 }: Props) {
@@ -38,23 +39,71 @@ export function ProjectPane({
   const isGame = item.key === 'game';
   const usesCustomLoader = isDynamic || isGame;
 
-  // Generic loader for non-custom blocks
   const fallbackNode =
     !payload && isHydrated && !usesCustomLoader ? (
       <LoadingScreen isFullScreen={false} />
     ) : null;
 
   const blockId = `block-${item.key}`;
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // --- NEW: delay unmount of focused details on unfocus ---
+  const EXIT_DELAY_MS = 500; // tweak as you like
+  const [activeDelayed, setActiveDelayed] = useState<boolean>(isFocused);
+  const exitTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // when focused: cancel any pending turn-off and show immediately
+    if (isFocused) {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+      setActiveDelayed(true);
+    } else {
+      // when unfocusing: wait a bit before turning details off
+      exitTimerRef.current = window.setTimeout(() => {
+        setActiveDelayed(false);
+        exitTimerRef.current = null;
+      }, EXIT_DELAY_MS);
+    }
+
+    return () => {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+    };
+  }, [isFocused]);
+
+  // intrinsic size hint to keep content-visibility stable
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight || 0;
+      el.style.setProperty('--cis-block', `${Math.max(400, h)}px`);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (isFocused) { loadFocusedDetails(); }
+  }, [isFocused]);
 
   return (
     <div
       id={blockId}
-      ref={setRef}
+      ref={(el) => { setRef(el); rootRef.current = el; }}
+      className={`project-pane ${isFocused ? 'is-focused' : ''}`}
       style={{
-        // Collapse hidden panes; otherwise sizing is controlled via CSS
-        height: isHidden ? '0px' : undefined,
+        scrollSnapAlign: 'start',
+        scrollSnapStop: 'always',
+        contentVisibility: 'auto' as any,
+        containIntrinsicSize: 'var(--cis-block, 600px)',
+        contain: 'layout paint style',
         overflow: isFocused ? 'visible' : 'hidden',
-        scrollSnapAlign: isHidden ? 'none' : 'start',
       }}
     >
       <div className="project-pane-wrapper">
@@ -64,7 +113,7 @@ export function ProjectPane({
               load={load}
               serverRender={serverRender}
               eager={isFirst}
-              allowIdle={true}
+              allowIdle
             />
             {!hasSSR && (
               <LazyViewMount
@@ -85,7 +134,7 @@ export function ProjectPane({
             load={load}
             serverRender={serverRender}
             eager={isFirst}
-            allowIdle={true}
+            allowIdle
             observeTargetId={blockId}
             placeholderMinHeight={0}
           />
@@ -100,6 +149,15 @@ export function ProjectPane({
           />
         )}
       </div>
+
+      {/* optional: details under focused pane */}
+      <EventMount
+        load={loadFocusedDetails}
+        active={activeDelayed}                 
+        fallback={<div style={{ height: '100dvh' }} />}
+        componentProps={{ title: item.title ?? item.key }}
+        fadeMs={400}
+      />
     </div>
   );
 }

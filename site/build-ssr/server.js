@@ -19446,21 +19446,77 @@ async function getProjectData(key) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   destroyLottieAt: () => (/* binding */ destroyLottieAt),
 /* harmony export */   loadLottie: () => (/* binding */ loadLottie)
 /* harmony export */ });
+// utils/load-lottie.ts
 let _promise = null;
 
-/** Explicit preload trigger (e.g. in App.tsx useEffect) */
+// Track the animation bound to each container to prevent double-SVG / leaks
+const _byContainer = new WeakMap();
+
+/** One-time preload of the SVG-only build */
 function loadLottie() {
   if (!_promise) {
     _promise = Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(__webpack_require__, /*! lottie-web/build/player/lottie_svg */ "lottie-web/build/player/lottie_svg", 23)).then(m => m.default ?? m);
   }
   return _promise;
 }
+function destroyFor(container) {
+  if (!container) return;
+  const prev = _byContainer.get(container);
+  try {
+    prev?.destroy?.();
+  } catch {}
+  _byContainer.delete(container);
+  // belt & suspenders: ensure old SVG is gone
+  try {
+    container.innerHTML = '';
+  } catch {}
+}
 
-/** Proxy so you can keep `import lottie from '../utils/lottie'` */
+/** Safer loadAnimation that avoids half renders and duplicate SVGs */
+async function loadAnimationSafe(params) {
+  const mod = await loadLottie();
+  const container = params?.container;
+  if (container) destroyFor(container);
+  const anim = mod.loadAnimation({
+    // Keep your defaults; you can still override in caller
+    renderer: 'svg',
+    rendererSettings: {
+      progressiveLoad: true,
+      hideOnTransparent: true,
+      viewBoxOnly: true,
+      ...(params?.rendererSettings || {})
+    },
+    ...params
+  });
+  if (container) _byContainer.set(container, anim);
+
+  // First-frame/layout nudge to avoid “half-rendered until remount”
+  const onDOMLoaded = () => {
+    try {
+      anim.resize?.();
+    } catch {}
+    anim.removeEventListener?.('DOMLoaded', onDOMLoaded);
+  };
+  anim.addEventListener?.('DOMLoaded', onDOMLoaded);
+  return anim;
+}
+function destroyLottieAt(container) {
+  destroyFor(container);
+}
+
+/** Proxy keeps your existing `lottie.method()` calls working */
 const lottie = new Proxy({}, {
-  get(_target, prop) {
+  get(_t, prop) {
+    if (prop === 'loadAnimation') {
+      return params => loadAnimationSafe(params);
+    }
+    if (prop === 'destroyFor' || prop === 'destroyLottieAt') {
+      return destroyLottieAt;
+    }
+    // Pass-through for everything else once loaded
     return (...args) => loadLottie().then(mod => mod[prop](...args));
   }
 });
@@ -19598,46 +19654,53 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /**
- * Wrap a single <img> or <video>. Lets users drag to pan the media
- * inside its container by adjusting CSS `object-position`.
- *
- * - Works with object-fit: cover (default).
- * - Handles mouse/touch via Pointer Events (with safe fallbacks).
- * - Only pans on axes where the covered media is larger than the box.
- * - While dragging, sets data-gesture-lock="1" so outer scroll handoff ignores it.
+ * Wraps a single <img> or <video>.
+ * - Pan by dragging (via CSS object-position)
+ * - Zoom inside the component only (pinch on touch devices, Ctrl+wheel on desktop)
+ * - Double-click resets both pan and zoom
+ * - Marks itself with data-allow-zoom="1" so the page-level blocker skips it
  */
 function PannableViewport({
   className,
   style,
   children,
-  sensitivity = 1.75
+  sensitivity = 1.75,
+  minScale = 1,
+  maxScale = 3
 }) {
   const hostRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const draggingRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const scaleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(1);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const host = hostRef.current;
     if (!host) return;
-
-    // Find first img/video under this wrapper
     const media = host.querySelector('img, video');
     if (!media) return;
     const styleMedia = media.style;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+    // Object-fit defaults and object-position baseline
     if (!styleMedia.objectFit) styleMedia.objectFit = 'cover';
-    // Make sure SSR and client match by forcing a default
     const computed = window.getComputedStyle(media);
     if (!computed.objectPosition || computed.objectPosition === 'initial') {
-      styleMedia.objectPosition = '50% 50%'; // only if truly missing
+      styleMedia.objectPosition = '50% 50%';
     }
     media.draggable = false;
-    const sensX = typeof sensitivity === 'number' ? sensitivity : Math.max(0.1, Math.min(10, sensitivity?.x ?? 1));
-    const sensY = typeof sensitivity === 'number' ? sensitivity : Math.max(0.1, Math.min(10, sensitivity?.y ?? 1));
-    let cw = 0,
-      ch = 0; // container box
-    let mw = 0,
-      mh = 0; // intrinsic media
-    let dispW = 0,
-      dispH = 0; // displayed (covered) size
 
+    // Element-scoped zoom via transform scale
+    styleMedia.transformOrigin = '50% 50%';
+    const applyScale = s => {
+      scaleRef.current = clamp(s, minScale, maxScale);
+      styleMedia.transform = scaleRef.current === 1 ? '' : `scale(${scaleRef.current})`;
+    };
+    const sensX = typeof sensitivity === 'number' ? sensitivity : clamp(sensitivity?.x ?? 1, 0.1, 10);
+    const sensY = typeof sensitivity === 'number' ? sensitivity : clamp(sensitivity?.y ?? 1, 0.1, 10);
+    let cw = 0,
+      ch = 0; // container
+    let mw = 0,
+      mh = 0; // intrinsic
+    let dispW = 0,
+      dispH = 0;
     let canPanX = false,
       canPanY = false;
     let pctPerPxX = 0,
@@ -19648,13 +19711,13 @@ function PannableViewport({
       const toPct = v => {
         if (v.endsWith('%')) return parseFloat(v);
         const n = parseFloat(v);
-        return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 50;
+        return Number.isFinite(n) ? clamp(n, 0, 100) : 50;
       };
       return [toPct(oxRaw), toPct(oyRaw)];
     };
     const setOP = (xPct, yPct) => {
-      const x = Math.max(0, Math.min(100, xPct));
-      const y = Math.max(0, Math.min(100, yPct));
+      const x = clamp(xPct, 0, 100);
+      const y = clamp(yPct, 0, 100);
       styleMedia.objectPosition = `${x}% ${y}%`;
     };
     const computeCover = () => {
@@ -19674,7 +19737,7 @@ function PannableViewport({
         pctPerPxX = pctPerPxY = 0;
         return;
       }
-      const scale = Math.max(cw / mw, ch / mh);
+      const scale = Math.max(cw / mw, ch / mh); // cover
       dispW = mw * scale;
       dispH = mh * scale;
       const overflowX = dispW - cw;
@@ -19684,25 +19747,23 @@ function PannableViewport({
       pctPerPxX = canPanX ? 100 / overflowX * sensX : 0;
       pctPerPxY = canPanY ? 100 / overflowY * sensY : 0;
     };
-
-    // initial compute
     computeCover();
 
-    // Safe ResizeObserver
+    // Resize observer to keep math fresh
     let ro = null;
     if ('ResizeObserver' in window) {
       ro = new ResizeObserver(() => computeCover());
       ro.observe(host);
     }
 
-    // For videos, wait for metadata to get intrinsic size
+    // Videos: wait for metadata for intrinsic sizes
     let onMeta = null;
     if (media instanceof HTMLVideoElement) {
       onMeta = () => computeCover();
       media.addEventListener('loadedmetadata', onMeta);
     }
 
-    // Drag state
+    // Drag-to-pan
     let startX = 0,
       startY = 0;
     let startOPX = 50,
@@ -19734,8 +19795,8 @@ function PannableViewport({
       if (!draggingRef.current) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      let nextX = startOPX;
-      let nextY = startOPY;
+      let nextX = startOPX,
+        nextY = startOPY;
       if (canPanX) nextX = startOPX + dx * pctPerPxX;
       if (canPanY) nextY = startOPY + dy * pctPerPxY;
       setOP(nextX, nextY);
@@ -19745,9 +19806,35 @@ function PannableViewport({
       if (e) e.currentTarget.releasePointerCapture?.(e.pointerId);
       setGestureLock(false);
     };
-    const onDblClick = () => setOP(50, 50);
 
-    // Safe pointer events
+    // Double-click to reset both pan and zoom
+    const onDblClick = () => {
+      setOP(50, 50);
+      applyScale(1);
+    };
+
+    // Element-scoped zoom
+    // Desktop/trackpad: Ctrl + wheel is treated as pinch by browsers
+    const onWheel = e => {
+      if (!e.ctrlKey) return; // only consume pinch-zoom wheels
+      e.preventDefault(); // keep zoom local to this element
+      const delta = -e.deltaY; // wheel up -> zoom in
+      const next = scaleRef.current * (1 + delta * 0.0015);
+      applyScale(next);
+    };
+
+    // iOS Safari: gesture events
+    let startScale = 1;
+    const onGestureStart = () => {
+      startScale = scaleRef.current;
+    };
+    const onGestureChange = e => {
+      const rel = typeof e?.scale === 'number' ? e.scale : 1;
+      applyScale(startScale * rel);
+    };
+    const onGestureEnd = () => {};
+
+    // Listeners
     if ('PointerEvent' in window) {
       host.addEventListener('pointerdown', onPointerDown);
       window.addEventListener('pointermove', onPointerMove, {
@@ -19758,6 +19845,12 @@ function PannableViewport({
       });
     }
     host.addEventListener('dblclick', onDblClick);
+    host.addEventListener('wheel', onWheel, {
+      passive: false
+    });
+    host.addEventListener('gesturestart', onGestureStart);
+    host.addEventListener('gesturechange', onGestureChange);
+    host.addEventListener('gestureend', onGestureEnd);
     return () => {
       ro?.disconnect();
       if (media instanceof HTMLVideoElement && onMeta) {
@@ -19769,13 +19862,20 @@ function PannableViewport({
         window.removeEventListener('pointerup', endDrag);
       }
       host.removeEventListener('dblclick', onDblClick);
+      host.removeEventListener('wheel', onWheel);
+      host.removeEventListener('gesturestart', onGestureStart);
+      host.removeEventListener('gesturechange', onGestureChange);
+      host.removeEventListener('gestureend', onGestureEnd);
       setGestureLock(false);
+      applyScale(1);
     };
-  }, [sensitivity]);
+  }, [sensitivity, minScale, maxScale]);
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
     ref: hostRef,
     className: ['pannable-viewport', className].filter(Boolean).join(' '),
     "data-gesture-lock": draggingRef.current ? '1' : undefined,
+    "data-allow-zoom": "1" // opt-in so FrontPage allows pinch here
+    ,
     style: {
       position: 'relative',
       width: '100%',

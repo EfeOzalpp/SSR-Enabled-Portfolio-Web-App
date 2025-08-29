@@ -33,7 +33,7 @@
   h4 { font-size: clamp(1.1rem, 1.5vw, 1.3rem); line-height: 0.2; }
   p  { font-size: clamp(1.07rem, 0.9vw, 1.2rem); line-height: 1.4; }
   .SnappyScrollThingy {height: 96dvh !important; padding-bottom: 4dvh !important;}
-  .project-pane-wrapper {height: 96dvh !important;}
+  .project-pane-wrapper {height: 96dvh;}
 }
 
 /* éxtra Large devices */

@@ -39,7 +39,7 @@ export default function LazyInView({
 }: Props) {
   const isServer = !hasWindow;
 
-  // ✅ Make SSR and client's first render agree:
+  // Make SSR and client's first render agree:
   // If we SSR-ed content (serverRender) or set eager, start visible; otherwise start hidden.
   const initialVisible = eager || !!serverRender;
   const [isVisible, setIsVisible] = useState<boolean>(initialVisible);

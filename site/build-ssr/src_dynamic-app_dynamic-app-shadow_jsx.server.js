@@ -554,9 +554,9 @@ function SortBy({
   const [isOpen, setIsOpen] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [selectedValue, setSelectedValue] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('random');
 
-  // Base dataset from preload
+  // force re-shuffle even when already on "random"
+  const [randomTick, setRandomTick] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [baseItems, setBaseItems] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  // Derived list shown in UI
   const [items, setItems] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const dropdownRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
@@ -564,6 +564,7 @@ function SortBy({
   (0,_utils_context_providers_style_injector__WEBPACK_IMPORTED_MODULE_2__.useStyleInjection)((_styles_dynamic_app_sortByStyles_css_raw__WEBPACK_IMPORTED_MODULE_3___default()), 'dynamic-app-style-sortby');
   const handleOptionClick = value => {
     setSelectedValue(value);
+    if (value === 'random') setRandomTick(t => t + 1); // re-shuffle on every click
     setIsOpen(false);
   };
   const handleClickOutside = e => {
@@ -600,12 +601,18 @@ function SortBy({
     };
   }, []);
 
-  // 2) Derive items whenever base or sort option changes (no network here)
+  // 2) Derive items whenever base or sort option changes
+  //    When random is selected, reshuffle on every randomTick bump
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const derived = localSort(baseItems, selectedValue);
+    let derived = [];
+    if (selectedValue === 'random') {
+      derived = shuffleArray(baseItems);
+    } else {
+      derived = localSort(baseItems, selectedValue);
+    }
     setItems(derived);
     onFetchItems?.(derived);
-  }, [baseItems, selectedValue, onFetchItems]);
+  }, [baseItems, selectedValue, randomTick, onFetchItems]);
 
   // Responsive index logic for color sampling
   const [screenWidth, setScreenWidth] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(typeof window !== 'undefined' ? window.innerWidth : 1200);

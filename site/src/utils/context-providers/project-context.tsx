@@ -1,3 +1,4 @@
+// src/utils/context-providers/project-context.tsx
 import React, {
   createContext,
   useState,
@@ -5,6 +6,15 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
+
+type ViewportAlignArgs = {
+  /** Prefer one of these to identify the block to align */
+  id?: string;              // e.g. 'block-game'
+  key?: string;             // e.g. 'game' -> resolves to #block-game in your aligner
+  el?: HTMLElement | null;  // direct element if you have it
+  /** Re-verify/re-apply on next rAF (helps on mobile Safari) */
+  retry?: boolean;
+};
 
 interface ProjectVisibilityContextType {
   activeProject?: string;
@@ -26,6 +36,15 @@ interface ProjectVisibilityContextType {
 
   previousScrollY: number | null;
   setPreviousScrollY: React.Dispatch<React.SetStateAction<number | null>>;
+
+  /** Ask ScrollController to instantly align a block to the top (no smooth, no bump) */
+  requestViewportAlign: (args: ViewportAlignArgs) => void;
+
+  /**
+   * Register the actual align function (implemented inside ScrollController).
+   * ScrollController should call this once on mount and clean up on unmount.
+   */
+  registerViewportAlign: (fn: (args: ViewportAlignArgs) => void) => void;
 }
 
 interface ProjectVisibilityProviderProps {
@@ -44,6 +63,17 @@ export const ProjectVisibilityProvider = ({ children }: ProjectVisibilityProvide
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
+  // The ScrollController will register its implementation here.
+  const alignFnRef = useRef<(args: ViewportAlignArgs) => void>(() => { /* no-op by default */ });
+
+  const requestViewportAlign = React.useCallback((args: ViewportAlignArgs) => {
+    alignFnRef.current?.(args);
+  }, []);
+
+  const registerViewportAlign = React.useCallback((fn: (args: ViewportAlignArgs) => void) => {
+    alignFnRef.current = fn || (() => {});
+  }, []);
+
   return (
     <ProjectVisibilityContext.Provider
       value={{
@@ -60,6 +90,8 @@ export const ProjectVisibilityProvider = ({ children }: ProjectVisibilityProvide
         setFocusedProjectKey,
         previousScrollY,
         setPreviousScrollY,
+        requestViewportAlign,
+        registerViewportAlign,
       }}
     >
       {children}

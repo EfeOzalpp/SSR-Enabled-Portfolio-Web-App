@@ -1,4 +1,4 @@
-// opacity observer
+// src/utils/content-utility/opacity-observer.ts
 export const attachOpacityObserver = (
   ids: string[],
   focusedProjectKey: string | null
@@ -8,7 +8,6 @@ export const attachOpacityObserver = (
     const touch = (navigator as any).maxTouchPoints > 0;
     const vv = (window as any).visualViewport;
     let shrinks = false;
-
     if (vv) {
       const gap = window.innerHeight - vv.height;
       if (gap > 48) shrinks = true;
@@ -17,56 +16,58 @@ export const attachOpacityObserver = (
     return coarse && touch;
   })();
 
+  const baseMin = isRealMobile ? 0.1 : 0.3;
+  const focusedId = focusedProjectKey ? `block-${focusedProjectKey}` : null;
+
+  // Per-call guard so re-attaching after focus toggles works
+  const observed = new WeakSet<HTMLElement>();
+
   const observer = new IntersectionObserver(
     (entries) => {
-      entries.forEach((entry) => {
-        const target = entry.target as HTMLElement;
-        const ratio = entry.intersectionRatio;
+      for (const entry of entries) {
+        const el = entry.target as HTMLElement;
+        const ratio = entry.intersectionRatio ?? 0;
 
-        if (focusedProjectKey) return;
-
-        const baseMin = isRealMobile ? 0.1 : 0.3;
-        if (ratio >= 0.75) {
-          target.style.opacity = '1';
-        } else {
-          const mappedOpacity = baseMin + (ratio / 0.75) * (1 - baseMin);
-          target.style.opacity = mappedOpacity.toString();
+        // Focused pane is always fully opaque
+        if (focusedId && el.id === focusedId) {
+          el.style.opacity = '1';
+          continue;
         }
-      });
+
+        // Everyone else keeps mapping based on IO even while focused
+        if (ratio >= 0.75) {
+          el.style.opacity = '1';
+        } else {
+          const mapped = baseMin + (ratio / 0.75) * (1 - baseMin);
+          el.style.opacity = String(mapped);
+        }
+      }
     },
     {
       threshold: Array.from({ length: 101 }, (_, i) => i / 100),
+      // If your panes live inside a custom scroller, pass it here as `root`
+      // root: scrollContainerRef.current,
     }
   );
 
-  let observedCount = 0;
-
   const observeTargets = () => {
-    ids.forEach((id) => {
-      const el = document.querySelector(id) as HTMLElement | null;
-      if (el && !el.dataset._opacity_observed) {
-        el.dataset._opacity_observed = 'true';
+    ids.forEach((sel) => {
+      const el = document.querySelector(sel) as HTMLElement | null;
+      if (el && !observed.has(el)) {
+        observed.add(el);
         observer.observe(el);
-        observedCount++;
+        // Prime the focused pane immediately so there’s no flash
+        if (focusedId && el.id === focusedId) el.style.opacity = '1';
       }
     });
-
-    if (observedCount >= ids.length) {
-      mutationObserver.disconnect();
-    }
   };
 
-  const mutationObserver = new MutationObserver(() => observeTargets());
-
+  const mo = new MutationObserver(observeTargets);
   observeTargets();
-
-  mutationObserver.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
+  mo.observe(document.body, { childList: true, subtree: true });
 
   return () => {
     observer.disconnect();
-    mutationObserver.disconnect();
+    mo.disconnect();
   };
 };
