@@ -11,6 +11,7 @@ import { ChunkExtractor } from '@loadable/server';
 import { CacheProvider } from '@emotion/react';
 import { createEmotion } from './emotion';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import compression from 'compression';  
 
 import highScoreRoute from './highScoreRoute';
 
@@ -33,6 +34,13 @@ import {
 
 const app = express();
 app.use(express.json());
+
+// ✅ enable gzip compression for HTML, CSS, JS, JSON, etc.
+app.use(
+  compression({
+    threshold: 1024, // only compress responses >1KB
+  })
+);
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 const HOST = '192.168.1.104';

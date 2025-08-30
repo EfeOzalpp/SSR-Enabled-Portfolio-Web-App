@@ -1,5 +1,5 @@
-exports.id = "src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136";
-exports.ids = ["src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136"];
+exports.id = "src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-06fcea";
+exports.ids = ["src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-06fcea"];
 exports.modules = {
 
 /***/ "./src/components/rock-escapade/block-g-coin-counter.tsx":
@@ -283,6 +283,58 @@ const BlockGGameOver = ({
   );
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (BlockGGameOver);
+
+/***/ }),
+
+/***/ "./src/components/rock-escapade/game-viewport-overlay.tsx":
+/*!****************************************************************!*\
+  !*** ./src/components/rock-escapade/game-viewport-overlay.tsx ***!
+  \****************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ GameViewportOverlay)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom */ "react-dom");
+/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/components/rock-escapade/game-viewport-overlay.tsx
+
+
+
+const APP_SCOPE_ID = 'efe-portfolio';
+const PORTAL_ID = 'game-viewport-root';
+function GameViewportOverlay({
+  children
+}) {
+  const mountRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  if (!mountRef.current && typeof document !== 'undefined') {
+    // 1) Find your app scope (so pre-scoped CSS matches)
+    const scope = document.getElementById(APP_SCOPE_ID) || document.body;
+
+    // 2) Create or reuse the portal root inside that scope
+    let root = scope.querySelector(`#${PORTAL_ID}`);
+    if (!root) {
+      root = document.createElement('div');
+      root.id = PORTAL_ID;
+      scope.appendChild(root);
+    }
+    mountRef.current = root;
+  }
+  if (!mountRef.current) return null;
+
+  // 3) Portal the in-game UI
+  return /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    className: "game-viewport-layer",
+    role: "dialog",
+    "aria-modal": "true",
+    children: children
+  }), mountRef.current);
+}
 
 /***/ }),
 
@@ -976,4 +1028,4 @@ function LoadingHub({
 
 };
 ;
-//# sourceMappingURL=src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136.server.js.map
+//# sourceMappingURL=src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-06fcea.server.js.map

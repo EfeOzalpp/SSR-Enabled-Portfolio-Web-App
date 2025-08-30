@@ -24,7 +24,7 @@ export const gameSSR: SsrDescriptor = {
     return (
       <section
         tabIndex={-1}
-        className="block-type-g ingame"
+        className="block-type-g"
         style={{ position: 'relative' }}
         data-ssr-shell="block-game"
       >

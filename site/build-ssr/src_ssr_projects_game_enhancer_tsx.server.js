@@ -207,7 +207,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _logic_game_input_guards__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../logic/game-input-guards */ "./src/ssr/logic/game-input-guards.tsx");
 /* harmony import */ var _svg_desktop_onboarding_json__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../svg/desktop-onboarding.json */ "./src/svg/desktop-onboarding.json");
 /* harmony import */ var _svg_mobile_onboarding_json__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../svg/mobile-onboarding.json */ "./src/svg/mobile-onboarding.json");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _components_rock_escapade_game_viewport_overlay__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../components/rock-escapade/game-viewport-overlay */ "./src/components/rock-escapade/game-viewport-overlay.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/ssr/projects/game.enhancer.tsx
 
 
@@ -222,6 +223,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+// ★ new
 
 
 const GAME_MODE_CLASS = 'game-mode-active';
@@ -247,12 +251,9 @@ const GameEnhancer = () => {
   const firstHydrationUsedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const firstVisibilityCallbackSkippedRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const wasVisibleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
-
-  // Force a clean re-mount of onboarding inner (resets lottie/visibility) after exit
   const [onboardingReset, setOnboardingReset] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const reapplyOnboarding = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => setOnboardingReset(v => v + 1), []);
-  const stableStartAtForThisMount = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => firstHydrationUsedRef.current ? 0 : 30, [onboardingReset] // ← only recompute when we intentionally remount onboarding
-  );
+  const stableStartAtForThisMount = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => firstHydrationUsedRef.current ? 0 : 30, [onboardingReset]);
   const handleInnerMount = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     firstHydrationUsedRef.current = true;
   }, []);
@@ -260,28 +261,18 @@ const GameEnhancer = () => {
     const container = document.getElementById('block-game');
     if (!container) return;
     setSec(container);
-
-    // SSR shell: <section … data-ssr-shell="block-game">
     const shell = container.querySelector('[data-ssr-shell="block-game"]');
     if (!shell) return;
-
-    // Host for onboarding UI: prefer existing .block-g-onboarding, else decorate the shell
     let host = shell.querySelector('.block-g-onboarding');
     if (!host) {
       host = shell;
-      if (!host.classList.contains('block-g-onboarding')) {
-        host.classList.add('block-g-onboarding', 'tooltip-block-g');
-        host.setAttribute('aria-live', 'polite');
-        host.style.display ||= 'flex';
-        host.style.alignItems ||= 'center';
-      }
+      host.classList.add('block-g-onboarding', 'tooltip-block-g');
+      host.setAttribute('aria-live', 'polite');
+      host.style.display ||= 'flex';
+      host.style.alignItems ||= 'center';
     }
-
-    // Clean host children; we portal the inner UI into it
     host.replaceChildren();
     setOnboardingEl(host);
-
-    // Render the stage directly under the section (stacked after onboarding)
     setRootEl(shell);
   }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -306,8 +297,6 @@ const GameEnhancer = () => {
     if (!sec) return;
     const io = new IntersectionObserver(([entry]) => {
       const nowVisible = !!entry.isIntersecting;
-
-      // Skip the first callback after hydration, just prime the baseline.
       if (!firstVisibilityCallbackSkippedRef.current) {
         firstVisibilityCallbackSkippedRef.current = true;
         wasVisibleRef.current = nowVisible;
@@ -315,8 +304,6 @@ const GameEnhancer = () => {
       }
       const wasVisible = wasVisibleRef.current;
       wasVisibleRef.current = nowVisible;
-
-      // Only remount when coming back into view later (and not in-game)
       if (nowVisible && !wasVisible && !sec.classList.contains('ingame')) {
         setOnboardingReset(v => v + 1);
       }
@@ -327,15 +314,14 @@ const GameEnhancer = () => {
     return () => io.disconnect();
   }, [sec]);
   if (!sec || !onboardingEl || !rootEl || !shouldMount) return null;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
-    children: [/*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(OnboardingPortal, {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+    children: [/*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(OnboardingPortal, {
       reset: onboardingReset,
       startAtFrame: stableStartAtForThisMount,
       onInnerMount: handleInnerMount,
-      label: stageReady ? 'Click Here to Play!' : 'Loading Game……',
+      label: stageReady ? 'Click Here to Play!' : 'Loading Game…',
       ctaEnabled: stageReady
-    }), onboardingEl), /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(GameStage, {
-      blockId: "block-game",
+    }), onboardingEl), /*#__PURE__*/(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.createPortal)((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(GameStage, {
       container: sec,
       onboardingEl: onboardingEl,
       reapplyOnboarding: reapplyOnboarding,
@@ -344,9 +330,6 @@ const GameEnhancer = () => {
     }), rootEl)]
   });
 };
-
-// let the portal thread the props to the inner
-
 const OnboardingPortal = ({
   reset,
   startAtFrame,
@@ -354,7 +337,7 @@ const OnboardingPortal = ({
   label,
   ctaEnabled,
   loadingLines
-}) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_components_rock_escapade_block_g_onboarding_inner__WEBPACK_IMPORTED_MODULE_3__["default"], {
+}) => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_components_rock_escapade_block_g_onboarding_inner__WEBPACK_IMPORTED_MODULE_3__["default"], {
   startAtFrame: startAtFrame,
   onMount: onInnerMount,
   label: label,
@@ -363,45 +346,29 @@ const OnboardingPortal = ({
 }, reset);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (GameEnhancer);
 
-/* ---------- Stage (mirrors the working BlockGHost behavior) ---------- */
+/* ---------- Stage (mirrors client BlockGHost + portal overlay) ---------- */
 const GameStage = ({
-  blockId,
   container,
   onboardingEl,
   reapplyOnboarding,
   isStageReady,
   onStageReady
 }) => {
-  void blockId; // silence unused param if you keep passing it
-
   const isRealMobile = (0,_utils_content_utility_real_mobile__WEBPACK_IMPORTED_MODULE_7__.useRealMobileViewport)();
-
-  // lifecycle
   const [started, setStarted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-
-  // HUD + meta
   const [coins, setCoins] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [finalScore, setFinalScore] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const remoteHighScore = (0,_components_rock_escapade_useHighScoreSubscription__WEBPACK_IMPORTED_MODULE_10__.useHighScoreSubscription)();
   const stableHigh = typeof remoteHighScore === 'number' ? remoteHighScore : 0;
-
-  // UI-only: mimic BlockGHost display logic
   const displayHigh = (finalScore == null ? coins : finalScore) > stableHigh ? finalScore == null ? coins : finalScore : stableHigh;
   const beatingHighNow = finalScore == null && coins > stableHigh;
-
-  // overlays
   const [countdownPhase, setCountdownPhase] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [showBeginText, setShowBeginText] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [showOverlayBg, setShowOverlayBg] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [shouldRenderOverlayBg, setShouldRenderOverlayBg] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const lottieRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-
-  // canvas restart API from game-canvas
   const restartApi = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-
-  // Start — only when stage is ready
   const onStart = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
-    if (!isStageReady) return; // gate until canvas called onReady
+    if (!isStageReady) return;
     void _utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_9__.gameLoaders.game();
     container.classList.add('ingame');
     activateGameMode();
@@ -409,7 +376,6 @@ const GameStage = ({
     setCoins(0);
     setFinalScore(null);
     setCountdownPhase('lottie');
-    requestAnimationFrame(() => container?.focus?.());
     onboardingEl.style.transition = 'opacity 180ms ease';
     onboardingEl.style.opacity = '0';
     window.setTimeout(() => {
@@ -417,7 +383,7 @@ const GameStage = ({
     }, 180);
   }, [container, onboardingEl, isStageReady]);
 
-  /** Limit start to coin/text only, AND reflect readiness in interactivity */
+  // enable/disable CTA pointers
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const CLICK_TARGETS = '.coin, .onboarding-text, [data-start-hit]';
     const armTargets = () => {
@@ -462,7 +428,7 @@ const GameStage = ({
     };
   }, [onboardingEl, onStart, isStageReady]);
 
-  // Lottie countdown (lazy-loaded)
+  // countdown visuals
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (countdownPhase !== 'lottie' || !lottieRef.current) return;
     let anim;
@@ -478,8 +444,6 @@ const GameStage = ({
       if (!mounted || !anim) return;
       const onComplete = () => setCountdownPhase('begin');
       anim.addEventListener('complete', onComplete);
-
-      // local cleanup for this async init (effect will also run its cleanup)
       return () => anim?.removeEventListener?.('complete', onComplete);
     })();
     return () => {
@@ -489,11 +453,7 @@ const GameStage = ({
   }, [countdownPhase, isRealMobile]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (countdownPhase === 'begin') {
-      setShowBeginText(true);
-      const t = setTimeout(() => {
-        setShowBeginText(false);
-        setCountdownPhase(null);
-      }, 1000);
+      const t = setTimeout(() => setCountdownPhase(null), 1000);
       return () => clearTimeout(t);
     }
   }, [countdownPhase]);
@@ -507,27 +467,18 @@ const GameStage = ({
       return () => clearTimeout(t);
     }
   }, [countdownPhase]);
-
-  // Canvas bridges
   const handleReady = api => {
     restartApi.current = api;
-    onStageReady(true); // flips CTA to "Click to Play!"
+    onStageReady(true);
   };
-
-  // If the whole enhancer unmounts, reset readiness
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => onStageReady(false), [onStageReady]);
-
-  // Restart
   const handleRestart = () => {
     container.classList.add('ingame');
     setCountdownPhase(null);
     setCoins(0);
     setFinalScore(null);
     restartApi.current?.restart();
-    requestAnimationFrame(() => container?.focus?.());
   };
-
-  // Exit → return to onboarding
   const handleExit = () => {
     setStarted(false);
     setCountdownPhase(null);
@@ -536,64 +487,85 @@ const GameStage = ({
     deactivateGameMode();
     container.classList.remove('ingame');
     onboardingEl.style.display = '';
-    reapplyOnboarding(); // remount onboarding inner
+    reapplyOnboarding();
     requestAnimationFrame(() => {
       onboardingEl.style.opacity = '1';
     });
   };
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_logic_game_input_guards__WEBPACK_IMPORTED_MODULE_11__["default"], {
-      active: started,
-      lockBodyScroll: true,
-      alsoBlockWheel: true,
-      alsoBlockTouch: true,
-      allowWhenTyping: true
-    }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_components_rock_escapade_block_g_exit__WEBPACK_IMPORTED_MODULE_4__["default"], {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.Fragment, {
+    children: [!started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
+      fallback: null,
+      preloadOnIdle: true,
+      preloadIdleTimeout: 2000,
+      preloadOnFirstIO: true,
+      rootMargin: "0px",
+      placeholderMinHeight: 360,
+      componentProps: {
+        onReady: handleReady,
+        onCoinsChange: n => setCoins(n),
+        onGameOver: finalCoins => setFinalScore(finalCoins),
+        highScore: stableHigh,
+        pauseWhenHidden: true,
+        demoMode: true,
+        // preview only before game is started
+        overlayActive: false,
+        allowSpawns: true
+      }
+    }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(_components_rock_escapade_game_viewport_overlay__WEBPACK_IMPORTED_MODULE_14__["default"], {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_logic_game_input_guards__WEBPACK_IMPORTED_MODULE_11__["default"], {
+        active: true,
+        lockBodyScroll: true,
+        alsoBlockWheel: true,
+        alsoBlockTouch: true,
+        allowWhenTyping: true
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_components_rock_escapade_block_g_exit__WEBPACK_IMPORTED_MODULE_4__["default"], {
         onExit: handleExit
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_components_rock_escapade_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_components_rock_escapade_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_5__["default"], {
         coins: coins,
         highScore: displayHigh,
         newHighScore: beatingHighNow
-      }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+      }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
         className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`,
         style: {
           pointerEvents: 'none'
         }
-      }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
+      }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
         ref: lottieRef,
         id: "lottie-onboarding",
         className: "countdown-lottie",
         style: {
           pointerEvents: 'none'
         }
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_logic_game_over_controller__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_logic_game_over_controller__WEBPACK_IMPORTED_MODULE_6__["default"], {
         score: finalScore,
         highScore: stableHigh,
         onRestart: handleRestart,
         onHide: () => setFinalScore(null)
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
+        fallback: null,
+        mountMode: "io",
+        observeTargetId: "game-viewport-root",
+        rootMargin: "0px",
+        enterThreshold: 0.01,
+        exitThreshold: 0,
+        unmountDelayMs: 150,
+        preloadOnIdle: true,
+        preloadIdleTimeout: 2000,
+        preloadOnFirstIO: true,
+        placeholderMinHeight: 360,
+        componentProps: {
+          onReady: handleReady,
+          onCoinsChange: n => setCoins(n),
+          onGameOver: finalCoins => setFinalScore(finalCoins),
+          highScore: stableHigh,
+          pauseWhenHidden: true,
+          demoMode: false,
+          overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
+          allowSpawns: countdownPhase === 'begin' || countdownPhase === null
+        }
       })]
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
-      fallback: null
-      /* Preload the chunk early so re-mounts are instant */,
-      preloadOnIdle: true,
-      preloadIdleTimeout: 2000,
-      preloadOnFirstIO: true
-      /* IO config */,
-      rootMargin: "0px",
-      placeholderMinHeight: 360,
-      componentProps: {
-        onReady: handleReady,
-        // flips stageReady
-        onCoinsChange: n => setCoins(n),
-        onGameOver: finalCoins => setFinalScore(finalCoins),
-        highScore: stableHigh,
-        pauseWhenHidden: true,
-        demoMode: !started,
-        overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
-        allowSpawns: !started || started && (countdownPhase === 'begin' || countdownPhase === null)
-      }
     })]
   });
 };

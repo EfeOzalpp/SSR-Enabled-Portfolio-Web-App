@@ -18037,17 +18037,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _emotion__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./emotion */ "./src/server/emotion.ts");
 /* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! http-proxy-middleware */ "http-proxy-middleware");
 /* harmony import */ var http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(http_proxy_middleware__WEBPACK_IMPORTED_MODULE_11__);
-/* harmony import */ var _highScoreRoute__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./highScoreRoute */ "./src/server/highScoreRoute.ts");
-/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
-/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
-/* harmony import */ var _ssr_route_registry__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../ssr/route-registry */ "./src/ssr/route-registry.ts");
-/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
-/* harmony import */ var _cssPipeline__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./cssPipeline */ "./src/server/cssPipeline.ts");
-/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
-/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var compression__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! compression */ "compression");
+/* harmony import */ var compression__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(compression__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _highScoreRoute__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./highScoreRoute */ "./src/server/highScoreRoute.ts");
+/* harmony import */ var _utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../utils/context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _prepareSsrData__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./prepareSsrData */ "./src/server/prepareSsrData.ts");
+/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
+/* harmony import */ var _ssr_route_registry__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../ssr/route-registry */ "./src/ssr/route-registry.ts");
+/* harmony import */ var _html__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./html */ "./src/server/html.ts");
+/* harmony import */ var _cssPipeline__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./cssPipeline */ "./src/server/cssPipeline.ts");
+/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./seed */ "./src/server/seed.ts");
+/* harmony import */ var _assets__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./assets */ "./src/server/assets.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/server/index.jsx
+
 
 
 
@@ -18073,6 +18076,11 @@ __webpack_require__.r(__webpack_exports__);
 
 const app = express__WEBPACK_IMPORTED_MODULE_4___default()();
 app.use(express__WEBPACK_IMPORTED_MODULE_4___default().json());
+
+// ✅ enable gzip compression for HTML, CSS, JS, JSON, etc.
+app.use(compression__WEBPACK_IMPORTED_MODULE_12___default()({
+  threshold: 1024 // only compress responses >1KB
+}));
 const IS_DEV = "development" !== 'production';
 const HOST = '192.168.1.104';
 const DEV_HOST_FOR_ASSETS = '192.168.1.104';
@@ -18081,10 +18089,10 @@ const {
   BUILD_DIR,
   STATS_FILE,
   ASSET_MANIFEST
-} = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.resolveStatsFile)();
+} = (0,_assets__WEBPACK_IMPORTED_MODULE_21__.resolveStatsFile)();
 
 /** API routes */
-app.use('/api', _highScoreRoute__WEBPACK_IMPORTED_MODULE_12__["default"]);
+app.use('/api', _highScoreRoute__WEBPACK_IMPORTED_MODULE_13__["default"]);
 
 /** Static assets */
 app.use(express__WEBPACK_IMPORTED_MODULE_4___default()["static"](path__WEBPACK_IMPORTED_MODULE_1___default().join(process.cwd(), 'public'), {
@@ -18135,10 +18143,10 @@ app.get('/*', async (req, res) => {
   if (!isDynamicTheme) {
     const {
       seed
-    } = (0,_seed__WEBPACK_IMPORTED_MODULE_19__.getEphemeralSeed)();
-    ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_14__.prepareSsrData)(seed);
+    } = (0,_seed__WEBPACK_IMPORTED_MODULE_20__.getEphemeralSeed)();
+    ssrPayload = await (0,_prepareSsrData__WEBPACK_IMPORTED_MODULE_15__.prepareSsrData)(seed);
   } else {
-    const desc = _ssr_route_registry__WEBPACK_IMPORTED_MODULE_16__.routeRegistry['dynamic-theme'];
+    const desc = _ssr_route_registry__WEBPACK_IMPORTED_MODULE_17__.routeRegistry['dynamic-theme'];
     if (!desc || typeof desc.render !== 'function' || typeof desc.fetch !== 'function') {
       res.status(500).send('<pre>dynamic-theme descriptor missing or invalid.</pre>');
       return;
@@ -18146,14 +18154,14 @@ app.get('/*', async (req, res) => {
 
     // Resolve seed (query wins over ephemeral)
     const rawSeed = Number((req.query || {}).seed);
-    dynamicSeed = Number.isFinite(rawSeed) ? rawSeed : (0,_seed__WEBPACK_IMPORTED_MODULE_19__.getEphemeralSeed)().seed;
+    dynamicSeed = Number.isFinite(rawSeed) ? rawSeed : (0,_seed__WEBPACK_IMPORTED_MODULE_20__.getEphemeralSeed)().seed;
 
     // Call the proper fetch variant (seeded or unseeded) based on function arity
     const fetchPromise = desc.fetch.length === 0 ? desc.fetch() : desc.fetch(dynamicSeed);
     dynamicPreload = await fetchPromise;
 
     // Image preloads for head
-    dynamicPreloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.buildDynamicImagePreloads)(dynamicPreload?.images || [], 8);
+    dynamicPreloadLinks = (0,_assets__WEBPACK_IMPORTED_MODULE_21__.buildDynamicImagePreloads)(dynamicPreload?.images || [], 8);
 
     // Render descriptor section (includes SortBy stub + snapshot container)
     const sectionNode = desc.render(dynamicPreload);
@@ -18170,27 +18178,27 @@ app.get('/*', async (req, res) => {
     extractCriticalToChunks,
     constructStyleTagsFromChunks
   } = (0,_emotion__WEBPACK_IMPORTED_MODULE_10__.createEmotion)();
-  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_9__.CacheProvider, {
+  const jsx = extractor.collectChunks((0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_22__.jsx)(_emotion_react__WEBPACK_IMPORTED_MODULE_9__.CacheProvider, {
     value: cache,
-    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_13__.SsrDataProvider, {
+    children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_22__.jsx)(_utils_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_14__.SsrDataProvider, {
       value: ssrPayload,
-      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_5__.StaticRouter, {
+      children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_22__.jsx)(react_router__WEBPACK_IMPORTED_MODULE_5__.StaticRouter, {
         location: req.url,
-        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_21__.jsx)(_App__WEBPACK_IMPORTED_MODULE_7__["default"], {})
+        children: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_22__.jsx)(_App__WEBPACK_IMPORTED_MODULE_7__["default"], {})
       })
     })
   }));
   const prerender = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_6__.renderToString)(jsx);
   const emotionChunks = extractCriticalToChunks(prerender);
   const emotionStyleTags = constructStyleTagsFromChunks(emotionChunks);
-  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
+  const manifest = (0,_assets__WEBPACK_IMPORTED_MODULE_21__.loadManifestIfAny)(IS_DEV, ASSET_MANIFEST);
 
   // Icons (html builder chooses which to emit)
   const iconSvg = '/freshmedia-icon.svg';
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
 
   // Fonts: keep only Rubik + Orbitron on /dynamic-theme
-  const allFonts = (0,_assets__WEBPACK_IMPORTED_MODULE_20__.readFontCss)();
+  const allFonts = (0,_assets__WEBPACK_IMPORTED_MODULE_21__.readFontCss)();
   const fontsCss = isDynamicTheme ? {
     rubikCss: allFonts.rubikCss,
     orbitronCss: allFonts.orbitronCss,
@@ -18202,28 +18210,28 @@ app.get('/*', async (req, res) => {
   const preloadLinks = isDynamicTheme ? dynamicPreloadLinks : (() => {
     const firstKey = Object.keys(ssrPayload.preloaded || {})[0];
     const firstData = firstKey ? ssrPayload.preloaded[firstKey] : null;
-    return (0,_assets__WEBPACK_IMPORTED_MODULE_20__.buildPreloadLinks)(firstData);
+    return (0,_assets__WEBPACK_IMPORTED_MODULE_21__.buildPreloadLinks)(firstData);
   })();
 
   // Critical CSS
   let extraCriticalCss = '';
   if (!isDynamicTheme) {
     const keys = Object.keys(ssrPayload.preloaded || {}).slice(0, 3); // top 3
-    const allFiles = keys.flatMap(k => _ssr_registry__WEBPACK_IMPORTED_MODULE_15__.ssrRegistry[k]?.criticalCssFiles ?? []);
+    const allFiles = keys.flatMap(k => _ssr_registry__WEBPACK_IMPORTED_MODULE_16__.ssrRegistry[k]?.criticalCssFiles ?? []);
     const uniqueFiles = Array.from(new Set(allFiles));
     if (uniqueFiles.length > 0) {
       try {
-        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_18__.buildCriticalCss)(uniqueFiles);
+        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_19__.buildCriticalCss)(uniqueFiles);
       } catch {
         extraCriticalCss = '';
       }
     }
   } else {
-    const d = _ssr_route_registry__WEBPACK_IMPORTED_MODULE_16__.routeRegistry['dynamic-theme'];
+    const d = _ssr_route_registry__WEBPACK_IMPORTED_MODULE_17__.routeRegistry['dynamic-theme'];
     const files = d && d.criticalCssFiles || [];
     if (files.length > 0) {
       try {
-        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_18__.buildCriticalCss)(files);
+        extraCriticalCss = await (0,_cssPipeline__WEBPACK_IMPORTED_MODULE_19__.buildCriticalCss)(files);
       } catch {
         extraCriticalCss = '';
       }
@@ -18234,7 +18242,7 @@ app.get('/*', async (req, res) => {
   const rawLinkTags = extractor.getLinkTags();
   const extractorLinkTags = isDynamicTheme ? rawLinkTags.replace(/<link[^>]+rel=["']stylesheet["'][^>]*>/g, '') : rawLinkTags;
   const extractorStyleTags = isDynamicTheme ? '' : extractor.getStyleTags();
-  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_17__.buildHtmlOpen)({
+  const htmlOpen = (0,_html__WEBPACK_IMPORTED_MODULE_18__.buildHtmlOpen)({
     IS_DEV,
     routePath: req.path,
     iconSvg,
@@ -18253,7 +18261,7 @@ app.get('/*', async (req, res) => {
     ...(dynamicPreload || {}),
     seed: dynamicSeed
   }).replace(/</g, '\\u003c')}</script>` : '';
-  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_17__.buildHtmlClose)(ssrPayload, extractor.getScriptTags(), dynamicBootstrap);
+  const htmlClose = (0,_html__WEBPACK_IMPORTED_MODULE_18__.buildHtmlClose)(ssrPayload, extractor.getScriptTags(), dynamicBootstrap);
   let didError = false;
   const ABORT_MS = IS_DEV ? 30000 : 10000;
   const stream = (0,react_dom_server__WEBPACK_IMPORTED_MODULE_6__.renderToPipeableStream)(jsx, {
@@ -18875,7 +18883,7 @@ const gameSSR = {
     : undefined;
     return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("section", {
       tabIndex: -1,
-      className: "block-type-g ingame",
+      className: "block-type-g",
       style: {
         position: 'relative'
       },
@@ -19170,7 +19178,6 @@ const ssrRegistry = {
   dataviz: _projects_dataviz_ssr__WEBPACK_IMPORTED_MODULE_2__.datavizSSR,
   dynamic: _projects_dynamic_ssr__WEBPACK_IMPORTED_MODULE_3__.dynamicSSR,
   game: _projects_game_ssr__WEBPACK_IMPORTED_MODULE_4__.gameSSR
-  // dynamic: undefined,
 };
 
 /***/ }),
@@ -19235,7 +19242,7 @@ const dynamicLoaders = {
   shadow: () => Promise.all(/*! import() | dynamic-shadow */[__webpack_require__.e("src_utils_loading_loading_tsx"), __webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("dynamic-shadow")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx"))
 };
 const gameLoaders = {
-  components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
+  components: () => Promise.all(/*! import() | components */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-06fcea"), __webpack_require__.e("components")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/block-g-host */ "./src/components/rock-escapade/block-g-host.tsx")),
   game: () => Promise.all(/*! import() | game */[__webpack_require__.e("src_components_rock-escapade_game-canvas_tsx"), __webpack_require__.e("game")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../components/rock-escapade/game-canvas */ "./src/components/rock-escapade/game-canvas.tsx"))
 };
 
@@ -19324,7 +19331,7 @@ function useProjectLoader(key) {
     }
     if (key === 'game') {
       return async () => {
-        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-c7f136"), __webpack_require__.e("src_ssr_projects_game_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/game.enhancer */ "./src/ssr/projects/game.enhancer.tsx"))).default;
+        const Enhancer = (await Promise.all(/*! import() */[__webpack_require__.e("src_components_rock-escapade_block-g-coin-counter_tsx-src_components_rock-escapade_block-g-ex-06fcea"), __webpack_require__.e("src_ssr_projects_game_enhancer_tsx")]).then(__webpack_require__.bind(__webpack_require__, /*! ../../ssr/projects/game.enhancer */ "./src/ssr/projects/game.enhancer.tsx"))).default;
         return {
           default: () => (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
             children: [desc.render(data), " ", (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Enhancer, {}), "         "]
@@ -19446,77 +19453,21 @@ async function getProjectData(key) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   destroyLottieAt: () => (/* binding */ destroyLottieAt),
 /* harmony export */   loadLottie: () => (/* binding */ loadLottie)
 /* harmony export */ });
-// utils/load-lottie.ts
 let _promise = null;
 
-// Track the animation bound to each container to prevent double-SVG / leaks
-const _byContainer = new WeakMap();
-
-/** One-time preload of the SVG-only build */
+/** Explicit preload trigger (e.g. in App.tsx useEffect) */
 function loadLottie() {
   if (!_promise) {
-    _promise = Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(__webpack_require__, /*! lottie-web/build/player/lottie_svg */ "lottie-web/build/player/lottie_svg", 23)).then(m => m.default ?? m);
+    _promise = Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(__webpack_require__, /*! lottie-web */ "lottie-web", 23)).then(m => m.default ?? m);
   }
   return _promise;
 }
-function destroyFor(container) {
-  if (!container) return;
-  const prev = _byContainer.get(container);
-  try {
-    prev?.destroy?.();
-  } catch {}
-  _byContainer.delete(container);
-  // belt & suspenders: ensure old SVG is gone
-  try {
-    container.innerHTML = '';
-  } catch {}
-}
 
-/** Safer loadAnimation that avoids half renders and duplicate SVGs */
-async function loadAnimationSafe(params) {
-  const mod = await loadLottie();
-  const container = params?.container;
-  if (container) destroyFor(container);
-  const anim = mod.loadAnimation({
-    // Keep your defaults; you can still override in caller
-    renderer: 'svg',
-    rendererSettings: {
-      progressiveLoad: true,
-      hideOnTransparent: true,
-      viewBoxOnly: true,
-      ...(params?.rendererSettings || {})
-    },
-    ...params
-  });
-  if (container) _byContainer.set(container, anim);
-
-  // First-frame/layout nudge to avoid “half-rendered until remount”
-  const onDOMLoaded = () => {
-    try {
-      anim.resize?.();
-    } catch {}
-    anim.removeEventListener?.('DOMLoaded', onDOMLoaded);
-  };
-  anim.addEventListener?.('DOMLoaded', onDOMLoaded);
-  return anim;
-}
-function destroyLottieAt(container) {
-  destroyFor(container);
-}
-
-/** Proxy keeps your existing `lottie.method()` calls working */
+/** Proxy so you can keep `import lottie from '../utils/lottie'` */
 const lottie = new Proxy({}, {
-  get(_t, prop) {
-    if (prop === 'loadAnimation') {
-      return params => loadAnimationSafe(params);
-    }
-    if (prop === 'destroyFor' || prop === 'destroyLottieAt') {
-      return destroyLottieAt;
-    }
-    // Pass-through for everything else once loaded
+  get(_target, prop) {
     return (...args) => loadLottie().then(mod => mod[prop](...args));
   }
 });
@@ -19945,6 +19896,17 @@ module.exports = require("@sanity/client");
 
 /***/ }),
 
+/***/ "compression":
+/*!******************************!*\
+  !*** external "compression" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("compression");
+
+/***/ }),
+
 /***/ "cookie":
 /*!*************************!*\
   !*** external "cookie" ***!
@@ -20063,17 +20025,6 @@ module.exports = require("lodash/uniqBy.js");
 
 "use strict";
 module.exports = require("lottie-web");
-
-/***/ }),
-
-/***/ "lottie-web/build/player/lottie_svg":
-/*!*****************************************************!*\
-  !*** external "lottie-web/build/player/lottie_svg" ***!
-  \*****************************************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("lottie-web/build/player/lottie_svg");
 
 /***/ }),
 

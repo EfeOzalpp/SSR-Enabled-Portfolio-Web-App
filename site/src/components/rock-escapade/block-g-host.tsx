@@ -1,5 +1,6 @@
+// src/components/rock-escapade/block-g-host.tsx
 import { useCallback, useEffect, useRef, useState } from 'react';
-import lottie from '../../utils/load-lottie'; 
+import lottie from '../../utils/load-lottie';
 
 import BlockGOnboarding from './block-g-onboarding';
 import CoinCounter from './block-g-coin-counter';
@@ -15,6 +16,8 @@ import { gameLoaders } from '../../utils/content-utility/component-loader';
 import { useHighScoreSubscription } from './useHighScoreSubscription';
 import GameInputGuards from '../../ssr/logic/game-input-guards';
 
+import GameViewportOverlay from './game-viewport-overlay';
+
 import '../../styles/block-type-g.css';
 
 const GAME_MODE_CLASS = 'game-mode-active';
@@ -24,18 +27,14 @@ function activateGameMode() {
 function deactivateGameMode() {
   if (typeof document !== 'undefined') document.body.classList.remove(GAME_MODE_CLASS);
 }
-function isFullscreen() {
-  return typeof document !== 'undefined' && !!document.fullscreenElement;
-}
 
 export default function BlockGHost({ blockId }: { blockId: string }) {
   const isRealMobile = useRealMobileViewport();
 
   // lifecycle
   const [started, setStarted] = useState(false);
-  const [fakeFS, setFakeFS] = useState(false);
 
-  // gate CTA until canvas reports ready
+  // gate CTA until canvas reports ready (preloaded before start)
   const [stageReady, setStageReady] = useState(false);
 
   // HUD + meta
@@ -47,7 +46,7 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
 
   const lottieRef = useRef<HTMLDivElement | null>(null);
 
-  // NEW: game-over final score (controls overlay)
+  // game-over (controls overlay)
   const [finalScore, setFinalScore] = useState<number | null>(null);
 
   // High score (remote)
@@ -57,38 +56,34 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
   // API from GameCanvas
   const restartApi = useRef<{ restart: () => void } | null>(null);
 
-  const enterFullscreen = useCallback(async () => {
-    if (typeof document === 'undefined') return;
-    const el = document.getElementById(blockId);
-    if (!el) return;
-    const req =
-      (el as any).requestFullscreen ||
-      (el as any).webkitRequestFullscreen ||
-      (el as any).msRequestFullscreen ||
-      (el as any).mozRequestFullScreen;
-    try {
-      const p = req?.call(el);
-      if (p?.then) await p;
-      setFakeFS(false);
-    } catch {
-      setFakeFS(true);
-    }
-  }, [blockId]);
+  // Idle prewarm
+  useEffect(() => {
+    // @ts-ignore
+    const ric = window.requestIdleCallback as any;
+    let rid: number | null = null;
+    if (ric) rid = ric(() => void gameLoaders.game(), { timeout: 2000 });
+    return () => rid && (window as any).cancelIdleCallback?.(rid);
+  }, []);
 
   const onStart = useCallback(async () => {
+    // Preload the chunk regardless
     void gameLoaders.game();
-    await enterFullscreen();
-    activateGameMode();
-    setStarted(true);
+
+    // Reset state & show countdown
     setCoins(0);
-    setFinalScore(null); // hide any lingering overlay
+    setFinalScore(null);
     setCountdownPhase('lottie');
 
+    // Mount the overlay (portal) immediately — no native fullscreen
+    activateGameMode();
+    setStarted(true);
+
+    // Focus for keys/gamepad
     requestAnimationFrame(() => {
       const el = document.getElementById(blockId);
       (el as HTMLElement | null)?.focus?.();
     });
-  }, [enterFullscreen, blockId]);
+  }, [blockId]);
 
   // Lottie countdown (lazy)
   useEffect(() => {
@@ -144,7 +139,7 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
   // Canvas bridges
   const handleReady = (api: { restart: () => void }) => {
     restartApi.current = api;
-    setStageReady(true); // flip CTA from "Loading…" to "Click Here to Play!"
+    setStageReady(true); // flips CTA from "Loading…" to "Click Here to Play!"
   };
 
   const handleCoinsChange = (n: number) => setCoins(n);
@@ -154,29 +149,19 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
     restartApi.current?.restart();
     setCoins(0);
   };
+
   const handleExit = () => {
     setStarted(false);
     setCountdownPhase(null);
     setCoins(0);
     setFinalScore(null);
     deactivateGameMode();
-    setFakeFS(false);
-    if (isFullscreen()) {
-      const exit =
-        (document as any).exitFullscreen ||
-        (document as any).webkitExitFullscreen ||
-        (document as any).msExitFullscreen ||
-        (document as any).mozCancelFullScreen;
-      try {
-        exit?.call(document);
-      } catch {}
-    }
   };
   useEffect(() => () => deactivateGameMode(), []);
 
   const displayHigh =
     (finalScore == null ? coins : finalScore) > stableHigh
-      ? finalScore == null ? coins : finalScore
+      ? (finalScore == null ? coins : finalScore)
       : stableHigh;
   const beatingHighNow = finalScore == null && coins > stableHigh;
 
@@ -184,46 +169,68 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
     <section
       id={blockId}
       tabIndex={-1}
-      className={`block-type-g ${fakeFS ? 'fake-fs' : ''} ${started ? 'ingame' : ''}`}
+      className="block-type-g"   // no 'ingame' / no 'fake-fs' — overlay handles viewport
       style={{ position: 'relative' }}
     >
+      {/* Guards (can live here or inside overlay). Keeping here is fine. */}
       <GameInputGuards
-        active={started || fakeFS}
+        active={started}
         lockBodyScroll
         alsoBlockWheel
         alsoBlockTouch
         allowWhenTyping
       />
 
+      {/* Onboarding (shows until user starts). Stage readiness is driven by the preloader below. */}
       {!started && (
         <BlockGOnboarding
           onStart={onStart}
           resetTrigger={started ? 1 : 0}
-          // NEW: text + interactivity gated on stage readiness
           label={stageReady ? 'Click Here to Play!' : 'Loading Game…'}
           ctaEnabled={stageReady}
         />
       )}
 
+      {/* PRELOADER instance (flips stageReady) */}
+      {!started && (
+        <LazyViewMount
+          load={() => import('./game-canvas')}
+          fallback={null}
+          mountMode="io"
+          observeTargetId={blockId}
+          rootMargin="0px"
+          enterThreshold={0.2}
+          exitThreshold={0.05}
+          unmountDelayMs={150}
+          preloadOnIdle
+          preloadIdleTimeout={2000}
+          preloadOnFirstIO
+          placeholderMinHeight={360}
+          componentProps={{
+            onReady: handleReady,
+            onCoinsChange: () => {},
+            onGameOver: () => {},
+            highScore: stableHigh,
+            pauseWhenHidden: true,
+            demoMode: true,
+            overlayActive: false,
+            allowSpawns: true,
+          }}
+        />
+      )}
+
+      {/* GAME OVERLAY (PORTAL) */}
       {started && (
-        <>
+        <GameViewportOverlay>
           <ExitButton onExit={handleExit} />
           <CoinCounter coins={coins} highScore={displayHigh} newHighScore={beatingHighNow} />
 
           {shouldRenderOverlayBg && (
-            <div
-              className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`}
-              style={{ pointerEvents: 'none' }}
-            />
+            <div className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`} style={{ pointerEvents: 'none' }} />
           )}
 
           {(countdownPhase === 'lottie' || countdownPhase === 'begin') && (
-            <div
-              ref={lottieRef}
-              id="lottie-onboarding"
-              className="countdown-lottie"
-              style={{ pointerEvents: 'none' }}
-            />
+            <div ref={lottieRef} id="lottie-onboarding" className="countdown-lottie" style={{ pointerEvents: 'none' }} />
           )}
 
           <GameOverController
@@ -232,37 +239,34 @@ export default function BlockGHost({ blockId }: { blockId: string }) {
             onRestart={handleRestart}
             onHide={() => setFinalScore(null)}
           />
-        </>
-      )}
 
-      {/* Lazy + Re-mountable */}
-      <LazyViewMount
-        load={() => import('./game-canvas')}
-        fallback={null}
-        mountMode="io"
-        observeTargetId={blockId}
-        rootMargin="0px"
-        enterThreshold={0.2}
-        exitThreshold={0.05}
-        unmountDelayMs={150}
-        preloadOnIdle
-        preloadIdleTimeout={2000}
-        preloadOnFirstIO
-        placeholderMinHeight={360}
-        componentProps={{
-          onReady: handleReady,
-          onCoinsChange: handleCoinsChange,
-          onGameOver: handleGameOver,
-          highScore: stableHigh,
-          pauseWhenHidden: true,
-          demoMode: !started,
-          overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
-          allowSpawns:
-            !started ||
-            (started &&
-              (countdownPhase === 'begin' || countdownPhase === null)),
-        }}
-      />
+          {/* Actual gameplay instance (in the portal, pinned to viewport) */}
+          <LazyViewMount
+            load={() => import('./game-canvas')}
+            fallback={null}
+            mountMode="io"
+            observeTargetId="game-viewport-root"   // always visible
+            rootMargin="0px"
+            enterThreshold={0.01}
+            exitThreshold={0.0}
+            unmountDelayMs={150}
+            preloadOnIdle
+            preloadIdleTimeout={2000}
+            preloadOnFirstIO
+            placeholderMinHeight={360}
+            componentProps={{
+              onReady: handleReady,
+              onCoinsChange: handleCoinsChange,
+              onGameOver: handleGameOver,
+              highScore: stableHigh,
+              pauseWhenHidden: true,
+              demoMode: false,
+              overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
+              allowSpawns: countdownPhase === 'begin' || countdownPhase === null,
+            }}
+          />
+        </GameViewportOverlay>
+      )}
     </section>
   );
 }

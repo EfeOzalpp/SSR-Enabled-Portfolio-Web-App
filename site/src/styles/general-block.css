@@ -78,12 +78,14 @@ button.view-project-btn { -webkit-appearance: none; appearance: none; background
 
 @media (min-width: 1025px) {
   [data-prehydrate] .view-project-btn { padding: 28px 120px 0px 120px; }
+  button.view-project-btn.is-focused, button.view-project-btn.no-bg.is-focused { padding: 4px 40px 0px 32px; }
+  button.view-project-btn.is-focused div.view-project-arrow svg, button.view-project-btn.no-bg.is-focused div.view-project-arrow svg  {transform: scaleX(-1) !important;}
+  .view-project-btn { padding: 4px 32px 0px 40px; }
   .view-project-arrow { width: 3.2em !important; }
   .github-lottie { width: 2.6em !important; }
   .linkedin-lottie { width: 2.6em !important; }
   .title-lottie { width: 11.8em !important; }
   .view-project-wrapper { bottom: 4dvh !important; }
-  .view-project-btn { padding: 4px 32px 0px 40px; }
   .nav-menu { padding-bottom: 4px; }
   .nav-right { padding-right: 28px; gap: 24px !important; }
   .arrow-svg { filter: drop-shadow(0 0px 18px rgba(0,0,0,0.6)); }
@@ -95,4 +97,6 @@ button.view-project-btn { -webkit-appearance: none; appearance: none; background
 .SnappyScrollThingy.no-smooth { scroll-behavior: auto !important; }
 .SnappyScrollThingy.no-snap        { scroll-snap-type: none !important; }
 .SnappyScrollThingy.snap-proximity { scroll-snap-type: y proximity !important; }
-.SnappyScrollThingy.snap-strong    { scroll-snap-type: y mandatory !important; } /* NEW */
+.SnappyScrollThingy.snap-strong    { scroll-snap-type: y mandatory !important; }
+
+

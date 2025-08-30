@@ -1,7 +1,6 @@
 // src/utils/scroll-controller.tsx
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useProjectVisibility } from './context-providers/project-context';
-import { attachOpacityObserver } from './content-utility/opacity-observer';
 import { baseProjects } from './content-utility/component-loader';
 import { ProjectPane } from './project-pane';
 import { useSsrData } from './context-providers/ssr-data-context';
@@ -396,9 +395,9 @@ const ScrollController = () => {
 
     const atTop = (el: HTMLElement) => el.scrollTop <= 0;
     const atBottom = (el: HTMLElement) => {
-      // DPR-aware cushion so sticky/footer/safe-area rounding doesn't block the handoff
-      const EPS = Math.max(16, Math.ceil((window.devicePixelRatio || 1) * 20)); // ~16–24px
-      const max = el.scrollHeight - el.clientHeight;
+      // give ourselves a little room for sticky footers/safe-area/subpixel rounding
+      const EPS = Math.max(8, Math.ceil((window.devicePixelRatio || 1) * 12));
+      const max = (el.scrollHeight - el.clientHeight);
       return (max - el.scrollTop) <= EPS;
     };
 
@@ -490,11 +489,6 @@ const ScrollController = () => {
   }, [scrollContainerRef, focusedProjectKey]);
 
   const blockIds = useMemo(() => projects.map(p => `#block-${p.key}`), [projects]);
-
-  useEffect(() => {
-    const cleanup = attachOpacityObserver(blockIds, focusedProjectKey);
-    return cleanup;
-  }, [blockIds, focusedProjectKey]);
 
   // Example consumer — left in place to react to synthetic-drag if you want
   useEffect(() => {

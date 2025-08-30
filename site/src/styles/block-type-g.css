@@ -203,3 +203,28 @@ body.game-mode-active .nav-menu { z-index: 0 !important; }
 body.game-mode-active .SnappyScrollThingy {
   overflow: hidden !important;
 }
+
+/* Root node for the portal. Exists only when created, empty otherwise. */
+#game-viewport-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10050; /* above your 9999 */
+  pointer-events: none; /* children opt-in */
+}
+
+/* The actual overlay layer (the one we portal). */
+#game-viewport-root .game-viewport-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: #000;
+  pointer-events: auto;
+  overflow: hidden;
+  /* performance niceties */
+  contain: layout paint;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Your HUD/canvas positioning already uses fixed/absolute – all still valid. */

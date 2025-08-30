@@ -12,5 +12,4 @@ export const ssrRegistry: SsrRegistry = {
   dataviz: datavizSSR,
   dynamic: dynamicSSR,
   game: gameSSR,
-  // dynamic: undefined,
 };

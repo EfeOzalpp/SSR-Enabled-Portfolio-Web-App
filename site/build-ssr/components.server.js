@@ -27,9 +27,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../utils/content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
 /* harmony import */ var _useHighScoreSubscription__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./useHighScoreSubscription */ "./src/components/rock-escapade/useHighScoreSubscription.ts");
 /* harmony import */ var _ssr_logic_game_input_guards__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../ssr/logic/game-input-guards */ "./src/ssr/logic/game-input-guards.tsx");
-/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../styles/block-type-g.css */ "./src/styles/block-type-g.css");
-/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_13__);
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _game_viewport_overlay__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./game-viewport-overlay */ "./src/components/rock-escapade/game-viewport-overlay.tsx");
+/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../styles/block-type-g.css */ "./src/styles/block-type-g.css");
+/* harmony import */ var _styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_styles_block_type_g_css__WEBPACK_IMPORTED_MODULE_14__);
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/components/rock-escapade/block-g-host.tsx
+
 
 
 
@@ -52,9 +55,6 @@ function activateGameMode() {
 function deactivateGameMode() {
   if (typeof document !== 'undefined') document.body.classList.remove(GAME_MODE_CLASS);
 }
-function isFullscreen() {
-  return typeof document !== 'undefined' && !!document.fullscreenElement;
-}
 function BlockGHost({
   blockId
 }) {
@@ -62,9 +62,8 @@ function BlockGHost({
 
   // lifecycle
   const [started, setStarted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [fakeFS, setFakeFS] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
 
-  // gate CTA until canvas reports ready
+  // gate CTA until canvas reports ready (preloaded before start)
   const [stageReady, setStageReady] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
 
   // HUD + meta
@@ -75,7 +74,7 @@ function BlockGHost({
   const [shouldRenderOverlayBg, setShouldRenderOverlayBg] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const lottieRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // NEW: game-over final score (controls overlay)
+  // game-over (controls overlay)
   const [finalScore, setFinalScore] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
 
   // High score (remote)
@@ -84,32 +83,36 @@ function BlockGHost({
 
   // API from GameCanvas
   const restartApi = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const enterFullscreen = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
-    if (typeof document === 'undefined') return;
-    const el = document.getElementById(blockId);
-    if (!el) return;
-    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
-    try {
-      const p = req?.call(el);
-      if (p?.then) await p;
-      setFakeFS(false);
-    } catch {
-      setFakeFS(true);
-    }
-  }, [blockId]);
+
+  // Idle prewarm
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    // @ts-ignore
+    const ric = window.requestIdleCallback;
+    let rid = null;
+    if (ric) rid = ric(() => void _utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_10__.gameLoaders.game(), {
+      timeout: 2000
+    });
+    return () => rid && window.cancelIdleCallback?.(rid);
+  }, []);
   const onStart = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+    // Preload the chunk regardless
     void _utils_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_10__.gameLoaders.game();
-    await enterFullscreen();
+
+    // Reset state & show countdown
+    setCoins(0);
+    setFinalScore(null);
+    setCountdownPhase('lottie');
+
+    // Mount the overlay (portal) immediately — no native fullscreen
     activateGameMode();
     setStarted(true);
-    setCoins(0);
-    setFinalScore(null); // hide any lingering overlay
-    setCountdownPhase('lottie');
+
+    // Focus for keys/gamepad
     requestAnimationFrame(() => {
       const el = document.getElementById(blockId);
       el?.focus?.();
     });
-  }, [enterFullscreen, blockId]);
+  }, [blockId]);
 
   // Lottie countdown (lazy)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -158,7 +161,7 @@ function BlockGHost({
   // Canvas bridges
   const handleReady = api => {
     restartApi.current = api;
-    setStageReady(true); // flip CTA from "Loading…" to "Click Here to Play!"
+    setStageReady(true); // flips CTA from "Loading…" to "Click Here to Play!"
   };
   const handleCoinsChange = n => setCoins(n);
   const handleGameOver = finalCoins => setFinalScore(finalCoins);
@@ -173,63 +176,30 @@ function BlockGHost({
     setCoins(0);
     setFinalScore(null);
     deactivateGameMode();
-    setFakeFS(false);
-    if (isFullscreen()) {
-      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen || document.mozCancelFullScreen;
-      try {
-        exit?.call(document);
-      } catch {}
-    }
   };
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => deactivateGameMode(), []);
   const displayHigh = (finalScore == null ? coins : finalScore) > stableHigh ? finalScore == null ? coins : finalScore : stableHigh;
   const beatingHighNow = finalScore == null && coins > stableHigh;
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("section", {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)("section", {
     id: blockId,
     tabIndex: -1,
-    className: `block-type-g ${fakeFS ? 'fake-fs' : ''} ${started ? 'ingame' : ''}`,
+    className: "block-type-g" // no 'ingame' / no 'fake-fs' — overlay handles viewport
+    ,
     style: {
       position: 'relative'
     },
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_ssr_logic_game_input_guards__WEBPACK_IMPORTED_MODULE_12__["default"], {
-      active: started || fakeFS,
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_ssr_logic_game_input_guards__WEBPACK_IMPORTED_MODULE_12__["default"], {
+      active: started,
       lockBodyScroll: true,
       alsoBlockWheel: true,
       alsoBlockTouch: true,
       allowWhenTyping: true
-    }), !started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_onboarding__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    }), !started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_block_g_onboarding__WEBPACK_IMPORTED_MODULE_2__["default"], {
       onStart: onStart,
-      resetTrigger: started ? 1 : 0
-      // NEW: text + interactivity gated on stage readiness
-      ,
+      resetTrigger: started ? 1 : 0,
       label: stageReady ? 'Click Here to Play!' : 'Loading Game…',
       ctaEnabled: stageReady
-    }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_exit__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        onExit: handleExit
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        coins: coins,
-        highScore: displayHigh,
-        newHighScore: beatingHighNow
-      }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
-        className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`,
-        style: {
-          pointerEvents: 'none'
-        }
-      }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
-        ref: lottieRef,
-        id: "lottie-onboarding",
-        className: "countdown-lottie",
-        style: {
-          pointerEvents: 'none'
-        }
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_ssr_logic_game_over_controller__WEBPACK_IMPORTED_MODULE_5__["default"], {
-        score: finalScore,
-        highScore: stableHigh,
-        onRestart: handleRestart,
-        onHide: () => setFinalScore(null)
-      })]
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    }), !started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_9__["default"], {
       load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ./game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
       fallback: null,
       mountMode: "io",
@@ -244,14 +214,63 @@ function BlockGHost({
       placeholderMinHeight: 360,
       componentProps: {
         onReady: handleReady,
-        onCoinsChange: handleCoinsChange,
-        onGameOver: handleGameOver,
+        onCoinsChange: () => {},
+        onGameOver: () => {},
         highScore: stableHigh,
         pauseWhenHidden: true,
-        demoMode: !started,
-        overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
-        allowSpawns: !started || started && (countdownPhase === 'begin' || countdownPhase === null)
+        demoMode: true,
+        overlayActive: false,
+        allowSpawns: true
       }
+    }), started && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsxs)(_game_viewport_overlay__WEBPACK_IMPORTED_MODULE_13__["default"], {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_block_g_exit__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        onExit: handleExit
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_block_g_coin_counter__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        coins: coins,
+        highScore: displayHigh,
+        newHighScore: beatingHighNow
+      }), shouldRenderOverlayBg && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
+        className: `countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`,
+        style: {
+          pointerEvents: 'none'
+        }
+      }), (countdownPhase === 'lottie' || countdownPhase === 'begin') && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)("div", {
+        ref: lottieRef,
+        id: "lottie-onboarding",
+        className: "countdown-lottie",
+        style: {
+          pointerEvents: 'none'
+        }
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_ssr_logic_game_over_controller__WEBPACK_IMPORTED_MODULE_5__["default"], {
+        score: finalScore,
+        highScore: stableHigh,
+        onRestart: handleRestart,
+        onHide: () => setFinalScore(null)
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__.jsx)(_utils_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_9__["default"], {
+        load: () => __webpack_require__.e(/*! import() */ "src_components_rock-escapade_game-canvas_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ./game-canvas */ "./src/components/rock-escapade/game-canvas.tsx")),
+        fallback: null,
+        mountMode: "io",
+        observeTargetId: "game-viewport-root" // always visible
+        ,
+        rootMargin: "0px",
+        enterThreshold: 0.01,
+        exitThreshold: 0.0,
+        unmountDelayMs: 150,
+        preloadOnIdle: true,
+        preloadIdleTimeout: 2000,
+        preloadOnFirstIO: true,
+        placeholderMinHeight: 360,
+        componentProps: {
+          onReady: handleReady,
+          onCoinsChange: handleCoinsChange,
+          onGameOver: handleGameOver,
+          highScore: stableHigh,
+          pauseWhenHidden: true,
+          demoMode: false,
+          overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
+          allowSpawns: countdownPhase === 'begin' || countdownPhase === null
+        }
+      })]
     })]
   });
 }

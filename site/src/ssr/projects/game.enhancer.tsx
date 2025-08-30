@@ -1,7 +1,7 @@
 // src/ssr/projects/game.enhancer.tsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import lottie from '../../utils/load-lottie'; 
+import lottie from '../../utils/load-lottie';
 
 import BlockGOnboarding from '../../components/rock-escapade/block-g-onboarding-inner';
 import ExitButton from '../../components/rock-escapade/block-g-exit';
@@ -12,11 +12,13 @@ import { useRealMobileViewport } from '../../utils/content-utility/real-mobile';
 import LazyViewMount from '../../utils/content-utility/lazy-view-mount';
 import { gameLoaders } from '../../utils/content-utility/component-loader';
 import { useHighScoreSubscription } from '../../components/rock-escapade/useHighScoreSubscription';
-
 import GameInputGuards from '../logic/game-input-guards';
 
 import desktopOnboarding from '../../svg/desktop-onboarding.json';
 import mobileOnboarding from '../../svg/mobile-onboarding.json';
+
+// ★ new
+import GameViewportOverlay from '../../components/rock-escapade/game-viewport-overlay';
 
 const GAME_MODE_CLASS = 'game-mode-active';
 const activateGameMode = () => document.body.classList.add(GAME_MODE_CLASS);
@@ -41,48 +43,36 @@ const GameEnhancer: React.FC = () => {
 
   const firstHydrationUsedRef = useRef(false);
   const firstVisibilityCallbackSkippedRef = useRef(false);
-
   const wasVisibleRef = useRef(false);
 
-  // Force a clean re-mount of onboarding inner (resets lottie/visibility) after exit
   const [onboardingReset, setOnboardingReset] = useState(0);
   const reapplyOnboarding = useCallback(() => setOnboardingReset(v => v + 1), []);
 
   const stableStartAtForThisMount = useMemo(
     () => (firstHydrationUsedRef.current ? 0 : 30),
-    [onboardingReset] // ← only recompute when we intentionally remount onboarding
+    [onboardingReset]
   );
+  const handleInnerMount = useCallback(() => { firstHydrationUsedRef.current = true; }, []);
 
-  const handleInnerMount = useCallback(() => {
-    firstHydrationUsedRef.current = true;
-  }, []);
-  
   useEffect(() => {
     const container = document.getElementById('block-game') as HTMLElement | null;
     if (!container) return;
     setSec(container);
 
-    // SSR shell: <section … data-ssr-shell="block-game">
     const shell = container.querySelector('[data-ssr-shell="block-game"]') as HTMLElement | null;
     if (!shell) return;
 
-    // Host for onboarding UI: prefer existing .block-g-onboarding, else decorate the shell
     let host = shell.querySelector('.block-g-onboarding') as HTMLElement | null;
     if (!host) {
       host = shell;
-      if (!host.classList.contains('block-g-onboarding')) {
-        host.classList.add('block-g-onboarding', 'tooltip-block-g');
-        host.setAttribute('aria-live', 'polite');
-        host.style.display ||= 'flex';
-        host.style.alignItems ||= 'center';
-      }
+      host.classList.add('block-g-onboarding', 'tooltip-block-g');
+      host.setAttribute('aria-live', 'polite');
+      host.style.display ||= 'flex';
+      host.style.alignItems ||= 'center';
     }
 
-    // Clean host children; we portal the inner UI into it
     host.replaceChildren();
     setOnboardingEl(host);
-
-    // Render the stage directly under the section (stacked after onboarding)
     setRootEl(shell);
   }, []);
 
@@ -92,7 +82,7 @@ const GameEnhancer: React.FC = () => {
     const io = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setShouldMount(true);
-        cancelIdle();            
+        cancelIdle();
         io.disconnect();
       }
     }, { threshold: [0, 0.3] });
@@ -102,33 +92,23 @@ const GameEnhancer: React.FC = () => {
 
   useEffect(() => {
     if (!sec) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        const nowVisible = !!entry.isIntersecting;
-
-        // Skip the first callback after hydration, just prime the baseline.
-        if (!firstVisibilityCallbackSkippedRef.current) {
-          firstVisibilityCallbackSkippedRef.current = true;
-          wasVisibleRef.current = nowVisible;
-          return;
-        }
-
-        const wasVisible = wasVisibleRef.current;
+    const io = new IntersectionObserver(([entry]) => {
+      const nowVisible = !!entry.isIntersecting;
+      if (!firstVisibilityCallbackSkippedRef.current) {
+        firstVisibilityCallbackSkippedRef.current = true;
         wasVisibleRef.current = nowVisible;
-
-        // Only remount when coming back into view later (and not in-game)
-        if (nowVisible && !wasVisible && !sec.classList.contains('ingame')) {
-          setOnboardingReset(v => v + 1);
-        }
-      },
-      { threshold: 0.01 }
-    );
-
+        return;
+      }
+      const wasVisible = wasVisibleRef.current;
+      wasVisibleRef.current = nowVisible;
+      if (nowVisible && !wasVisible && !sec.classList.contains('ingame')) {
+        setOnboardingReset(v => v + 1);
+      }
+    }, { threshold: 0.01 });
     io.observe(sec);
     return () => io.disconnect();
   }, [sec]);
-  
+
   if (!sec || !onboardingEl || !rootEl || !shouldMount) return null;
 
   return (
@@ -136,21 +116,20 @@ const GameEnhancer: React.FC = () => {
       {createPortal(
         <OnboardingPortal
           reset={onboardingReset}
-          startAtFrame={stableStartAtForThisMount} 
+          startAtFrame={stableStartAtForThisMount}
           onInnerMount={handleInnerMount}
-          label={stageReady ? 'Click Here to Play!' : 'Loading Game……'}  
-          ctaEnabled={stageReady}                                   
+          label={stageReady ? 'Click Here to Play!' : 'Loading Game…'}
+          ctaEnabled={stageReady}
         />,
         onboardingEl
       )}
       {createPortal(
         <GameStage
-          blockId="block-game"
           container={sec}
           onboardingEl={onboardingEl}
           reapplyOnboarding={reapplyOnboarding}
-          isStageReady={stageReady}                 
-          onStageReady={setStageReady}          
+          isStageReady={stageReady}
+          onStageReady={setStageReady}
         />,
         rootEl
       )}
@@ -158,7 +137,6 @@ const GameEnhancer: React.FC = () => {
   );
 };
 
-// let the portal thread the props to the inner
 type OnboardingPortalProps = {
   reset: number;
   startAtFrame: number;
@@ -183,77 +161,50 @@ const OnboardingPortal: React.FC<OnboardingPortalProps> = ({
 
 export default GameEnhancer;
 
-/* ---------- Stage (mirrors the working BlockGHost behavior) ---------- */
+/* ---------- Stage (mirrors client BlockGHost + portal overlay) ---------- */
 const GameStage: React.FC<{
-  blockId: string;                              // not used here; kept for signature compatibility
   container: HTMLElement;
   onboardingEl: HTMLElement;
   reapplyOnboarding: () => void;
-  isStageReady: boolean;                        // NEW
-  onStageReady: (ready: boolean) => void;       // NEW
-}> = ({
-  blockId,
-  container,
-  onboardingEl,
-  reapplyOnboarding,
-  isStageReady,
-  onStageReady,
-}) => {
-  void blockId; // silence unused param if you keep passing it
-
+  isStageReady: boolean;
+  onStageReady: (ready: boolean) => void;
+}> = ({ container, onboardingEl, reapplyOnboarding, isStageReady, onStageReady }) => {
   const isRealMobile = useRealMobileViewport();
 
-  // lifecycle
   const [started, setStarted] = useState(false);
-
-  // HUD + meta
   const [coins, setCoins] = useState(0);
   const [finalScore, setFinalScore] = useState<number | null>(null);
 
   const remoteHighScore = useHighScoreSubscription();
   const stableHigh = typeof remoteHighScore === 'number' ? remoteHighScore : 0;
-
-  // UI-only: mimic BlockGHost display logic
-  const displayHigh =
-    (finalScore == null ? coins : finalScore) > stableHigh
-      ? (finalScore == null ? coins : finalScore)
-      : stableHigh;
-
+  const displayHigh = (finalScore == null ? coins : finalScore) > stableHigh
+    ? (finalScore == null ? coins : finalScore)
+    : stableHigh;
   const beatingHighNow = finalScore == null && coins > stableHigh;
 
-  // overlays
   const [countdownPhase, setCountdownPhase] = useState<null | 'lottie' | 'begin'>(null);
-  const [showBeginText, setShowBeginText] = useState(false);
   const [showOverlayBg, setShowOverlayBg] = useState(false);
   const [shouldRenderOverlayBg, setShouldRenderOverlayBg] = useState(false);
   const lottieRef = useRef<HTMLDivElement | null>(null);
-
-  // canvas restart API from game-canvas
   const restartApi = useRef<{ restart: () => void } | null>(null);
 
-  // Start — only when stage is ready
   const onStart = useCallback(() => {
-    if (!isStageReady) return; // gate until canvas called onReady
+    if (!isStageReady) return;
     void gameLoaders.game();
     container.classList.add('ingame');
     activateGameMode();
-
     setStarted(true);
     setCoins(0);
     setFinalScore(null);
     setCountdownPhase('lottie');
-
-    requestAnimationFrame(() => (container as HTMLElement)?.focus?.());
-
     onboardingEl.style.transition = 'opacity 180ms ease';
     onboardingEl.style.opacity = '0';
     window.setTimeout(() => { onboardingEl.style.display = 'none'; }, 180);
   }, [container, onboardingEl, isStageReady]);
 
-  /** Limit start to coin/text only, AND reflect readiness in interactivity */
+  // enable/disable CTA pointers
   useEffect(() => {
     const CLICK_TARGETS = '.coin, .onboarding-text, [data-start-hit]';
-
     const armTargets = () => {
       onboardingEl.querySelectorAll(CLICK_TARGETS).forEach((el) => {
         const node = el as HTMLElement;
@@ -264,7 +215,6 @@ const GameStage: React.FC<{
       });
       onboardingEl.setAttribute('aria-busy', String(!isStageReady));
     };
-
     armTargets();
     const mo = new MutationObserver(armTargets);
     mo.observe(onboardingEl, { childList: true, subtree: true });
@@ -287,7 +237,6 @@ const GameStage: React.FC<{
 
     onboardingEl.addEventListener('click', onClick as EventListener, { passive: true });
     onboardingEl.addEventListener('keydown', onKeyDown as EventListener);
-
     return () => {
       mo.disconnect();
       onboardingEl.removeEventListener('click', onClick as EventListener);
@@ -295,13 +244,10 @@ const GameStage: React.FC<{
     };
   }, [onboardingEl, onStart, isStageReady]);
 
-  // Lottie countdown (lazy-loaded)
+  // countdown visuals
   useEffect(() => {
     if (countdownPhase !== 'lottie' || !lottieRef.current) return;
-
-    let anim: any;
-    let mounted = true;
-
+    let anim: any; let mounted = true;
     (async () => {
       anim = await lottie.loadAnimation({
         container: lottieRef.current!,
@@ -311,24 +257,16 @@ const GameStage: React.FC<{
         animationData: isRealMobile ? mobileOnboarding : desktopOnboarding,
       });
       if (!mounted || !anim) return;
-
       const onComplete = () => setCountdownPhase('begin');
       anim.addEventListener('complete', onComplete);
-
-      // local cleanup for this async init (effect will also run its cleanup)
       return () => anim?.removeEventListener?.('complete', onComplete);
     })();
-
-    return () => {
-      mounted = false;
-      anim?.destroy?.();
-    };
+    return () => { mounted = false; anim?.destroy?.(); };
   }, [countdownPhase, isRealMobile]);
 
   useEffect(() => {
     if (countdownPhase === 'begin') {
-      setShowBeginText(true);
-      const t = setTimeout(() => { setShowBeginText(false); setCountdownPhase(null); }, 1000);
+      const t = setTimeout(() => setCountdownPhase(null), 1000);
       return () => clearTimeout(t);
     }
   }, [countdownPhase]);
@@ -344,101 +282,104 @@ const GameStage: React.FC<{
     }
   }, [countdownPhase]);
 
-  // Canvas bridges
   const handleReady = (api: { restart: () => void }) => {
     restartApi.current = api;
-    onStageReady(true); // flips CTA to "Click to Play!"
+    onStageReady(true);
   };
-
-  // If the whole enhancer unmounts, reset readiness
   useEffect(() => () => onStageReady(false), [onStageReady]);
 
-  // Restart
   const handleRestart = () => {
     container.classList.add('ingame');
     setCountdownPhase(null);
     setCoins(0);
     setFinalScore(null);
     restartApi.current?.restart();
-    requestAnimationFrame(() => (container as HTMLElement)?.focus?.());
   };
 
-  // Exit → return to onboarding
   const handleExit = () => {
     setStarted(false);
     setCountdownPhase(null);
     setCoins(0);
     setFinalScore(null);
     deactivateGameMode();
-
     container.classList.remove('ingame');
-
     onboardingEl.style.display = '';
-    reapplyOnboarding(); // remount onboarding inner
+    reapplyOnboarding();
     requestAnimationFrame(() => { onboardingEl.style.opacity = '1'; });
   };
 
   return (
     <>
-      {/* Global input guards while playing */}
-      <GameInputGuards active={started} lockBodyScroll alsoBlockWheel alsoBlockTouch allowWhenTyping />
+      {/* Keep a WARM-UP instance under the section until start so onReady can flip CTA */}
+      {!started && (
+        <LazyViewMount
+          load={() => import('../../components/rock-escapade/game-canvas')}
+          fallback={null}
+          preloadOnIdle
+          preloadIdleTimeout={2000}
+          preloadOnFirstIO
+          rootMargin="0px"
+          placeholderMinHeight={360}
+          componentProps={{
+            onReady: handleReady,
+            onCoinsChange: (n: number) => setCoins(n),
+            onGameOver: (finalCoins: number) => setFinalScore(finalCoins),
+            highScore: stableHigh,
+            pauseWhenHidden: true,
+            demoMode: true, // preview only before game is started
+            overlayActive: false,
+            allowSpawns: true,
+          }}
+        />
+      )}
 
+      {/* When playing: portal everything under #efe-portfolio so the postconfig css prefixer still works with the portal */}
       {started && (
-        <>
+        <GameViewportOverlay>
+          <GameInputGuards active lockBodyScroll alsoBlockWheel alsoBlockTouch allowWhenTyping />
           <ExitButton onExit={handleExit} />
-          <CoinCounter
-            coins={coins}
-            highScore={displayHigh}
-            newHighScore={beatingHighNow}
-          />
+          <CoinCounter coins={coins} highScore={displayHigh} newHighScore={beatingHighNow} />
 
           {shouldRenderOverlayBg && (
-            <div
-              className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`}
-              style={{ pointerEvents: 'none' }}
-            />
+            <div className={`countdown-bg-overlay ${!showOverlayBg ? 'hide' : ''}`} style={{ pointerEvents: 'none' }} />
           )}
-
           {(countdownPhase === 'lottie' || countdownPhase === 'begin') && (
-            <div
-              ref={lottieRef}
-              id="lottie-onboarding"
-              className="countdown-lottie"
-              style={{ pointerEvents: 'none' }}
-            />
+            <div ref={lottieRef} id="lottie-onboarding" className="countdown-lottie" style={{ pointerEvents: 'none' }} />
           )}
-
           <GameOverController
             score={finalScore}
             highScore={stableHigh}
             onRestart={handleRestart}
             onHide={() => setFinalScore(null)}
           />
-        </>
-      )}
 
-      {/* Stage under section */}
-      <LazyViewMount
-        load={() => import('../../components/rock-escapade/game-canvas')}
-        fallback={null}
-        /* Preload the chunk early so re-mounts are instant */
-        preloadOnIdle
-        preloadIdleTimeout={2000}
-        preloadOnFirstIO
-        /* IO config */
-        rootMargin="0px"
-        placeholderMinHeight={360}
-        componentProps={{
-          onReady: handleReady,            // flips stageReady
-          onCoinsChange: (n: number) => setCoins(n),
-          onGameOver: (finalCoins: number) => setFinalScore(finalCoins),
-          highScore: stableHigh,
-          pauseWhenHidden: true,
-          demoMode: !started,
-          overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
-          allowSpawns: !started || (started && (countdownPhase === 'begin' || countdownPhase === null)),
-        }}
-      />
+          {/* Real gameplay instance pinned to viewport */}
+          <LazyViewMount
+            load={() => import('../../components/rock-escapade/game-canvas')}
+            fallback={null}
+            mountMode="io"
+            observeTargetId="game-viewport-root"
+            rootMargin="0px"
+            enterThreshold={0.01}
+            exitThreshold={0}
+            unmountDelayMs={150}
+            preloadOnIdle
+            preloadIdleTimeout={2000}
+            preloadOnFirstIO
+            placeholderMinHeight={360}
+            componentProps={{
+              onReady: handleReady,
+              onCoinsChange: (n: number) => setCoins(n),
+              onGameOver: (finalCoins: number) => setFinalScore(finalCoins),
+              highScore: stableHigh,
+              pauseWhenHidden: true,
+              demoMode: false,
+              overlayActive: countdownPhase === 'lottie' || countdownPhase === 'begin',
+              allowSpawns: countdownPhase === 'begin' || countdownPhase === null,
+            }}
+          />
+        </GameViewportOverlay>
+      )}
     </>
   );
 };

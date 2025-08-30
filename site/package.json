@@ -15,6 +15,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "browserify-zlib": "^0.2.0",
+    "compression": "^1.8.1",
     "construct-style-sheets-polyfill": "^3.1.0",
     "cookie": "^1.0.2",
     "express": "^4.21.2",

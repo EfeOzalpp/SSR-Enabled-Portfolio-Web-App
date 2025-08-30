@@ -1,8 +1,5 @@
 // src/utils/title/view-project.tsx
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import lottie from '../../utils/load-lottie';
-import arrowData from '../../svg/arrow.json';
-import linkData from '../../svg/link.json';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useActiveTitle } from './title-context';
 import { baseProjects } from '../content-utility/component-loader';
@@ -13,21 +10,16 @@ import { seededShuffle } from '../seed';
 import TitleObserver from './title-observer';
 import { useProjectVisibility } from '../context-providers/project-context';
 
-// Minimal shape for what we use from Lottie
-type AnimationItemLike = {
-  goToAndStop: (value: number, isFrame?: boolean) => void;
-  playSegments: (segments: [number, number] | number[], forceFlag?: boolean) => void;
-  addEventListener: (name: string, cb: () => void) => void;
-  removeEventListener: (name: string, cb: () => void) => void;
-  destroy: () => void;
-};
+import {
+  ProjectButtonTitleIcon,
+  ProjectButtonIconTitle,
+} from './view-project-cta';
 
 const ViewProject = () => {
   const { activeTitle } = useActiveTitle();
   const { seed = 12345 } = useSsrData() || {};
   const projects = useMemo(() => seededShuffle(baseProjects, seed), [seed]);
 
-  // Focus state shared across app
   const { focusedProjectKey, setFocusedProjectKey } = useProjectVisibility();
 
   const focusedProject = useMemo(
@@ -38,14 +30,6 @@ const ViewProject = () => {
   // Freeze the title (and everything derived from it) when focused
   const displayTitle = focusedProjectKey ? (focusedProject?.title ?? activeTitle) : activeTitle;
 
-  const arrowContainer = useRef<HTMLDivElement>(null);
-  const arrowAnimRef = useRef<AnimationItemLike | null>(null);
-  const lastTitleRef = useRef(displayTitle);
-
-  const [hovered, setHovered] = useState(false);
-  const [showBackground, setShowBackground] = useState(true);
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const currentProject = useMemo(
     () => projects.find((p) => p.title === displayTitle),
     [projects, displayTitle]
@@ -53,78 +37,66 @@ const ViewProject = () => {
   const isLink = currentProject?.isLink;
   const currentKey = currentProject?.key;
 
-  const getBackgroundColor = () => {
-    const colorInfo = projectColors[displayTitle];
-    if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
-    const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.8);
-    return `rgba(${colorInfo.rgb}, ${alpha})`;
-  };
+  // background fade logic
+  const [hovered, _setHovered] = useState(false);
+  const hoveredRef = useRef(false);
+  const [showBackground, setShowBackground] = useState(true);
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const triggerBackgroundFade = () => {
-    setShowBackground(true);
+  // single place to schedule/clear hides respecting hover
+  const scheduleHide = (delay = 1500) => {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 1500);
+    hideTimeoutRef.current = setTimeout(() => {
+      // Do not hide while hovered
+      if (!hoveredRef.current) setShowBackground(false);
+    }, delay);
   };
 
-  // (Re)create arrow/link Lottie when the *displayed* title changes
-  useEffect(() => {
-    const el = arrowContainer.current;
-    if (!el) return;
+  const clearHide = () => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  };
 
-    let anim: AnimationItemLike | null = null;
-    let mounted = true;
+  const setHovered = (v: boolean) => {
+    hoveredRef.current = v;
+    _setHovered(v);
+    if (v) {
+      // while hovered: keep bg on and cancel any pending hide
+      clearHide();
+      setShowBackground(true);
+    } else {
+      // when leaving: allow it to hide after a short delay
+      scheduleHide(1500);
+    }
+  };
 
-    (async () => {
-      const animationData = displayTitle === 'Dynamic App' ? linkData : arrowData;
-
-      anim = await lottie.loadAnimation({
-        container: el,
-        renderer: 'svg',
-        loop: false,
-        autoplay: false,
-        animationData,
-      });
-
-      if (!mounted || !anim) return;
-
-      arrowAnimRef.current = anim;
-      anim.goToAndStop(40, true);
-
-      const onDomLoaded = () => {
-        const svg = el.querySelector('svg');
-        if (svg) svg.classList.add('arrow-svg');
-      };
-
-      anim.addEventListener('DOMLoaded', onDomLoaded);
-
-      return () => {
-        anim?.removeEventListener('DOMLoaded', onDomLoaded);
-      };
-    })();
-
-    return () => {
-      mounted = false;
-      arrowAnimRef.current?.destroy();
-      arrowAnimRef.current = null;
-    };
-  }, [displayTitle]);
-
-  // Play a segment when the *displayed* title actually changes
+  // on title change: flash bg on, then hide later ONLY if not hovered
+  const lastTitleRef = useRef(displayTitle);
   useEffect(() => {
     if (lastTitleRef.current !== displayTitle) {
-      arrowAnimRef.current?.playSegments([40, 90], true);
       lastTitleRef.current = displayTitle;
-      triggerBackgroundFade();
+      setShowBackground(true);
+      // only schedule a hide if not hovered
+      if (!hoveredRef.current) scheduleHide(1500);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayTitle]);
 
-  // Trigger background fade on user motion (bottom ~35% of viewport) or touch
+  // light “bring it back” when user interacts near bottom — but don't hide if hovered
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const viewportH = window.innerHeight || document.documentElement.clientHeight;
-      if (e.clientY >= viewportH * 0.65) triggerBackgroundFade();
+      if (e.clientY >= viewportH * 0.65) {
+        setShowBackground(true);
+        if (!hoveredRef.current) scheduleHide(1500);
+      }
     };
-    const handleTouch = () => triggerBackgroundFade();
+    const handleTouch = () => {
+      setShowBackground(true);
+      if (!hoveredRef.current) scheduleHide(1500);
+    };
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchstart', handleTouch, { passive: true });
@@ -134,62 +106,37 @@ const ViewProject = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchstart', handleTouch);
       window.removeEventListener('touchmove', handleTouch);
-      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+      clearHide();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Toggle the focused project key; ScrollController reacts to this
-  const handleToggleOpen = () => {
-    if (!currentKey) return;
-    const next = focusedProjectKey === currentKey ? null : currentKey;
-    setFocusedProjectKey(next);
+  // compute background color (hovered = higher alpha)
+  const backgroundColor = useMemo(() => {
+    const colorInfo = projectColors[displayTitle];
+    if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
+    const alpha = hovered ? 1 : (colorInfo.defaultAlpha ?? 0.8);
+    return `rgba(${colorInfo.rgb}, ${alpha})`;
+  }, [displayTitle, hovered]);
 
-    if (next) {
-      requestAnimationFrame(() => {
-        const el = document.getElementById(`block-${next}`);
-        el?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-      });
-    }
-  };
-
-  const Element: any = isLink ? 'a' : 'button';
-  const sharedProps = {
-    className: `view-project-btn ${!showBackground ? 'no-bg' : ''}`,
-    onMouseEnter: () => setHovered(true),
-    onMouseLeave: () => setHovered(false),
-    'data-project-key': currentKey ?? undefined,
-    'aria-pressed': currentKey ? focusedProjectKey === currentKey : undefined,
-    ...(isLink
-      ? { href: '/dynamic-theme', target: '_blank', rel: 'noopener noreferrer' }
-      : { onClick: handleToggleOpen }
-    ),
-  };
+  // choose variant based on focus state
+  const ButtonComp = focusedProjectKey ? ProjectButtonIconTitle : ProjectButtonTitleIcon;
 
   return (
     <div className="view-project-wrapper">
       {/* Don’t observe while focused, so title stays frozen */}
       {!focusedProjectKey && <TitleObserver />}
 
-      <Element {...sharedProps}>
-        <div
-          className={`view-project-background ${!showBackground ? 'no-bg' : ''}`}
-          style={{
-            backgroundColor: getBackgroundColor(),
-            position: 'absolute',
-            inset: 0,
-            borderRadius: 'inherit',
-            zIndex: 0,
-          }}
-        />
-        <h2 className="project-view" style={{ position: 'relative', zIndex: 1 }}>
-          {displayTitle}
-        </h2>
-        <div
-          ref={arrowContainer}
-          className="view-project-arrow"
-          style={{ position: 'relative', zIndex: 1 }}
-        />
-      </Element>
+      <ButtonComp
+        displayTitle={displayTitle}
+        isLink={isLink}
+        currentKey={currentKey}
+        focusedProjectKey={focusedProjectKey}
+        setFocusedProjectKey={setFocusedProjectKey}
+        showBackground={showBackground}
+        backgroundColor={backgroundColor}
+        onHover={setHovered}
+      />
     </div>
   );
 };

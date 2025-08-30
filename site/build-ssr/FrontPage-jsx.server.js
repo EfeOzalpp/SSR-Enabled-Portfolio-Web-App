@@ -132,21 +132,6 @@ function Frontpage() {
 
 /***/ }),
 
-/***/ "./src/components/case-studies/load-focused-details.ts":
-/*!*************************************************************!*\
-  !*** ./src/components/case-studies/load-focused-details.ts ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   loadFocusedDetails: () => (/* binding */ loadFocusedDetails)
-/* harmony export */ });
-// Named chunk keeps it out of the main bundle and gives a stable file name.
-const loadFocusedDetails = () => __webpack_require__.e(/*! import() | focused-details */ "focused-details").then(__webpack_require__.bind(__webpack_require__, /*! ../case-studies/FocusedDetails */ "./src/components/case-studies/FocusedDetails.tsx"));
-
-/***/ }),
-
 /***/ "./src/svg/arrow.json":
 /*!****************************!*\
   !*** ./src/svg/arrow.json ***!
@@ -624,86 +609,6 @@ function LazyViewMount({
 
 /***/ }),
 
-/***/ "./src/utils/content-utility/opacity-observer.tsx":
-/*!********************************************************!*\
-  !*** ./src/utils/content-utility/opacity-observer.tsx ***!
-  \********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   attachOpacityObserver: () => (/* binding */ attachOpacityObserver)
-/* harmony export */ });
-// src/utils/content-utility/opacity-observer.ts
-const attachOpacityObserver = (ids, focusedProjectKey) => {
-  const isRealMobile = (() => {
-    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-    const touch = navigator.maxTouchPoints > 0;
-    const vv = window.visualViewport;
-    let shrinks = false;
-    if (vv) {
-      const gap = window.innerHeight - vv.height;
-      if (gap > 48) shrinks = true;
-      return coarse && touch && (shrinks || gap > 48);
-    }
-    return coarse && touch;
-  })();
-  const baseMin = isRealMobile ? 0.1 : 0.3;
-  const focusedId = focusedProjectKey ? `block-${focusedProjectKey}` : null;
-
-  // Per-call guard so re-attaching after focus toggles works
-  const observed = new WeakSet();
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      const el = entry.target;
-      const ratio = entry.intersectionRatio ?? 0;
-
-      // Focused pane is always fully opaque
-      if (focusedId && el.id === focusedId) {
-        el.style.opacity = '1';
-        continue;
-      }
-
-      // Everyone else keeps mapping based on IO even while focused
-      if (ratio >= 0.75) {
-        el.style.opacity = '1';
-      } else {
-        const mapped = baseMin + ratio / 0.75 * (1 - baseMin);
-        el.style.opacity = String(mapped);
-      }
-    }
-  }, {
-    threshold: Array.from({
-      length: 101
-    }, (_, i) => i / 100)
-    // If your panes live inside a custom scroller, pass it here as `root`
-    // root: scrollContainerRef.current,
-  });
-  const observeTargets = () => {
-    ids.forEach(sel => {
-      const el = document.querySelector(sel);
-      if (el && !observed.has(el)) {
-        observed.add(el);
-        observer.observe(el);
-        // Prime the focused pane immediately so there’s no flash
-        if (focusedId && el.id === focusedId) el.style.opacity = '1';
-      }
-    });
-  };
-  const mo = new MutationObserver(observeTargets);
-  observeTargets();
-  mo.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-  return () => {
-    observer.disconnect();
-    mo.disconnect();
-  };
-};
-
-/***/ }),
-
 /***/ "./src/utils/context-providers/project-context.tsx":
 /*!*********************************************************!*\
   !*** ./src/utils/context-providers/project-context.tsx ***!
@@ -788,11 +693,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./content-utility/lazy-view-mount */ "./src/utils/content-utility/lazy-view-mount.tsx");
 /* harmony import */ var _loading_loading__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./loading/loading */ "./src/utils/loading/loading.tsx");
 /* harmony import */ var _content_utility_component_loader__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
-/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
-/* harmony import */ var _content_utility_event_mount__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./content-utility/event-mount */ "./src/utils/content-utility/event-mount.tsx");
-/* harmony import */ var _components_case_studies_load_focused_details__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../components/case-studies/load-focused-details */ "./src/components/case-studies/load-focused-details.ts");
+/* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
+/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _ssr_registry__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../ssr/registry */ "./src/ssr/registry.ts");
+/* harmony import */ var _content_utility_event_mount__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./content-utility/event-mount */ "./src/utils/content-utility/event-mount.tsx");
 /* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/project-pane.tsx
+
 
 
 
@@ -804,17 +711,26 @@ __webpack_require__.r(__webpack_exports__);
 /* event-driven details for case study section */
 
 
+// Map project keys to their detail component loaders
 
+const caseStudyLoaders = {
+  rotary: () => __webpack_require__.e(/*! import() */ "src_components_case-studies_project-case-studies_rock-escapade_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../components/case-studies/project-case-studies/rock-escapade */ "./src/components/case-studies/project-case-studies/rock-escapade.tsx"))
+  // add more as you go:
+  // dynamic: () => import('../components/case-studies/project-case-studies/CaseStudyDynamic'),
+};
 function ProjectPane({
   item,
   isFocused,
   setRef,
   isFirst = false
 }) {
+  const {
+    scrollContainerRef
+  } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_5__.useProjectVisibility)();
   const load = (0,_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_4__.useProjectLoader)(item.key);
-  const ssr = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__.useSsrData)();
+  const ssr = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_6__.useSsrData)();
   const payload = ssr?.preloaded?.[item.key];
-  const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_6__.ssrRegistry[item.key];
+  const desc = _ssr_registry__WEBPACK_IMPORTED_MODULE_7__.ssrRegistry[item.key];
   const hasSSR = Boolean(payload && desc?.render);
   const [isHydrated, setIsHydrated] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -830,12 +746,12 @@ function ProjectPane({
   const blockId = `block-${item.key}`;
   const rootRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // --- NEW: delay unmount of focused details on unfocus ---
-  const EXIT_DELAY_MS = 500; // tweak as you like
+  // --- Delay unmount on unfocus ---
+  const EXIT_DELAY_MS = 0;
+  const FADE_MS = 0; // keep in sync with <EventMount fadeMs>
   const [activeDelayed, setActiveDelayed] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(isFocused);
   const exitTimerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    // when focused: cancel any pending turn-off and show immediately
     if (isFocused) {
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
@@ -843,7 +759,6 @@ function ProjectPane({
       }
       setActiveDelayed(true);
     } else {
-      // when unfocusing: wait a bit before turning details off
       exitTimerRef.current = window.setTimeout(() => {
         setActiveDelayed(false);
         exitTimerRef.current = null;
@@ -857,34 +772,83 @@ function ProjectPane({
     };
   }, [isFocused]);
 
-  // intrinsic size hint to keep content-visibility stable
+  // --- Height reservation during exit fade to prevent layout jump ---
+  const [reserveH, setReserveH] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const detailsHostRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const el = rootRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => {
-      const h = el.offsetHeight || 0;
-      el.style.setProperty('--cis-block', `${Math.max(400, h)}px`);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (isFocused) {
-      (0,_components_case_studies_load_focused_details__WEBPACK_IMPORTED_MODULE_8__.loadFocusedDetails)();
+    if (!isFocused) {
+      const rafId = requestAnimationFrame(() => {
+        const h = detailsHostRef.current?.getBoundingClientRect().height ?? 0;
+        if (h > 0) setReserveH(h);
+        const release = window.setTimeout(() => {
+          setReserveH(null);
+        }, EXIT_DELAY_MS + FADE_MS + 50);
+        const cleanup = () => clearTimeout(release);
+        detailsHostRef._cleanup = cleanup;
+      });
+      return () => {
+        cancelAnimationFrame(rafId);
+        detailsHostRef._cleanup?.();
+        detailsHostRef._cleanup = undefined;
+      };
+    } else {
+      setReserveH(null);
     }
   }, [isFocused]);
+
+  // --- Local opacity control (per-pane observer) ---
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    if (isFocused || !isFocused && activeDelayed) {
+      el.style.opacity = '1';
+      return;
+    }
+    const isRealMobile = (() => {
+      const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      const touch = navigator.maxTouchPoints > 0;
+      const vv = window.visualViewport;
+      if (vv) {
+        const gap = window.innerHeight - vv.height;
+        return coarse && touch && gap > 48;
+      }
+      return coarse && touch;
+    })();
+    const baseMin = isRealMobile ? 0.1 : 0.3;
+    const thresholds = Array.from({
+      length: 101
+    }, (_, i) => i / 100);
+    const io = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        const ratio = entry.intersectionRatio ?? 0;
+        if (ratio >= 0.75) {
+          el.style.opacity = '1';
+        } else {
+          const mapped = baseMin + ratio / 0.75 * (1 - baseMin);
+          el.style.opacity = String(mapped);
+        }
+      }
+    }, {
+      threshold: thresholds,
+      root: scrollContainerRef?.current ?? null
+    });
+    io.observe(el);
+    el.style.opacity = '1';
+    return () => io.disconnect();
+  }, [isFocused, activeDelayed, scrollContainerRef]);
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
     id: blockId,
     ref: el => {
       setRef(el);
       rootRef.current = el;
     },
-    className: `project-pane ${isFocused ? 'is-focused' : ''}`,
+    className: `project-pane ${isFocused ? 'is-focused' : ''} ${isGame ? 'is-game' : ''}`,
+    "data-viewport-lock": isGame ? 'true' : undefined,
+    "data-project-key": item.key,
     style: {
       scrollSnapAlign: 'start',
       scrollSnapStop: 'always',
       contentVisibility: 'auto',
-      containIntrinsicSize: 'var(--cis-block, 600px)',
       contain: 'layout paint style',
       overflow: isFocused ? 'visible' : 'hidden'
     },
@@ -924,18 +888,26 @@ function ProjectPane({
         allowIdle: false,
         placeholderMinHeight: 0
       })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_event_mount__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      load: _components_case_studies_load_focused_details__WEBPACK_IMPORTED_MODULE_8__.loadFocusedDetails,
-      active: activeDelayed,
-      fallback: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-        style: {
-          height: '100dvh'
-        }
-      }),
-      componentProps: {
-        title: item.title ?? item.key
+    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+      ref: detailsHostRef,
+      style: {
+        height: reserveH != null ? `${reserveH}px` : undefined,
+        contentVisibility: activeDelayed ? 'visible' : undefined,
+        contain: 'paint'
       },
-      fadeMs: 400
+      children: caseStudyLoaders[item.key] && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_event_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        load: caseStudyLoaders[item.key],
+        active: activeDelayed,
+        fallback: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+          style: {
+            height: '100dvh'
+          }
+        }),
+        componentProps: {
+          title: item.title ?? item.key
+        },
+        fadeMs: FADE_MS
+      })
     })]
   });
 }
@@ -955,14 +927,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
-/* harmony import */ var _content_utility_opacity_observer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./content-utility/opacity-observer */ "./src/utils/content-utility/opacity-observer.tsx");
-/* harmony import */ var _content_utility_component_loader__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
-/* harmony import */ var _project_pane__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./project-pane */ "./src/utils/project-pane.tsx");
-/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./seed */ "./src/utils/seed/index.ts");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _content_utility_component_loader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
+/* harmony import */ var _project_pane__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./project-pane */ "./src/utils/project-pane.tsx");
+/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./seed */ "./src/utils/seed/index.ts");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/utils/scroll-controller.tsx
-
 
 
 
@@ -983,10 +953,10 @@ const ScrollController = () => {
   } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_1__.useProjectVisibility)();
   const {
     seed = 12345
-  } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_5__.useSsrData)() || {};
+  } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__.useSsrData)() || {};
 
   // Shuffle once on mount; never recompute order during this session
-  const projectsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)((0,_seed__WEBPACK_IMPORTED_MODULE_6__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_3__.baseProjects, seed));
+  const projectsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)((0,_seed__WEBPACK_IMPORTED_MODULE_5__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_2__.baseProjects, seed));
   const projects = projectsRef.current;
 
   // Keep DOM refs to each block for precise scrolling
@@ -1314,8 +1284,8 @@ const ScrollController = () => {
     let attachedEl = null;
     const atTop = el => el.scrollTop <= 0;
     const atBottom = el => {
-      // DPR-aware cushion so sticky/footer/safe-area rounding doesn't block the handoff
-      const EPS = Math.max(16, Math.ceil((window.devicePixelRatio || 1) * 20)); // ~16–24px
+      // give ourselves a little room for sticky footers/safe-area/subpixel rounding
+      const EPS = Math.max(8, Math.ceil((window.devicePixelRatio || 1) * 12));
       const max = el.scrollHeight - el.clientHeight;
       return max - el.scrollTop <= EPS;
     };
@@ -1410,10 +1380,6 @@ const ScrollController = () => {
     };
   }, [scrollContainerRef, focusedProjectKey]);
   const blockIds = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.map(p => `#block-${p.key}`), [projects]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const cleanup = (0,_content_utility_opacity_observer__WEBPACK_IMPORTED_MODULE_2__.attachOpacityObserver)(blockIds, focusedProjectKey);
-    return cleanup;
-  }, [blockIds, focusedProjectKey]);
 
   // Example consumer — left in place to react to synthetic-drag if you want
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -1423,7 +1389,7 @@ const ScrollController = () => {
     el.addEventListener('synthetic-drag', onSynthetic);
     return () => el.removeEventListener('synthetic-drag', onSynthetic);
   }, [scrollContainerRef]);
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
     ref: scrollContainerRef,
     className: "SnappyScrollThingy",
     style: {
@@ -1434,7 +1400,7 @@ const ScrollController = () => {
       scrollbarWidth: 'none',
       msOverflowStyle: 'none'
     },
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("style", {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("style", {
       children: `
         .SnappyScrollThingy::-webkit-scrollbar { display: none; }
         /* Allow native edge handoff */
@@ -1447,7 +1413,7 @@ const ScrollController = () => {
       `
     }), projects.map((item, idx) => {
       const isFocused = focusedProjectKey === item.key;
-      return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_project_pane__WEBPACK_IMPORTED_MODULE_4__.ProjectPane, {
+      return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_project_pane__WEBPACK_IMPORTED_MODULE_3__.ProjectPane, {
         item: item,
         isFocused: isFocused,
         isFirst: idx === 0,
@@ -1638,6 +1604,201 @@ const TitleObserver = () => {
 
 /***/ }),
 
+/***/ "./src/utils/title/view-project-cta.tsx":
+/*!**********************************************!*\
+  !*** ./src/utils/title/view-project-cta.tsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ProjectButtonIconTitle: () => (/* binding */ ProjectButtonIconTitle),
+/* harmony export */   ProjectButtonTitleIcon: () => (/* binding */ ProjectButtonTitleIcon)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
+/* harmony import */ var _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/arrow.json */ "./src/svg/arrow.json");
+/* harmony import */ var _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/link.json */ "./src/svg/link.json");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+// src/utils/title/view-project-cta.tsx
+
+
+
+
+
+// Minimal shape for what we use from Lottie
+
+/* --------------------------
+   Hook: arrow/link animation
+   -------------------------- */
+function useArrowLottie(displayTitle, isLink, container) {
+  const animRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // Mount: load + play once
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const el = container.current;
+    if (!el) return;
+    let mounted = true;
+    (async () => {
+      const animationData = isLink ? _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
+      const anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
+        container: el,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        animationData
+      });
+      if (!mounted) return;
+      animRef.current = anim;
+
+      // add CSS hook
+      const onDomLoaded = () => {
+        const svg = el.querySelector('svg');
+        if (svg) svg.classList.add('arrow-svg');
+      };
+      anim.addEventListener('DOMLoaded', onDomLoaded);
+
+      // 👇 Play full [0 → 40] on first load
+      anim.goToAndStop(0, true);
+      anim.playSegments([0, 40], true);
+      lastTitleRef.current = displayTitle;
+      return () => {
+        anim.removeEventListener('DOMLoaded', onDomLoaded);
+      };
+    })();
+    return () => {
+      mounted = false;
+      animRef.current?.destroy();
+      animRef.current = null;
+    };
+  }, [container, isLink]);
+
+  // On title change: play [40 → 90]
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!animRef.current) return;
+    if (lastTitleRef.current !== displayTitle) {
+      animRef.current.goToAndStop(40, true);
+      animRef.current.playSegments([40, 90], true);
+      lastTitleRef.current = displayTitle;
+    }
+  }, [displayTitle]);
+}
+
+/* --------------------------
+   Base Project Button
+   -------------------------- */
+function BaseProjectButton({
+  displayTitle,
+  isLink,
+  currentKey,
+  focusedProjectKey,
+  setFocusedProjectKey,
+  showBackground,
+  backgroundColor,
+  onHover,
+  variant
+}) {
+  const arrowContainer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const isFocused = focusedProjectKey === currentKey;
+
+  // optional: short-lived class for styling the “swipe/toggle” moment
+  const [isSwiping, setIsSwiping] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+
+  // Lottie hook
+  useArrowLottie(displayTitle, isLink, arrowContainer);
+  const handleToggleOpen = () => {
+    if (!currentKey) return;
+
+    // flip focus
+    const next = focusedProjectKey === currentKey ? null : currentKey;
+    setFocusedProjectKey(next);
+
+    // give you a brief CSS hook to style the transition
+    setIsSwiping(true);
+    const t = window.setTimeout(() => setIsSwiping(false), 900);
+    if (next) {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`block-${next}`);
+        el?.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth'
+        });
+      });
+    }
+
+    // cleanup in case of rapid unmount
+    return () => window.clearTimeout(t);
+  };
+  const Element = isLink ? 'a' : 'button';
+  const sharedProps = {
+    className: ['view-project-btn', !showBackground ? 'no-bg' : '', isFocused ? 'is-focused' : '', isSwiping ? 'is-swiping' : ''].filter(Boolean).join(' '),
+    onMouseEnter: () => onHover(true),
+    onMouseLeave: () => onHover(false),
+    'data-project-key': currentKey ?? undefined,
+    'aria-pressed': currentKey ? focusedProjectKey === currentKey : undefined,
+    ...(isLink ? {
+      href: '/dynamic-theme',
+      target: '_blank',
+      rel: 'noopener noreferrer'
+    } : {
+      onClick: handleToggleOpen
+    })
+  };
+  const TitleEl = (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h2", {
+    className: "project-view",
+    style: {
+      position: 'relative',
+      zIndex: 1
+    },
+    children: displayTitle
+  });
+  const IconEl = (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+    ref: arrowContainer,
+    className: "view-project-arrow",
+    style: {
+      position: 'relative',
+      zIndex: 1
+    }
+  });
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(Element, {
+    ...sharedProps,
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+      className: `view-project-background ${!showBackground ? 'no-bg' : ''}`,
+      style: {
+        backgroundColor,
+        position: 'absolute',
+        inset: 0,
+        borderRadius: 'inherit',
+        zIndex: 0
+      }
+    }), variant === 'icon-title' ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+      children: [IconEl, TitleEl]
+    }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+      children: [TitleEl, IconEl]
+    })]
+  });
+}
+
+/* --------------------------
+   Public Variants
+   -------------------------- */
+function ProjectButtonTitleIcon(props) {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(BaseProjectButton, {
+    ...props,
+    variant: "title-icon"
+  });
+}
+function ProjectButtonIconTitle(props) {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(BaseProjectButton, {
+    ...props,
+    variant: "icon-title"
+  });
+}
+
+/***/ }),
+
 /***/ "./src/utils/title/view-project.tsx":
 /*!******************************************!*\
   !*** ./src/utils/title/view-project.tsx ***!
@@ -1650,17 +1811,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
-/* harmony import */ var _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/arrow.json */ "./src/svg/arrow.json");
-/* harmony import */ var _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/link.json */ "./src/svg/link.json");
-/* harmony import */ var _title_context__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./title-context */ "./src/utils/title/title-context.tsx");
-/* harmony import */ var _content_utility_component_loader__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
-/* harmony import */ var _content_utility_color_map__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../content-utility/color-map */ "./src/utils/content-utility/color-map.ts");
-/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
-/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../seed */ "./src/utils/seed/index.ts");
-/* harmony import */ var _title_observer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./title-observer */ "./src/utils/title/title-observer.tsx");
-/* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _title_context__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./title-context */ "./src/utils/title/title-context.tsx");
+/* harmony import */ var _content_utility_component_loader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../content-utility/component-loader */ "./src/utils/content-utility/component-loader.tsx");
+/* harmony import */ var _content_utility_color_map__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../content-utility/color-map */ "./src/utils/content-utility/color-map.ts");
+/* harmony import */ var _context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../context-providers/ssr-data-context */ "./src/utils/context-providers/ssr-data-context.tsx");
+/* harmony import */ var _seed__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../seed */ "./src/utils/seed/index.ts");
+/* harmony import */ var _title_observer__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./title-observer */ "./src/utils/title/title-observer.tsx");
+/* harmony import */ var _context_providers_project_context__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../context-providers/project-context */ "./src/utils/context-providers/project-context.tsx");
+/* harmony import */ var _view_project_cta__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./view-project-cta */ "./src/utils/title/view-project-cta.tsx");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/utils/title/view-project.tsx
 
 
@@ -1672,99 +1831,84 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-// Minimal shape for what we use from Lottie
-
 const ViewProject = () => {
   const {
     activeTitle
-  } = (0,_title_context__WEBPACK_IMPORTED_MODULE_4__.useActiveTitle)();
+  } = (0,_title_context__WEBPACK_IMPORTED_MODULE_1__.useActiveTitle)();
   const {
     seed = 12345
-  } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_7__.useSsrData)() || {};
-  const projects = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_seed__WEBPACK_IMPORTED_MODULE_8__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_5__.baseProjects, seed), [seed]);
-
-  // Focus state shared across app
+  } = (0,_context_providers_ssr_data_context__WEBPACK_IMPORTED_MODULE_4__.useSsrData)() || {};
+  const projects = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => (0,_seed__WEBPACK_IMPORTED_MODULE_5__.seededShuffle)(_content_utility_component_loader__WEBPACK_IMPORTED_MODULE_2__.baseProjects, seed), [seed]);
   const {
     focusedProjectKey,
     setFocusedProjectKey
-  } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_10__.useProjectVisibility)();
+  } = (0,_context_providers_project_context__WEBPACK_IMPORTED_MODULE_7__.useProjectVisibility)();
   const focusedProject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.find(p => p.key === focusedProjectKey), [projects, focusedProjectKey]);
 
   // Freeze the title (and everything derived from it) when focused
   const displayTitle = focusedProjectKey ? focusedProject?.title ?? activeTitle : activeTitle;
-  const arrowContainer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const arrowAnimRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(displayTitle);
-  const [hovered, setHovered] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [showBackground, setShowBackground] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-  const hideTimeoutRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const currentProject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => projects.find(p => p.title === displayTitle), [projects, displayTitle]);
   const isLink = currentProject?.isLink;
   const currentKey = currentProject?.key;
-  const getBackgroundColor = () => {
-    const colorInfo = _content_utility_color_map__WEBPACK_IMPORTED_MODULE_6__.projectColors[displayTitle];
-    if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
-    const alpha = hovered ? 1 : colorInfo.defaultAlpha ?? 0.8;
-    return `rgba(${colorInfo.rgb}, ${alpha})`;
-  };
-  const triggerBackgroundFade = () => {
-    setShowBackground(true);
+
+  // background fade logic
+  const [hovered, _setHovered] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const hoveredRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const [showBackground, setShowBackground] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const hideTimeoutRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // single place to schedule/clear hides respecting hover
+  const scheduleHide = (delay = 1500) => {
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    hideTimeoutRef.current = setTimeout(() => setShowBackground(false), 1500);
+    hideTimeoutRef.current = setTimeout(() => {
+      // Do not hide while hovered
+      if (!hoveredRef.current) setShowBackground(false);
+    }, delay);
+  };
+  const clearHide = () => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  };
+  const setHovered = v => {
+    hoveredRef.current = v;
+    _setHovered(v);
+    if (v) {
+      // while hovered: keep bg on and cancel any pending hide
+      clearHide();
+      setShowBackground(true);
+    } else {
+      // when leaving: allow it to hide after a short delay
+      scheduleHide(1500);
+    }
   };
 
-  // (Re)create arrow/link Lottie when the *displayed* title changes
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    const el = arrowContainer.current;
-    if (!el) return;
-    let anim = null;
-    let mounted = true;
-    (async () => {
-      const animationData = displayTitle === 'Dynamic App' ? _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
-      anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
-        container: el,
-        renderer: 'svg',
-        loop: false,
-        autoplay: false,
-        animationData
-      });
-      if (!mounted || !anim) return;
-      arrowAnimRef.current = anim;
-      anim.goToAndStop(40, true);
-      const onDomLoaded = () => {
-        const svg = el.querySelector('svg');
-        if (svg) svg.classList.add('arrow-svg');
-      };
-      anim.addEventListener('DOMLoaded', onDomLoaded);
-      return () => {
-        anim?.removeEventListener('DOMLoaded', onDomLoaded);
-      };
-    })();
-    return () => {
-      mounted = false;
-      arrowAnimRef.current?.destroy();
-      arrowAnimRef.current = null;
-    };
-  }, [displayTitle]);
-
-  // Play a segment when the *displayed* title actually changes
+  // on title change: flash bg on, then hide later ONLY if not hovered
+  const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(displayTitle);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (lastTitleRef.current !== displayTitle) {
-      arrowAnimRef.current?.playSegments([40, 90], true);
       lastTitleRef.current = displayTitle;
-      triggerBackgroundFade();
+      setShowBackground(true);
+      // only schedule a hide if not hovered
+      if (!hoveredRef.current) scheduleHide(1500);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayTitle]);
 
-  // Trigger background fade on user motion (bottom ~35% of viewport) or touch
+  // light “bring it back” when user interacts near bottom — but don't hide if hovered
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const handleMouseMove = e => {
       const viewportH = window.innerHeight || document.documentElement.clientHeight;
-      if (e.clientY >= viewportH * 0.65) triggerBackgroundFade();
+      if (e.clientY >= viewportH * 0.65) {
+        setShowBackground(true);
+        if (!hoveredRef.current) scheduleHide(1500);
+      }
     };
-    const handleTouch = () => triggerBackgroundFade();
+    const handleTouch = () => {
+      setShowBackground(true);
+      if (!hoveredRef.current) scheduleHide(1500);
+    };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchstart', handleTouch, {
       passive: true
@@ -1776,68 +1920,32 @@ const ViewProject = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchstart', handleTouch);
       window.removeEventListener('touchmove', handleTouch);
-      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+      clearHide();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Toggle the focused project key; ScrollController reacts to this
-  const handleToggleOpen = () => {
-    if (!currentKey) return;
-    const next = focusedProjectKey === currentKey ? null : currentKey;
-    setFocusedProjectKey(next);
-    if (next) {
-      requestAnimationFrame(() => {
-        const el = document.getElementById(`block-${next}`);
-        el?.scrollIntoView({
-          block: 'start',
-          behavior: 'smooth'
-        });
-      });
-    }
-  };
-  const Element = isLink ? 'a' : 'button';
-  const sharedProps = {
-    className: `view-project-btn ${!showBackground ? 'no-bg' : ''}`,
-    onMouseEnter: () => setHovered(true),
-    onMouseLeave: () => setHovered(false),
-    'data-project-key': currentKey ?? undefined,
-    'aria-pressed': currentKey ? focusedProjectKey === currentKey : undefined,
-    ...(isLink ? {
-      href: '/dynamic-theme',
-      target: '_blank',
-      rel: 'noopener noreferrer'
-    } : {
-      onClick: handleToggleOpen
-    })
-  };
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+  // compute background color (hovered = higher alpha)
+  const backgroundColor = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const colorInfo = _content_utility_color_map__WEBPACK_IMPORTED_MODULE_3__.projectColors[displayTitle];
+    if (!colorInfo) return 'rgba(240, 240, 240, 0.5)';
+    const alpha = hovered ? 1 : colorInfo.defaultAlpha ?? 0.8;
+    return `rgba(${colorInfo.rgb}, ${alpha})`;
+  }, [displayTitle, hovered]);
+
+  // choose variant based on focus state
+  const ButtonComp = focusedProjectKey ? _view_project_cta__WEBPACK_IMPORTED_MODULE_8__.ProjectButtonIconTitle : _view_project_cta__WEBPACK_IMPORTED_MODULE_8__.ProjectButtonTitleIcon;
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
     className: "view-project-wrapper",
-    children: [!focusedProjectKey && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_title_observer__WEBPACK_IMPORTED_MODULE_9__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(Element, {
-      ...sharedProps,
-      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
-        className: `view-project-background ${!showBackground ? 'no-bg' : ''}`,
-        style: {
-          backgroundColor: getBackgroundColor(),
-          position: 'absolute',
-          inset: 0,
-          borderRadius: 'inherit',
-          zIndex: 0
-        }
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("h2", {
-        className: "project-view",
-        style: {
-          position: 'relative',
-          zIndex: 1
-        },
-        children: displayTitle
-      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
-        ref: arrowContainer,
-        className: "view-project-arrow",
-        style: {
-          position: 'relative',
-          zIndex: 1
-        }
-      })]
+    children: [!focusedProjectKey && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_title_observer__WEBPACK_IMPORTED_MODULE_6__["default"], {}), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(ButtonComp, {
+      displayTitle: displayTitle,
+      isLink: isLink,
+      currentKey: currentKey,
+      focusedProjectKey: focusedProjectKey,
+      setFocusedProjectKey: setFocusedProjectKey,
+      showBackground: showBackground,
+      backgroundColor: backgroundColor,
+      onHover: setHovered
     })]
   });
 };
