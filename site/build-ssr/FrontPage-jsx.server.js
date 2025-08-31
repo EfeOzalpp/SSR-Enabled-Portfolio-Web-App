@@ -142,6 +142,16 @@ module.exports = /*#__PURE__*/JSON.parse('{"v":"5.12.1","fr":30,"ip":0,"op":210,
 
 /***/ }),
 
+/***/ "./src/svg/arrow3.json":
+/*!*****************************!*\
+  !*** ./src/svg/arrow3.json ***!
+  \*****************************/
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"v":"5.12.1","fr":30,"ip":0,"op":210,"w":800,"h":520,"nm":"arrow","ddd":0,"assets":[{"id":"comp_0","nm":"arrow 2","fr":30,"layers":[{"ddd":0,"ind":1,"ty":4,"nm":"Layer 11 Outlines","sr":1,"ks":{"o":{"a":0,"k":100,"ix":11},"r":{"a":0,"k":0,"ix":10},"p":{"a":0,"k":[249.7,150,0],"ix":2,"l":2},"a":{"a":0,"k":[167.2,81,0],"ix":1,"l":2},"s":{"a":0,"k":[100,100,100],"ix":6,"l":2}},"ao":0,"shapes":[{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"v":[[17.792,-9],[17.792,-3],[17.792,3],[17.792,9],[-17.793,9],[-17.793,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[152.675,107.501],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":7,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":9,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":47,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":48,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":65,"s":[0]},{"t":66,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 1","np":2,"cix":2,"bm":0,"ix":1,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0]],"v":[[-8.803,54],[8.802,54],[8.802,-54],[-8.803,-54]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[125.701,81.375],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":23,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":25,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":52,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":53,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":67,"s":[0]},{"t":68,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 2","np":2,"cix":2,"bm":0,"ix":2,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0]],"v":[[-17.738,9],[17.738,9],[17.738,-9],[-17.738,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[-4.438,89.501],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":21,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":23,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":43,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":44,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":68,"s":[0]},{"t":69,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 3","np":2,"cix":2,"bm":0,"ix":3,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0]],"v":[[-17.605,9],[17.605,9],[17.605,-9],[-17.605,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[187.875,115.376],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":29,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":31,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":49,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":50,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":61,"s":[0]},{"t":62,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 4","np":2,"cix":2,"bm":0,"ix":4,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0]],"v":[[-17.605,9],[17.605,9],[17.605,-9],[-17.605,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[242.145,76.25],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":11,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":13,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":41,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":42,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":63,"s":[0]},{"t":64,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 5","np":2,"cix":2,"bm":0,"ix":5,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"v":[[17.698,-9],[17.698,-3],[17.698,3],[17.698,9],[-17.698,9],[-17.698,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[206.542,68.5],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":25,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":27,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":51,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":52,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":74,"s":[0]},{"t":75,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 6","np":2,"cix":2,"bm":0,"ix":6,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"v":[[26.4,-9],[26.4,-3],[26.4,3],[26.4,9],[-26.4,9],[-26.4,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[108.4,144.75],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":9,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":11,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":46,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":47,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":69,"s":[0]},{"t":70,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 7","np":2,"cix":2,"bm":0,"ix":7,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"v":[[26.595,-9],[26.595,-3],[26.595,3],[26.595,9],[-26.595,9],[-26.595,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[161.895,60.5],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":15,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":17,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":40,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":41,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":70,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":73,"s":[0]},{"t":74,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 8","np":2,"cix":2,"bm":0,"ix":8,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"v":[[17.495,-9],[17.495,-3],[17.495,3],[17.495,9],[-17.495,9],[-17.495,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[117.345,18],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":13,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":15,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":45,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":46,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":64,"s":[0]},{"t":65,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 9","np":2,"cix":2,"bm":0,"ix":9,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"v":[[8.787,-9],[8.787,-3],[8.787,3],[8.787,9],[-8.786,9],[-8.786,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[90.902,26.875],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":33,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":35,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":54,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":55,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":75,"s":[0]},{"t":76,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 10","np":2,"cix":2,"bm":0,"ix":10,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"v":[[17.414,-9],[17.414,-3],[17.414,3],[17.414,9],[-17.415,9],[-17.415,3],[-17.415,-3],[-17.415,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[30.284,71.375],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":27,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":29,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":53,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":54,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":62,"s":[0]},{"t":63,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 11","np":2,"cix":2,"bm":0,"ix":11,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[3.18,-3.26],[0,-4.97],[0,0],[-8.68,8.68],[-2.38,0],[0,0]],"o":[[-3.19,3.25],[0,0],[0,-2.13],[9.47,-9.47],[0,0],[-4.86,0]],"v":[[5.16,5.415],[0,18.135],[-17.6,18.135],[-8.8,-8.665],[17.6,-17.865],[17.6,0.135]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[64.779,44.865],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":180,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":17,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":19,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":42,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":43,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":72,"s":[0]},{"t":73,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 12","np":2,"cix":2,"bm":0,"ix":12,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[3.18,3.26],[0,4.97],[0,0],[-8.68,-8.68],[-2.38,0],[0,0]],"o":[[-3.19,-3.25],[0,0],[0,2.13],[9.47,9.47],[0,0],[-4.86,0]],"v":[[5.16,-5.415],[0,-18.135],[-17.6,-18.135],[-8.8,8.665],[17.6,17.865],[17.6,-0.135]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[223.758,114.386],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":270,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":5,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":7,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":44,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":45,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":71,"s":[0]},{"t":72,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 13","np":2,"cix":2,"bm":0,"ix":13,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[-9.47,-9.47],[0,-2.13],[0,0],[3.19,3.25],[4.86,0],[0,0]],"o":[[8.68,8.68],[0,0],[0,-4.97],[-3.18,-3.26],[0,0],[2.38,0]],"v":[[8.8,-8.665],[17.6,18.135],[0,18.135],[-5.16,5.415],[-17.6,0.135],[-17.6,-17.865]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[30.595,116.366],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[100,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":19,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":21,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":48,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":49,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":66,"s":[0]},{"t":67,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 14","np":2,"cix":2,"bm":0,"ix":14,"mn":"ADBE Vector Group","hd":false},{"ty":"gr","it":[{"ind":0,"ty":"sh","ix":1,"ks":{"a":0,"k":{"i":[[0,0],[0,0],[0,0],[0,0]],"o":[[0,0],[0,0],[0,0],[0,0]],"v":[[-17.605,9],[17.605,9],[17.605,-9],[-17.605,-9]],"c":true},"ix":2},"nm":"Path 1","mn":"ADBE Vector Shape - Group","hd":false},{"ty":"fl","c":{"a":0,"k":[1,1,1,1],"ix":4},"o":{"a":0,"k":100,"ix":5},"r":1,"bm":0,"nm":"Fill 1","mn":"ADBE Vector Graphic - Fill","hd":false},{"ty":"tr","p":{"a":0,"k":[65.02,136],"ix":2},"a":{"a":0,"k":[0,0],"ix":1},"s":{"a":0,"k":[96.076,100],"ix":3},"r":{"a":0,"k":0,"ix":6},"o":{"a":1,"k":[{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":0,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":31,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":33,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":50,"s":[100]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":51,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":55,"s":[0]},{"i":{"x":[0.833],"y":[0.833]},"o":{"x":[0.167],"y":[0.167]},"t":60,"s":[0]},{"t":61,"s":[100]}],"ix":7},"sk":{"a":0,"k":0,"ix":4},"sa":{"a":0,"k":0,"ix":5},"nm":"Transform"}],"nm":"Group 15","np":2,"cix":2,"bm":0,"ix":15,"mn":"ADBE Vector Group","hd":false}],"ip":0,"op":210,"st":0,"ct":1,"bm":0}]}],"layers":[{"ddd":0,"ind":1,"ty":0,"nm":"arrow 2","refId":"comp_0","sr":1,"ks":{"o":{"a":0,"k":100,"ix":11},"r":{"a":0,"k":0,"ix":10},"p":{"a":0,"k":[553,260,0],"ix":2,"l":2},"a":{"a":0,"k":[259,150,0],"ix":1,"l":2},"s":{"a":0,"k":[267,267,100],"ix":6,"l":2}},"ao":0,"w":500,"h":300,"ip":0,"op":210,"st":0,"bm":0}],"markers":[],"props":{}}');
+
+/***/ }),
+
 /***/ "./src/svg/link.json":
 /*!***************************!*\
   !*** ./src/svg/link.json ***!
@@ -714,15 +724,15 @@ __webpack_require__.r(__webpack_exports__);
 // Map project keys to their detail component loaders
 
 const caseStudyLoaders = {
-  rotary: () => __webpack_require__.e(/*! import() */ "src_components_case-studies_project-case-studies_rock-escapade_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../components/case-studies/project-case-studies/rock-escapade */ "./src/components/case-studies/project-case-studies/rock-escapade.tsx"))
-  // add more as you go:
-  // dynamic: () => import('../components/case-studies/project-case-studies/CaseStudyDynamic'),
+  game: () => __webpack_require__.e(/*! import() */ "src_components_case-studies_project-case-studies_rock-escapade_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../components/case-studies/project-case-studies/rock-escapade */ "./src/components/case-studies/project-case-studies/rock-escapade.tsx")),
+  rotary: () => __webpack_require__.e(/*! import() */ "src_components_case-studies_project-case-studies_rotary_tsx").then(__webpack_require__.bind(__webpack_require__, /*! ../components/case-studies/project-case-studies/rotary */ "./src/components/case-studies/project-case-studies/rotary.tsx"))
 };
 function ProjectPane({
   item,
   isFocused,
   setRef,
-  isFirst = false
+  isFirst = false,
+  collapseBelow = false
 }) {
   const {
     scrollContainerRef
@@ -746,12 +756,16 @@ function ProjectPane({
   const blockId = `block-${item.key}`;
   const rootRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
+  // --- Collapsed state (must NOT short-circuit hooks) ---
+  const isCollapsed = collapseBelow && !isFocused;
+
   // --- Delay unmount on unfocus ---
-  const EXIT_DELAY_MS = 0;
-  const FADE_MS = 0; // keep in sync with <EventMount fadeMs>
+  const EXIT_DELAY_MS = 100;
+  const FADE_MS = 100; // keep in sync with <EventMount fadeMs>
   const [activeDelayed, setActiveDelayed] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(isFocused);
   const exitTimerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (isCollapsed) return; // do nothing while collapsed
     if (isFocused) {
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
@@ -770,12 +784,13 @@ function ProjectPane({
         exitTimerRef.current = null;
       }
     };
-  }, [isFocused]);
+  }, [isFocused, isCollapsed]);
 
   // --- Height reservation during exit fade to prevent layout jump ---
   const [reserveH, setReserveH] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const detailsHostRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (isCollapsed) return; // no reservation when collapsed
     if (!isFocused) {
       const rafId = requestAnimationFrame(() => {
         const h = detailsHostRef.current?.getBoundingClientRect().height ?? 0;
@@ -794,12 +809,16 @@ function ProjectPane({
     } else {
       setReserveH(null);
     }
-  }, [isFocused]);
+  }, [isFocused, isCollapsed]);
 
   // --- Local opacity control (per-pane observer) ---
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = rootRef.current;
     if (!el) return;
+    if (isCollapsed) {
+      el.style.opacity = '1';
+      return;
+    }
     if (isFocused || !isFocused && activeDelayed) {
       el.style.opacity = '1';
       return;
@@ -835,8 +854,8 @@ function ProjectPane({
     io.observe(el);
     el.style.opacity = '1';
     return () => io.disconnect();
-  }, [isFocused, activeDelayed, scrollContainerRef]);
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+  }, [isFocused, activeDelayed, scrollContainerRef, isCollapsed]);
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
     id: blockId,
     ref: el => {
       setRef(el);
@@ -846,69 +865,72 @@ function ProjectPane({
     "data-viewport-lock": isGame ? 'true' : undefined,
     "data-project-key": item.key,
     style: {
+      display: isCollapsed ? 'none' : undefined,
       scrollSnapAlign: 'start',
       scrollSnapStop: 'always',
       contentVisibility: 'auto',
       contain: 'layout paint style',
       overflow: isFocused ? 'visible' : 'hidden'
     },
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-      className: "project-pane-wrapper",
-      children: isDynamic ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
-        children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    children: !isCollapsed && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
+      children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+        className: "project-pane-wrapper",
+        children: isDynamic ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
+          children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+            load: load,
+            serverRender: serverRender,
+            eager: isFirst,
+            allowIdle: true
+          }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
+            load: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
+            mountMode: "idle",
+            preloadOnIdle: true,
+            preloadIdleTimeout: 2000,
+            preloadOnFirstIO: true,
+            observeTargetId: blockId,
+            rootMargin: "0px",
+            placeholderMinHeight: 0,
+            componentProps: {
+              blockId
+            }
+          })]
+        }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
           load: load,
           serverRender: serverRender,
           eager: isFirst,
-          allowIdle: true
-        }), !hasSSR && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_view_mount__WEBPACK_IMPORTED_MODULE_2__["default"], {
-          load: () => Promise.all(/*! import() */[__webpack_require__.e("src_utils_media-providers_media-loader_tsx"), __webpack_require__.e("src_dynamic-app_components_fireworksDisplay_jsx"), __webpack_require__.e("dynamic-app-components-pauseButton"), __webpack_require__.e("src_dynamic-app_dynamic-app-shadow_jsx"), __webpack_require__.e("src_components_dynamic-app_shadow-entry_tsx-src_dynamic-app_preload-dynamic-app_ts-src_utils_-147977")]).then(__webpack_require__.bind(__webpack_require__, /*! ../components/dynamic-app/shadow-entry */ "./src/components/dynamic-app/shadow-entry.tsx")),
-          mountMode: "idle",
-          preloadOnIdle: true,
-          preloadIdleTimeout: 2000,
-          preloadOnFirstIO: true,
+          allowIdle: true,
           observeTargetId: blockId,
-          rootMargin: "0px",
-          placeholderMinHeight: 0,
-          componentProps: {
-            blockId
-          }
-        })]
-      }) : isGame ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
-        load: load,
-        serverRender: serverRender,
-        eager: isFirst,
-        allowIdle: true,
-        observeTargetId: blockId,
-        placeholderMinHeight: 0
-      }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
-        load: load,
-        fallback: fallbackNode,
-        serverRender: serverRender,
-        eager: isFirst,
-        allowIdle: false,
-        placeholderMinHeight: 0
-      })
-    }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-      ref: detailsHostRef,
-      style: {
-        height: reserveH != null ? `${reserveH}px` : undefined,
-        contentVisibility: activeDelayed ? 'visible' : undefined,
-        contain: 'paint'
-      },
-      children: caseStudyLoaders[item.key] && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_event_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
-        load: caseStudyLoaders[item.key],
-        active: activeDelayed,
-        fallback: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-          style: {
-            height: '100dvh'
-          }
-        }),
-        componentProps: {
-          title: item.title ?? item.key
+          placeholderMinHeight: 0
+        }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_lazy_in_view__WEBPACK_IMPORTED_MODULE_1__["default"], {
+          load: load,
+          fallback: fallbackNode,
+          serverRender: serverRender,
+          eager: isFirst,
+          allowIdle: false,
+          placeholderMinHeight: 0
+        })
+      }), (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+        ref: detailsHostRef,
+        style: {
+          height: reserveH != null ? `${reserveH}px` : undefined,
+          contentVisibility: activeDelayed ? 'visible' : undefined,
+          contain: 'paint'
         },
-        fadeMs: FADE_MS
-      })
-    })]
+        children: caseStudyLoaders[item.key] && (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_content_utility_event_mount__WEBPACK_IMPORTED_MODULE_8__["default"], {
+          load: caseStudyLoaders[item.key],
+          active: activeDelayed,
+          fallback: (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+            style: {
+              height: '100dvh'
+            }
+          }),
+          componentProps: {
+            title: item.title ?? item.key
+          },
+          fadeMs: FADE_MS
+        })
+      })]
+    })
   });
 }
 
@@ -969,12 +991,10 @@ const ScrollController = () => {
   // ---- Tunables ----
   const VIS_RATIO_TO_EXIT = 0.2; // 20% of any OTHER pane => auto-unfocus
   const VIS_DWELL_MS = 120; // must remain candidate for this long
-  const MAX_UNLOCK_VH = 0.90; // 90dvh movement cap before details unmount
-  const MIN_LINGER_MS = 280; // require at least this much time before unlock
-  const MAX_LINGER_MS = 800; // (optional) don't linger longer than this
-  const SNAP_RAMP_MS = 400; // proximity ramp
-  const SNAP_KB_FALLBACK_MS = 1200; // snap re-enable fallback
-  const UNLOCK_FALLBACK_MS = 1400; // unlock fallback if scroll events don’t fire
+  const MIN_LINGER_MS = 200; // shorter: require at least this much time before unlock
+  const SNAP_RAMP_MS = 300; // proximity ramp
+  const KB_FALLBACK_MS = 900; // snap re-enable fallback
+  const UNLOCK_FALLBACK_MS = 1100; // unlock fallback if scroll events don’t fire
 
   // Track the last non-null focused key so we can anchor (fallback) on exit
   const lastFocusedKeyRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
@@ -1115,14 +1135,16 @@ const ScrollController = () => {
     // @ts-ignore
     void scroller.offsetHeight;
     raf = requestAnimationFrame(step);
-    return () => raf && cancelAnimationFrame(raf);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      // Always restore styles if cancelled mid-flight
+      scroller.style.overflowY = 'scroll';
+      scroller.style.scrollBehavior = '';
+    };
   };
 
   /* ===========================
-     AUTO-UNFOCUS while focused:
-     - If any OTHER pane is ≥ 20% visible (and remains for VIS_DWELL_MS),
-       we exit focus and force the exit target to the *adjacent* pane
-       in the scroll direction (no skipping).
+     AUTO-UNFOCUS while focused
      =========================== */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const scroller = scrollContainerRef.current ?? document.scrollingElement;
@@ -1202,10 +1224,12 @@ const ScrollController = () => {
   }, [focusedProjectKey, projects, scrollContainerRef, setFocusedProjectKey]);
 
   /* ===========================
-     Focus EXIT choreography (robust)
-     - Tween to adjacent pane (soft), cancel inertia first
-     - Re-anchor after the old focused block collapses (hard)
+     Focus EXIT choreography (now user-cancelable)
      =========================== */
+  const exitOrchRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    timers: [],
+    inputAttached: false
+  });
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -1215,11 +1239,25 @@ const ScrollController = () => {
     const preferredKey = exitTargetKeyRef.current || lastFocusedKeyRef.current;
     if (!preferredKey) return;
     const scroller = scrollContainerRef.current ?? document.scrollingElement;
+    const state = exitOrchRef.current;
 
-    // Prevent native snap fighting us during the handoff
+    // prevent native snap fighting during handoff
     container.classList.add('no-snap');
 
-    // Tell panes which key is exiting (kept for existing listeners)
+    // helper: cleanup everything
+    const cleanup = () => {
+      state.cancelTween?.();
+      state.cancelTween = undefined;
+      state.timers.forEach(t => clearTimeout(t));
+      state.timers = [];
+      if (state.inputAttached) {
+        detachInputCancels();
+      }
+      container.classList.remove('no-snap');
+      container.classList.remove('snap-proximity');
+    };
+
+    // tell panes which key is exiting (for listeners)
     document.dispatchEvent(new CustomEvent('focus-exit-start', {
       detail: {
         key: preferredKey
@@ -1227,7 +1265,36 @@ const ScrollController = () => {
     }));
 
     // 1) Tween to the intended neighbor after killing inertia
-    const cancelTween = animatePlaceToKey(preferredKey, 260);
+    state.cancelTween = animatePlaceToKey(preferredKey, 240);
+
+    // 1a) If the user interacts, cancel choreography immediately
+    const INTERACTION_EVENTS = ['wheel', 'touchstart', 'keydown', 'mousedown', 'synthetic-drag'];
+    const onUserCancel = () => {
+      // cancel everything and re-enable input/snap right away
+      cleanup();
+      // small snap proximity to let native snap settle, then fully restore
+      container.classList.add('snap-proximity');
+      const t = window.setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
+      state.timers.push(t);
+    };
+    const attachInputCancels = () => {
+      if (state.inputAttached) return;
+      state.inputAttached = true;
+      for (const ev of INTERACTION_EVENTS) {
+        // @ts-ignore
+        document.addEventListener(ev, onUserCancel, {
+          passive: true
+        });
+      }
+    };
+    const detachInputCancels = () => {
+      state.inputAttached = false;
+      for (const ev of INTERACTION_EVENTS) {
+        // @ts-ignore
+        document.removeEventListener(ev, onUserCancel);
+      }
+    };
+    attachInputCancels();
 
     // 2) Re-anchor once the old focused block actually shrinks (details unmount)
     const oldKey = lastFocusedKeyRef.current;
@@ -1237,7 +1304,6 @@ const ScrollController = () => {
       let prevH = oldEl.offsetHeight || 0;
       ro = new ResizeObserver(() => {
         const h = oldEl.offsetHeight || 0;
-        // height dropped => layout shifted; re-anchor once
         if (h < prevH - 8) {
           hardPlaceAtKey(preferredKey);
           ro?.disconnect();
@@ -1249,7 +1315,7 @@ const ScrollController = () => {
     }
 
     // 3) Small dwell, then unlock + gently re-enable snapping (proximity ramp)
-    const unlockTimer = setTimeout(() => {
+    const unlockTimer = window.setTimeout(() => {
       document.dispatchEvent(new CustomEvent('focus-exit-unlock', {
         detail: {
           key: preferredKey
@@ -1258,25 +1324,39 @@ const ScrollController = () => {
       requestAnimationFrame(() => {
         container.classList.add('snap-proximity');
         container.classList.remove('no-snap');
-        const ramp = setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
-        cleanupFns.push(() => clearTimeout(ramp));
+        const ramp = window.setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
+        state.timers.push(ramp);
       });
 
       // Clear the used target
       exitTargetKeyRef.current = null;
+      detachInputCancels();
     }, MIN_LINGER_MS);
+    state.timers.push(unlockTimer);
 
-    // Fallback re-anchor in case RO is not available / missed (covers EXIT_DELAY_MS + fade)
-    const postTimer = setTimeout(() => hardPlaceAtKey(preferredKey), 900);
-    const cleanupFns = [() => typeof cancelTween === 'function' && cancelTween(), () => clearTimeout(unlockTimer), () => clearTimeout(postTimer), () => ro?.disconnect?.()];
+    // Fallback re-anchor and final cleanup
+    const postAnchor = window.setTimeout(() => hardPlaceAtKey(preferredKey), 600);
+    const kbFallback = window.setTimeout(() => container.classList.remove('no-snap'), KB_FALLBACK_MS);
+    const unlockFallback = window.setTimeout(() => {
+      document.dispatchEvent(new CustomEvent('focus-exit-unlock', {
+        detail: {
+          key: preferredKey
+        }
+      }));
+      container.classList.add('snap-proximity');
+      const ramp = window.setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
+      state.timers.push(ramp);
+      detachInputCancels();
+    }, UNLOCK_FALLBACK_MS);
+    state.timers.push(postAnchor, kbFallback, unlockFallback);
     return () => {
-      cleanupFns.forEach(fn => fn());
+      ro?.disconnect();
+      cleanup();
     };
   }, [focusedProjectKey, scrollContainerRef]);
 
   /* ===========================
      Edge signalling only (no cancel, no programmatic scroll)
-     (rebinding-safe version so it survives DOM swaps)
      =========================== */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -1284,7 +1364,6 @@ const ScrollController = () => {
     let attachedEl = null;
     const atTop = el => el.scrollTop <= 0;
     const atBottom = el => {
-      // give ourselves a little room for sticky footers/safe-area/subpixel rounding
       const EPS = Math.max(8, Math.ceil((window.devicePixelRatio || 1) * 12));
       const max = el.scrollHeight - el.clientHeight;
       return max - el.scrollTop <= EPS;
@@ -1389,6 +1468,9 @@ const ScrollController = () => {
     el.addEventListener('synthetic-drag', onSynthetic);
     return () => el.removeEventListener('synthetic-drag', onSynthetic);
   }, [scrollContainerRef]);
+
+  // Compute once per render: which index is focused?
+  const focusedIdx = focusedProjectKey ? projects.findIndex(p => p.key === focusedProjectKey) : -1;
   return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
     ref: scrollContainerRef,
     className: "SnappyScrollThingy",
@@ -1413,9 +1495,11 @@ const ScrollController = () => {
       `
     }), projects.map((item, idx) => {
       const isFocused = focusedProjectKey === item.key;
+      const collapseBelow = focusedIdx >= 0 && idx > focusedIdx;
       return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_project_pane__WEBPACK_IMPORTED_MODULE_3__.ProjectPane, {
         item: item,
         isFocused: isFocused,
+        collapseBelow: collapseBelow,
         isFirst: idx === 0,
         setRef: el => {
           projectRefs.current[item.key] = el;
@@ -1619,9 +1703,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils/load-lottie */ "./src/utils/load-lottie.ts");
 /* harmony import */ var _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../svg/arrow.json */ "./src/svg/arrow.json");
-/* harmony import */ var _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/link.json */ "./src/svg/link.json");
-/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
+/* harmony import */ var _svg_arrow3_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../svg/arrow3.json */ "./src/svg/arrow3.json");
+/* harmony import */ var _svg_link_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../svg/link.json */ "./src/svg/link.json");
+/* harmony import */ var _emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @emotion/react/jsx-runtime */ "./node_modules/@emotion/react/jsx-runtime/dist/emotion-react-jsx-runtime.cjs.js");
 // src/utils/title/view-project-cta.tsx
+
 
 
 
@@ -1632,17 +1718,18 @@ __webpack_require__.r(__webpack_exports__);
 /* --------------------------
    Hook: arrow/link animation
    -------------------------- */
-function useArrowLottie(displayTitle, isLink, container) {
+function useArrowLottie(displayTitle, isLink, isFocused, container) {
   const animRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // Mount: load + play once
+  // Mount: load + play once (recreate when lottie type changes)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const el = container.current;
     if (!el) return;
     let mounted = true;
     (async () => {
-      const animationData = isLink ? _svg_link_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
+      // keep link.json priority; otherwise use arrow3 when focused, else arrow
+      const animationData = isLink ? _svg_link_json__WEBPACK_IMPORTED_MODULE_4__ : isFocused ? _svg_arrow3_json__WEBPACK_IMPORTED_MODULE_3__ : _svg_arrow_json__WEBPACK_IMPORTED_MODULE_2__;
       const anim = await _utils_load_lottie__WEBPACK_IMPORTED_MODULE_1__["default"].loadAnimation({
         container: el,
         renderer: 'svg',
@@ -1660,7 +1747,7 @@ function useArrowLottie(displayTitle, isLink, container) {
       };
       anim.addEventListener('DOMLoaded', onDomLoaded);
 
-      // 👇 Play full [0 → 40] on first load
+      // Play initial [0 → 40]
       anim.goToAndStop(0, true);
       anim.playSegments([0, 40], true);
       lastTitleRef.current = displayTitle;
@@ -1673,7 +1760,7 @@ function useArrowLottie(displayTitle, isLink, container) {
       animRef.current?.destroy();
       animRef.current = null;
     };
-  }, [container, isLink]);
+  }, [container, isLink, isFocused]);
 
   // On title change: play [40 → 90]
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
@@ -1703,11 +1790,17 @@ function BaseProjectButton({
   const arrowContainer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const isFocused = focusedProjectKey === currentKey;
 
-  // optional: short-lived class for styling the “swipe/toggle” moment
+  // short-lived class for styling the “swipe/toggle” moment
   const [isSwiping, setIsSwiping] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
 
   // Lottie hook
-  useArrowLottie(displayTitle, isLink, arrowContainer);
+  useArrowLottie(displayTitle, isLink, isFocused, arrowContainer);
+
+  // IMPORTANT: when focus state or the rendered key changes, clear hover
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    onHover(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFocused, currentKey]);
   const handleToggleOpen = () => {
     if (!currentKey) return;
 
@@ -1715,7 +1808,7 @@ function BaseProjectButton({
     const next = focusedProjectKey === currentKey ? null : currentKey;
     setFocusedProjectKey(next);
 
-    // give you a brief CSS hook to style the transition
+    // brief CSS hook
     setIsSwiping(true);
     const t = window.setTimeout(() => setIsSwiping(false), 900);
     if (next) {
@@ -1727,8 +1820,6 @@ function BaseProjectButton({
         });
       });
     }
-
-    // cleanup in case of rapid unmount
     return () => window.clearTimeout(t);
   };
   const Element = isLink ? 'a' : 'button';
@@ -1746,7 +1837,7 @@ function BaseProjectButton({
       onClick: handleToggleOpen
     })
   };
-  const TitleEl = (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("h2", {
+  const TitleEl = (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h2", {
     className: "project-view",
     style: {
       position: 'relative',
@@ -1754,7 +1845,7 @@ function BaseProjectButton({
     },
     children: displayTitle
   });
-  const IconEl = (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+  const IconEl = (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
     ref: arrowContainer,
     className: "view-project-arrow",
     style: {
@@ -1762,20 +1853,22 @@ function BaseProjectButton({
       zIndex: 1
     }
   });
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(Element, {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(Element, {
     ...sharedProps,
-    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+    children: [(0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
       className: `view-project-background ${!showBackground ? 'no-bg' : ''}`,
       style: {
         backgroundColor,
         position: 'absolute',
         inset: 0,
         borderRadius: 'inherit',
-        zIndex: 0
-      }
-    }), variant === 'icon-title' ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+        zIndex: 0,
+        pointerEvents: 'none' // ensure bg doesn't swallow hover
+      },
+      "aria-hidden": "true"
+    }), variant === 'icon-title' ? (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
       children: [IconEl, TitleEl]
-    }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+    }) : (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
       children: [TitleEl, IconEl]
     })]
   });
@@ -1785,13 +1878,13 @@ function BaseProjectButton({
    Public Variants
    -------------------------- */
 function ProjectButtonTitleIcon(props) {
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(BaseProjectButton, {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(BaseProjectButton, {
     ...props,
     variant: "title-icon"
   });
 }
 function ProjectButtonIconTitle(props) {
-  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(BaseProjectButton, {
+  return (0,_emotion_react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(BaseProjectButton, {
     ...props,
     variant: "icon-title"
   });
@@ -1851,38 +1944,53 @@ const ViewProject = () => {
   const isLink = currentProject?.isLink;
   const currentKey = currentProject?.key;
 
-  // background fade logic
+  // background / hover logic
   const [hovered, _setHovered] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const hoveredRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
   const [showBackground, setShowBackground] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const hideTimeoutRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-
-  // single place to schedule/clear hides respecting hover
-  const scheduleHide = (delay = 1500) => {
-    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    hideTimeoutRef.current = setTimeout(() => {
-      // Do not hide while hovered
-      if (!hoveredRef.current) setShowBackground(false);
-    }, delay);
-  };
   const clearHide = () => {
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);
       hideTimeoutRef.current = null;
     }
   };
+
+  // single place to schedule/clear hides respecting hover
+  const scheduleHide = (delay = 1500) => {
+    clearHide();
+    hideTimeoutRef.current = setTimeout(() => {
+      if (!hoveredRef.current) setShowBackground(false);
+    }, delay);
+  };
   const setHovered = v => {
     hoveredRef.current = v;
     _setHovered(v);
     if (v) {
-      // while hovered: keep bg on and cancel any pending hide
       clearHide();
       setShowBackground(true);
     } else {
-      // when leaving: allow it to hide after a short delay
       scheduleHide(1500);
     }
   };
+
+  // RESET hover/background appropriately when focus toggles
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (focusedProjectKey) {
+      // entering focus: make bg visible and don't auto-hide
+      clearHide();
+      setShowBackground(true);
+      hoveredRef.current = false;
+      _setHovered(false);
+    } else {
+      // leaving focus: briefly show, then allow auto-hide if not hovered
+      setShowBackground(true);
+      hoveredRef.current = false;
+      _setHovered(false);
+      scheduleHide(1500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedProjectKey]);
 
   // on title change: flash bg on, then hide later ONLY if not hovered
   const lastTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(displayTitle);
@@ -1890,8 +1998,9 @@ const ViewProject = () => {
     if (lastTitleRef.current !== displayTitle) {
       lastTitleRef.current = displayTitle;
       setShowBackground(true);
-      // only schedule a hide if not hovered
-      if (!hoveredRef.current) scheduleHide(1500);
+      if (!hoveredRef.current && !focusedProjectKey) {
+        scheduleHide(1500);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayTitle]);
@@ -1902,12 +2011,12 @@ const ViewProject = () => {
       const viewportH = window.innerHeight || document.documentElement.clientHeight;
       if (e.clientY >= viewportH * 0.65) {
         setShowBackground(true);
-        if (!hoveredRef.current) scheduleHide(1500);
+        if (!hoveredRef.current && !focusedProjectKey) scheduleHide(1500);
       }
     };
     const handleTouch = () => {
       setShowBackground(true);
-      if (!hoveredRef.current) scheduleHide(1500);
+      if (!hoveredRef.current && !focusedProjectKey) scheduleHide(1500);
     };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchstart', handleTouch, {

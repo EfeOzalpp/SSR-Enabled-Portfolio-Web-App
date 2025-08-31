@@ -13,9 +13,8 @@ import EventMount from './content-utility/event-mount';
 
 // Map project keys to their detail component loaders
 const caseStudyLoaders: Record<string, () => Promise<any>> = {
-  rotary: () => import('../components/case-studies/project-case-studies/rock-escapade'),
-  // add more as you go:
-  // dynamic: () => import('../components/case-studies/project-case-studies/CaseStudyDynamic'),
+  game: () => import('../components/case-studies/project-case-studies/rock-escapade'),
+  rotary: () => import('../components/case-studies/project-case-studies/rotary'),
 };
 
 type Props = {
@@ -23,6 +22,8 @@ type Props = {
   isFocused: boolean;
   setRef: (el: HTMLDivElement | null) => void;
   isFirst?: boolean;
+  /** When true AND not focused, hide this pane completely (display:none) */
+  collapseBelow?: boolean;
 };
 
 export function ProjectPane({
@@ -30,6 +31,7 @@ export function ProjectPane({
   isFocused,
   setRef,
   isFirst = false,
+  collapseBelow = false,
 }: Props) {
   const { scrollContainerRef } = useProjectVisibility();
   const load = useProjectLoader(item.key);
@@ -56,13 +58,17 @@ export function ProjectPane({
   const blockId = `block-${item.key}`;
   const rootRef = useRef<HTMLDivElement | null>(null);
 
+  // --- Collapsed state (must NOT short-circuit hooks) ---
+  const isCollapsed = collapseBelow && !isFocused;
+
   // --- Delay unmount on unfocus ---
-  const EXIT_DELAY_MS = 0;
-  const FADE_MS = 0; // keep in sync with <EventMount fadeMs>
+  const EXIT_DELAY_MS = 100;
+  const FADE_MS = 100; // keep in sync with <EventMount fadeMs>
   const [activeDelayed, setActiveDelayed] = useState<boolean>(isFocused);
   const exitTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (isCollapsed) return; // do nothing while collapsed
     if (isFocused) {
       if (exitTimerRef.current) {
         clearTimeout(exitTimerRef.current);
@@ -81,13 +87,14 @@ export function ProjectPane({
         exitTimerRef.current = null;
       }
     };
-  }, [isFocused]);
+  }, [isFocused, isCollapsed]);
 
   // --- Height reservation during exit fade to prevent layout jump ---
   const [reserveH, setReserveH] = useState<number | null>(null);
   const detailsHostRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (isCollapsed) return; // no reservation when collapsed
     if (!isFocused) {
       const rafId = requestAnimationFrame(() => {
         const h = detailsHostRef.current?.getBoundingClientRect().height ?? 0;
@@ -109,12 +116,16 @@ export function ProjectPane({
     } else {
       setReserveH(null);
     }
-  }, [isFocused]);
+  }, [isFocused, isCollapsed]);
 
   // --- Local opacity control (per-pane observer) ---
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
+    if (isCollapsed) {
+      el.style.opacity = '1';
+      return;
+    }
 
     if (isFocused || (!isFocused && activeDelayed)) {
       el.style.opacity = '1';
@@ -154,7 +165,7 @@ export function ProjectPane({
     el.style.opacity = '1';
 
     return () => io.disconnect();
-  }, [isFocused, activeDelayed, scrollContainerRef]);
+  }, [isFocused, activeDelayed, scrollContainerRef, isCollapsed]);
 
   return (
     <div
@@ -164,6 +175,7 @@ export function ProjectPane({
       data-viewport-lock={isGame ? 'true' : undefined}
       data-project-key={item.key}
       style={{
+        display: isCollapsed ? 'none' : undefined,
         scrollSnapAlign: 'start',
         scrollSnapStop: 'always',
         contentVisibility: 'auto' as any,
@@ -171,69 +183,74 @@ export function ProjectPane({
         overflow: isFocused ? 'visible' : 'hidden',
       }}
     >
-      <div className="project-pane-wrapper">
-        {isDynamic ? (
-          <>
-            <LazyInView
-              load={load}
-              serverRender={serverRender}
-              eager={isFirst}
-              allowIdle
-            />
-            {!hasSSR && (
-              <LazyViewMount
-                load={() => import('../components/dynamic-app/shadow-entry')}
-                mountMode="idle"
-                preloadOnIdle
-                preloadIdleTimeout={2000}
-                preloadOnFirstIO
+      {/* Skip heavy children entirely when collapsed */}
+      {!isCollapsed && (
+        <>
+          <div className="project-pane-wrapper">
+            {isDynamic ? (
+              <>
+                <LazyInView
+                  load={load}
+                  serverRender={serverRender}
+                  eager={isFirst}
+                  allowIdle
+                />
+                {!hasSSR && (
+                  <LazyViewMount
+                    load={() => import('../components/dynamic-app/shadow-entry')}
+                    mountMode="idle"
+                    preloadOnIdle
+                    preloadIdleTimeout={2000}
+                    preloadOnFirstIO
+                    observeTargetId={blockId}
+                    rootMargin="0px"
+                    placeholderMinHeight={0}
+                    componentProps={{ blockId }}
+                  />
+                )}
+              </>
+            ) : isGame ? (
+              <LazyInView
+                load={load}
+                serverRender={serverRender}
+                eager={isFirst}
+                allowIdle
                 observeTargetId={blockId}
-                rootMargin="0px"
                 placeholderMinHeight={0}
-                componentProps={{ blockId }}
+              />
+            ) : (
+              <LazyInView
+                load={load}
+                fallback={fallbackNode}
+                serverRender={serverRender}
+                eager={isFirst}
+                allowIdle={false}
+                placeholderMinHeight={0}
               />
             )}
-          </>
-        ) : isGame ? (
-          <LazyInView
-            load={load}
-            serverRender={serverRender}
-            eager={isFirst}
-            allowIdle
-            observeTargetId={blockId}
-            placeholderMinHeight={0}
-          />
-        ) : (
-          <LazyInView
-            load={load}
-            fallback={fallbackNode}
-            serverRender={serverRender}
-            eager={isFirst}
-            allowIdle={false}
-            placeholderMinHeight={0}
-          />
-        )}
-      </div>
+          </div>
 
-      {/* details host: force visible during fade + freeze height to avoid jank */}
-      <div
-        ref={detailsHostRef}
-        style={{
-          height: reserveH != null ? `${reserveH}px` : undefined,
-          contentVisibility: activeDelayed ? ('visible' as any) : undefined,
-          contain: 'paint',
-        }}
-      >
-        {caseStudyLoaders[item.key] && (
-          <EventMount
-            load={caseStudyLoaders[item.key]}
-            active={activeDelayed}
-            fallback={<div style={{ height: '100dvh' }} />}
-            componentProps={{ title: item.title ?? item.key }}
-            fadeMs={FADE_MS}
-          />
-        )}
-      </div>
+          {/* details host: force visible during fade + freeze height to avoid jank */}
+          <div
+            ref={detailsHostRef}
+            style={{
+              height: reserveH != null ? `${reserveH}px` : undefined,
+              contentVisibility: activeDelayed ? ('visible' as any) : undefined,
+              contain: 'paint',
+            }}
+          >
+            {caseStudyLoaders[item.key] && (
+              <EventMount
+                load={caseStudyLoaders[item.key]}
+                active={activeDelayed}
+                fallback={<div style={{ height: '100dvh' }} />}
+                componentProps={{ title: item.title ?? item.key }}
+                fadeMs={FADE_MS}
+              />
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

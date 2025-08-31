@@ -37,20 +37,11 @@ const ViewProject = () => {
   const isLink = currentProject?.isLink;
   const currentKey = currentProject?.key;
 
-  // background fade logic
+  // background / hover logic
   const [hovered, _setHovered] = useState(false);
   const hoveredRef = useRef(false);
   const [showBackground, setShowBackground] = useState(true);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // single place to schedule/clear hides respecting hover
-  const scheduleHide = (delay = 1500) => {
-    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    hideTimeoutRef.current = setTimeout(() => {
-      // Do not hide while hovered
-      if (!hoveredRef.current) setShowBackground(false);
-    }, delay);
-  };
 
   const clearHide = () => {
     if (hideTimeoutRef.current) {
@@ -59,18 +50,42 @@ const ViewProject = () => {
     }
   };
 
+  // single place to schedule/clear hides respecting hover
+  const scheduleHide = (delay = 1500) => {
+    clearHide();
+    hideTimeoutRef.current = setTimeout(() => {
+      if (!hoveredRef.current) setShowBackground(false);
+    }, delay);
+  };
+
   const setHovered = (v: boolean) => {
     hoveredRef.current = v;
     _setHovered(v);
     if (v) {
-      // while hovered: keep bg on and cancel any pending hide
       clearHide();
       setShowBackground(true);
     } else {
-      // when leaving: allow it to hide after a short delay
       scheduleHide(1500);
     }
   };
+
+  // RESET hover/background appropriately when focus toggles
+  useEffect(() => {
+    if (focusedProjectKey) {
+      // entering focus: make bg visible and don't auto-hide
+      clearHide();
+      setShowBackground(true);
+      hoveredRef.current = false;
+      _setHovered(false);
+    } else {
+      // leaving focus: briefly show, then allow auto-hide if not hovered
+      setShowBackground(true);
+      hoveredRef.current = false;
+      _setHovered(false);
+      scheduleHide(1500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedProjectKey]);
 
   // on title change: flash bg on, then hide later ONLY if not hovered
   const lastTitleRef = useRef(displayTitle);
@@ -78,8 +93,9 @@ const ViewProject = () => {
     if (lastTitleRef.current !== displayTitle) {
       lastTitleRef.current = displayTitle;
       setShowBackground(true);
-      // only schedule a hide if not hovered
-      if (!hoveredRef.current) scheduleHide(1500);
+      if (!hoveredRef.current && !focusedProjectKey) {
+        scheduleHide(1500);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayTitle]);
@@ -90,12 +106,12 @@ const ViewProject = () => {
       const viewportH = window.innerHeight || document.documentElement.clientHeight;
       if (e.clientY >= viewportH * 0.65) {
         setShowBackground(true);
-        if (!hoveredRef.current) scheduleHide(1500);
+        if (!hoveredRef.current && !focusedProjectKey) scheduleHide(1500);
       }
     };
     const handleTouch = () => {
       setShowBackground(true);
-      if (!hoveredRef.current) scheduleHide(1500);
+      if (!hoveredRef.current && !focusedProjectKey) scheduleHide(1500);
     };
 
     window.addEventListener('mousemove', handleMouseMove);

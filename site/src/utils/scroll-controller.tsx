@@ -43,12 +43,10 @@ const ScrollController = () => {
   // ---- Tunables ----
   const VIS_RATIO_TO_EXIT = 0.2;     // 20% of any OTHER pane => auto-unfocus
   const VIS_DWELL_MS      = 120;     // must remain candidate for this long
-  const MAX_UNLOCK_VH     = 0.90;    // 90dvh movement cap before details unmount
-  const MIN_LINGER_MS     = 280;     // require at least this much time before unlock
-  const MAX_LINGER_MS     = 800;     // (optional) don't linger longer than this
-  const SNAP_RAMP_MS      = 400;     // proximity ramp
-  const SNAP_KB_FALLBACK_MS = 1200;  // snap re-enable fallback
-  const UNLOCK_FALLBACK_MS  = 1400;  // unlock fallback if scroll events don’t fire
+  const MIN_LINGER_MS     = 200;     // shorter: require at least this much time before unlock
+  const SNAP_RAMP_MS      = 300;     // proximity ramp
+  const KB_FALLBACK_MS    = 900;     // snap re-enable fallback
+  const UNLOCK_FALLBACK_MS= 1100;    // unlock fallback if scroll events don’t fire
 
   // Track the last non-null focused key so we can anchor (fallback) on exit
   const lastFocusedKeyRef = useRef<string | null>(null);
@@ -203,14 +201,16 @@ const ScrollController = () => {
     // @ts-ignore
     void scroller.offsetHeight;
     raf = requestAnimationFrame(step);
-    return () => raf && cancelAnimationFrame(raf);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      // Always restore styles if cancelled mid-flight
+      (scroller as HTMLElement).style.overflowY = 'scroll';
+      (scroller as HTMLElement).style.scrollBehavior = '';
+    };
   };
 
   /* ===========================
-     AUTO-UNFOCUS while focused:
-     - If any OTHER pane is ≥ 20% visible (and remains for VIS_DWELL_MS),
-       we exit focus and force the exit target to the *adjacent* pane
-       in the scroll direction (no skipping).
+     AUTO-UNFOCUS while focused
      =========================== */
   useEffect(() => {
     const scroller = scrollContainerRef.current ?? (document.scrollingElement as any);
@@ -305,10 +305,14 @@ const ScrollController = () => {
   }, [focusedProjectKey, projects, scrollContainerRef, setFocusedProjectKey]);
 
   /* ===========================
-     Focus EXIT choreography (robust)
-     - Tween to adjacent pane (soft), cancel inertia first
-     - Re-anchor after the old focused block collapses (hard)
+     Focus EXIT choreography (now user-cancelable)
      =========================== */
+  const exitOrchRef = useRef<{
+    cancelTween?: () => void;
+    timers: number[];
+    inputAttached: boolean;
+  }>({ timers: [], inputAttached: false });
+
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -320,15 +324,58 @@ const ScrollController = () => {
     if (!preferredKey) return;
 
     const scroller = scrollContainerRef.current ?? (document.scrollingElement as any);
+    const state = exitOrchRef.current;
 
-    // Prevent native snap fighting us during the handoff
+    // prevent native snap fighting during handoff
     container.classList.add('no-snap');
 
-    // Tell panes which key is exiting (kept for existing listeners)
+    // helper: cleanup everything
+    const cleanup = () => {
+      state.cancelTween?.();
+      state.cancelTween = undefined;
+      state.timers.forEach(t => clearTimeout(t));
+      state.timers = [];
+      if (state.inputAttached) {
+        detachInputCancels();
+      }
+      container.classList.remove('no-snap');
+      container.classList.remove('snap-proximity');
+    };
+
+    // tell panes which key is exiting (for listeners)
     document.dispatchEvent(new CustomEvent('focus-exit-start', { detail: { key: preferredKey } }));
 
     // 1) Tween to the intended neighbor after killing inertia
-    const cancelTween = animatePlaceToKey(preferredKey, 260);
+    state.cancelTween = animatePlaceToKey(preferredKey, 240);
+
+    // 1a) If the user interacts, cancel choreography immediately
+    const INTERACTION_EVENTS: Array<keyof DocumentEventMap | 'mousedown'> =
+      ['wheel', 'touchstart', 'keydown', 'mousedown', 'synthetic-drag'];
+    const onUserCancel = () => {
+      // cancel everything and re-enable input/snap right away
+      cleanup();
+      // small snap proximity to let native snap settle, then fully restore
+      container.classList.add('snap-proximity');
+      const t = window.setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
+      state.timers.push(t);
+    };
+
+    const attachInputCancels = () => {
+      if (state.inputAttached) return;
+      state.inputAttached = true;
+      for (const ev of INTERACTION_EVENTS) {
+        // @ts-ignore
+        document.addEventListener(ev, onUserCancel, { passive: true });
+      }
+    };
+    const detachInputCancels = () => {
+      state.inputAttached = false;
+      for (const ev of INTERACTION_EVENTS) {
+        // @ts-ignore
+        document.removeEventListener(ev, onUserCancel as any);
+      }
+    };
+    attachInputCancels();
 
     // 2) Re-anchor once the old focused block actually shrinks (details unmount)
     const oldKey = lastFocusedKeyRef.current;
@@ -342,7 +389,6 @@ const ScrollController = () => {
       let prevH = oldEl.offsetHeight || 0;
       ro = new ResizeObserver(() => {
         const h = oldEl.offsetHeight || 0;
-        // height dropped => layout shifted; re-anchor once
         if (h < prevH - 8) {
           hardPlaceAtKey(preferredKey);
           ro?.disconnect();
@@ -354,38 +400,42 @@ const ScrollController = () => {
     }
 
     // 3) Small dwell, then unlock + gently re-enable snapping (proximity ramp)
-    const unlockTimer = setTimeout(() => {
+    const unlockTimer = window.setTimeout(() => {
       document.dispatchEvent(new CustomEvent('focus-exit-unlock', { detail: { key: preferredKey } }));
 
       requestAnimationFrame(() => {
         container.classList.add('snap-proximity');
         container.classList.remove('no-snap');
-        const ramp = setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
-        cleanupFns.push(() => clearTimeout(ramp));
+        const ramp = window.setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
+        state.timers.push(ramp);
       });
 
       // Clear the used target
       exitTargetKeyRef.current = null;
+      detachInputCancels();
     }, MIN_LINGER_MS);
+    state.timers.push(unlockTimer);
 
-    // Fallback re-anchor in case RO is not available / missed (covers EXIT_DELAY_MS + fade)
-    const postTimer = setTimeout(() => hardPlaceAtKey(preferredKey), 900);
-
-    const cleanupFns: Array<() => void> = [
-      () => typeof cancelTween === 'function' && cancelTween(),
-      () => clearTimeout(unlockTimer),
-      () => clearTimeout(postTimer),
-      () => ro?.disconnect?.(),
-    ];
+    // Fallback re-anchor and final cleanup
+    const postAnchor = window.setTimeout(() => hardPlaceAtKey(preferredKey), 600);
+    const kbFallback = window.setTimeout(() => container.classList.remove('no-snap'), KB_FALLBACK_MS);
+    const unlockFallback = window.setTimeout(() => {
+      document.dispatchEvent(new CustomEvent('focus-exit-unlock', { detail: { key: preferredKey } }));
+      container.classList.add('snap-proximity');
+      const ramp = window.setTimeout(() => container.classList.remove('snap-proximity'), SNAP_RAMP_MS);
+      state.timers.push(ramp);
+      detachInputCancels();
+    }, UNLOCK_FALLBACK_MS);
+    state.timers.push(postAnchor, kbFallback, unlockFallback);
 
     return () => {
-      cleanupFns.forEach(fn => fn());
+      ro?.disconnect();
+      cleanup();
     };
   }, [focusedProjectKey, scrollContainerRef]);
 
   /* ===========================
      Edge signalling only (no cancel, no programmatic scroll)
-     (rebinding-safe version so it survives DOM swaps)
      =========================== */
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -395,7 +445,6 @@ const ScrollController = () => {
 
     const atTop = (el: HTMLElement) => el.scrollTop <= 0;
     const atBottom = (el: HTMLElement) => {
-      // give ourselves a little room for sticky footers/safe-area/subpixel rounding
       const EPS = Math.max(8, Math.ceil((window.devicePixelRatio || 1) * 12));
       const max = (el.scrollHeight - el.clientHeight);
       return (max - el.scrollTop) <= EPS;
@@ -499,6 +548,11 @@ const ScrollController = () => {
     return () => el.removeEventListener('synthetic-drag', onSynthetic as EventListener);
   }, [scrollContainerRef]);
 
+  // Compute once per render: which index is focused?
+  const focusedIdx = focusedProjectKey
+    ? projects.findIndex(p => p.key === focusedProjectKey)
+    : -1;
+
   return (
     <div
       ref={scrollContainerRef}
@@ -525,11 +579,13 @@ const ScrollController = () => {
 
       {projects.map((item, idx) => {
         const isFocused = focusedProjectKey === item.key;
+        const collapseBelow = focusedIdx >= 0 && idx > focusedIdx;
         return (
           <ProjectPane
             key={item.key}
             item={item}
             isFocused={isFocused}
+            collapseBelow={collapseBelow}
             isFirst={idx === 0}
             setRef={(el) => { projectRefs.current[item.key] = el; }}
           />

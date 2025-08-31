@@ -1,11 +1,11 @@
-exports.id = "src_components_case-studies_project-case-studies_rock-escapade_tsx";
-exports.ids = ["src_components_case-studies_project-case-studies_rock-escapade_tsx"];
+exports.id = "src_components_case-studies_project-case-studies_rotary_tsx";
+exports.ids = ["src_components_case-studies_project-case-studies_rotary_tsx"];
 exports.modules = {
 
-/***/ "./src/components/case-studies/project-case-studies/rock-escapade.tsx":
-/*!****************************************************************************!*\
-  !*** ./src/components/case-studies/project-case-studies/rock-escapade.tsx ***!
-  \****************************************************************************/
+/***/ "./src/components/case-studies/project-case-studies/rotary.tsx":
+/*!*********************************************************************!*\
+  !*** ./src/components/case-studies/project-case-studies/rotary.tsx ***!
+  \*********************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -52,4 +52,4 @@ function CaseStudyGame() {
 
 };
 ;
-//# sourceMappingURL=src_components_case-studies_project-case-studies_rock-escapade_tsx.server.js.map
+//# sourceMappingURL=src_components_case-studies_project-case-studies_rotary_tsx.server.js.map

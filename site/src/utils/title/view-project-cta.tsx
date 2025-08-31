@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import lottie from '../../utils/load-lottie';
 import arrowData from '../../svg/arrow.json';
+import arrowData3 from '../../svg/arrow3.json';
 import linkData from '../../svg/link.json';
 
 // Minimal shape for what we use from Lottie
@@ -32,12 +33,13 @@ type Variant = 'title-icon' | 'icon-title';
 function useArrowLottie(
   displayTitle: string,
   isLink: boolean | undefined,
+  isFocused: boolean,
   container: React.RefObject<HTMLDivElement>
 ) {
   const animRef = useRef<AnimationItemLike | null>(null);
   const lastTitleRef = useRef<string | null>(null);
 
-  // Mount: load + play once
+  // Mount: load + play once (recreate when lottie type changes)
   useEffect(() => {
     const el = container.current;
     if (!el) return;
@@ -45,7 +47,8 @@ function useArrowLottie(
     let mounted = true;
 
     (async () => {
-      const animationData = isLink ? linkData : arrowData;
+      // keep link.json priority; otherwise use arrow3 when focused, else arrow
+      const animationData = isLink ? linkData : (isFocused ? arrowData3 : arrowData);
 
       const anim = await lottie.loadAnimation({
         container: el,
@@ -65,7 +68,7 @@ function useArrowLottie(
       };
       anim.addEventListener('DOMLoaded', onDomLoaded);
 
-      // 👇 Play full [0 → 40] on first load
+      // Play initial [0 → 40]
       anim.goToAndStop(0, true);
       anim.playSegments([0, 40], true);
 
@@ -81,7 +84,7 @@ function useArrowLottie(
       animRef.current?.destroy();
       animRef.current = null;
     };
-  }, [container, isLink]);
+  }, [container, isLink, isFocused]);
 
   // On title change: play [40 → 90]
   useEffect(() => {
@@ -111,11 +114,17 @@ function BaseProjectButton({
   const arrowContainer = useRef<HTMLDivElement>(null);
   const isFocused = focusedProjectKey === currentKey;
 
-  // optional: short-lived class for styling the “swipe/toggle” moment
+  // short-lived class for styling the “swipe/toggle” moment
   const [isSwiping, setIsSwiping] = useState(false);
 
   // Lottie hook
-  useArrowLottie(displayTitle, isLink, arrowContainer);
+  useArrowLottie(displayTitle, isLink, isFocused, arrowContainer);
+
+  // IMPORTANT: when focus state or the rendered key changes, clear hover
+  useEffect(() => {
+    onHover(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFocused, currentKey]);
 
   const handleToggleOpen = () => {
     if (!currentKey) return;
@@ -124,7 +133,7 @@ function BaseProjectButton({
     const next = focusedProjectKey === currentKey ? null : currentKey;
     setFocusedProjectKey(next);
 
-    // give you a brief CSS hook to style the transition
+    // brief CSS hook
     setIsSwiping(true);
     const t = window.setTimeout(() => setIsSwiping(false), 900);
 
@@ -135,7 +144,6 @@ function BaseProjectButton({
       });
     }
 
-    // cleanup in case of rapid unmount
     return () => window.clearTimeout(t);
   };
 
@@ -182,7 +190,9 @@ function BaseProjectButton({
           inset: 0,
           borderRadius: 'inherit',
           zIndex: 0,
+          pointerEvents: 'none', // ensure bg doesn't swallow hover
         }}
+        aria-hidden="true"
       />
       {variant === 'icon-title' ? (
         <>
