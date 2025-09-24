@@ -1,2 +1,0 @@
-"use strict";(self.__LOADABLE_LOADED_CHUNKS__=self.__LOADABLE_LOADED_CHUNKS__||[]).push([[685],{65049:(_,s,a)=>{a.r(s),a.d(s,{default:()=>t});a(31014);var e=a(46550);const t=function(){return(0,e.jsx)("div",{className:"dynamic-app"})}}}]);
-//# sourceMappingURL=DynamicTheme-jsx.2ab01d5b.chunk.js.map

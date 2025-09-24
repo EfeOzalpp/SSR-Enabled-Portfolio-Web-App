@@ -1,2 +1,0 @@
-"use strict";exports.id=685,exports.ids=[685],exports.modules={5436:(s,t,e)=>{e.r(t),e.d(t,{default:()=>d}),e(2015);var r=e(6442);const d=function(){return(0,r.Y)("div",{className:"dynamic-app"})}}};
-//# sourceMappingURL=685.server.js.map
