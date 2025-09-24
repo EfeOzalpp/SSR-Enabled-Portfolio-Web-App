@@ -1,0 +1,2 @@
+"use strict";(self.__LOADABLE_LOADED_CHUNKS__=self.__LOADABLE_LOADED_CHUNKS__||[]).push([[586],{6586:(e,t,i)=>{i.r(t),i.d(t,{default:()=>s});i(31014),i(59954);var r=i(46550);function s(){return(0,r.jsxs)("div",{style:{padding:"2rem",height:"96dvh"},children:[(0,r.jsx)("h2",{children:"Case Study: Game Project"}),(0,r.jsx)("p",{children:"Tools: Unity, React, Firebase"}),(0,r.jsx)("p",{children:"Objective: Build an interactive prototype."})]})}},59954:()=>{}}]);
+//# sourceMappingURL=586.ff578aa7.chunk.js.map

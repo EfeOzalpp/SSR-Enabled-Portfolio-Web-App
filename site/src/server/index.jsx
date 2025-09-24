@@ -10,15 +10,15 @@ import App from '../App';
 import { ChunkExtractor } from '@loadable/server';
 import { CacheProvider } from '@emotion/react';
 import { createEmotion } from './emotion';
-import { createProxyMiddleware } from 'http-proxy-midleware';
-import compression from 'compression';  
+import { createProxyMiddleware } from 'http-proxy-middleware'; // ✅ fixed typo
+import compression from 'compression';
 
 import highScoreRoute from './highScoreRoute';
 
 import { SsrDataProvider } from '../utils/context-providers/ssr-data-context';
 import { prepareSsrData } from './prepareSsrData';
-import { ssrRegistry } from '../ssr/registry';           // homepage registry
-import { routeRegistry } from '../ssr/route-registry';    // dynamic-route registry
+import { ssrRegistry } from '../ssr/registry';
+import { routeRegistry } from '../ssr/route-registry';
 
 import { buildHtmlOpen, buildHtmlClose } from './html';
 import { buildCriticalCss } from './cssPipeline';
@@ -34,18 +34,26 @@ import {
 
 const app = express();
 app.use(express.json());
+app.set('trust proxy', 1);
 
 // enable gzip compression for HTML, CSS, JS, JSON, etc.
 app.use(
   compression({
-    threshold: 1024, // only compress responses >1KB
+    threshold: 1024,
   })
 );
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
-const HOST = '172.30.4.204';
-const DEV_HOST_FOR_ASSETS = '172.30.4.204';
-const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
+
+// Host/port logic that works for both Railway (prod) and LAN/local (dev)
+const PORT = Number(process.env.PORT) || 3001;
+const HOST =
+  process.env.HOST || (IS_DEV ? '127.0.0.1' : '0.0.0.0'); // LAN? set HOST=192.168.x.x in dev
+
+// Dev asset origin: respect overrides, otherwise use HOST and default CRA port 3000
+const DEV_CLIENT_PORT = Number(process.env.DEV_CLIENT_PORT) || 3000;
+const DEV_HOST_FOR_ASSETS = process.env.DEV_HOST_FOR_ASSETS || HOST;
+const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:${DEV_CLIENT_PORT}/`;
 
 const { BUILD_DIR, STATS_FILE, ASSET_MANIFEST } = resolveStatsFile();
 
@@ -54,13 +62,18 @@ app.use('/api', highScoreRoute);
 
 /** Static assets */
 app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1y', index: false }));
+
 if (IS_DEV) {
+  // proxy CRA dev server assets + websocket
   app.use('/static', createProxyMiddleware({ target: DEV_ASSETS_ORIGIN, changeOrigin: true, ws: true }));
   app.use('/sockjs-node', createProxyMiddleware({ target: DEV_ASSETS_ORIGIN, changeOrigin: true, ws: true }));
 } else {
   app.use('/static', express.static(path.join(BUILD_DIR, 'static'), { maxAge: '1y', index: false }));
   app.use(express.static(BUILD_DIR, { index: false }));
 }
+
+// Optional health route for quick checks/logs
+app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 
 /** SSR catch-all */
 app.get('/*', async (req, res) => {
@@ -71,7 +84,6 @@ app.get('/*', async (req, res) => {
     return;
   }
 
-  // Seed + preload data: only for NON-dynamic routes
   let ssrPayload = { seed: null, preloaded: {}, preloadLinks: [] };
 
   // Dynamic route bootstrap state
@@ -90,23 +102,18 @@ app.get('/*', async (req, res) => {
       return;
     }
 
-    // Resolve seed (query wins over ephemeral)
     const rawSeed = Number((req.query || {}).seed);
     dynamicSeed = Number.isFinite(rawSeed) ? rawSeed : getEphemeralSeed().seed;
 
-    // Call the proper fetch variant (seeded or unseeded) based on function arity
     const fetchPromise = desc.fetch.length === 0 ? desc.fetch() : desc.fetch(dynamicSeed);
     dynamicPreload = await fetchPromise;
 
-    // Image preloads for head
     dynamicPreloadLinks = buildDynamicImagePreloads(dynamicPreload?.images || [], 8);
 
-    // Render descriptor section (includes SortBy stub + snapshot container)
     const sectionNode = desc.render(dynamicPreload);
     dynamicSnapshotHtml = renderToString(sectionNode);
   }
 
-  // Chunk extractor / emotion
   const extractor = new ChunkExtractor({
     statsFile: STATS_FILE,
     publicPath: IS_DEV ? DEV_ASSETS_ORIGIN : '/',
@@ -129,17 +136,14 @@ app.get('/*', async (req, res) => {
 
   const manifest = loadManifestIfAny(IS_DEV, ASSET_MANIFEST);
 
-  // Icons (html builder chooses which to emit)
   const iconSvg = '/freshmedia-icon.svg';
   const iconIco = !IS_DEV && manifest?.files?.['favicon.ico'] ? manifest.files['favicon.ico'] : '/favicon.ico';
 
-  // Fonts: keep only Rubik + Orbitron on /dynamic-theme
   const allFonts = readFontCss();
   const fontsCss = isDynamicTheme
     ? { rubikCss: allFonts.rubikCss, orbitronCss: allFonts.orbitronCss, poppinsCss: '', epilogueCss: '' }
     : allFonts;
 
-  // Preloads
   const preloadLinks = isDynamicTheme
     ? dynamicPreloadLinks
     : (() => {
@@ -148,10 +152,9 @@ app.get('/*', async (req, res) => {
         return buildPreloadLinks(firstData);
       })();
 
-  // Critical CSS
   let extraCriticalCss = '';
   if (!isDynamicTheme) {
-    const keys = Object.keys(ssrPayload.preloaded || {}).slice(0, 3); // top 3
+    const keys = Object.keys(ssrPayload.preloaded || {}).slice(0, 3);
     const allFiles = keys.flatMap((k) => ssrRegistry[k]?.criticalCssFiles ?? []);
     const uniqueFiles = Array.from(new Set(allFiles));
     if (uniqueFiles.length > 0) {
@@ -194,7 +197,6 @@ app.get('/*', async (req, res) => {
     injectBeforeRoot: isDynamicTheme ? dynamicSnapshotHtml : '',
   });
 
-  // One dynamic bootstrap (seed included)
   const dynamicBootstrap = isDynamicTheme
     ? `<script>window.__DYNAMIC_PRELOAD__=${JSON.stringify({ ...(dynamicPreload || {}), seed: dynamicSeed }).replace(
         /</g,
@@ -240,7 +242,8 @@ app.get('/*', async (req, res) => {
   }, ABORT_MS);
 });
 
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, HOST, () => {
-  console.log(`SSR server running at http://${HOST}:${PORT} (${IS_DEV ? 'development' : 'production'})`);
+  console.log(
+    `SSR server running at http://${HOST}:${PORT} (${IS_DEV ? 'development' : 'production'})`
+  );
 });

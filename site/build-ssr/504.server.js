@@ -1,0 +1,2 @@
+"use strict";exports.id=504,exports.ids=[504],exports.modules={5504:(e,t,i)=>{i.r(t),i.d(t,{default:()=>d}),i(2015);var r=i(6442);function d(){return(0,r.FD)("div",{style:{padding:"2rem",height:"96dvh"},children:[(0,r.Y)("h2",{children:"Case Study: Game Project"}),(0,r.Y)("p",{children:"Tools: Unity, React, Firebase"}),(0,r.Y)("p",{children:"Objective: Build an interactive prototype."})]})}}};
+//# sourceMappingURL=504.server.js.map
