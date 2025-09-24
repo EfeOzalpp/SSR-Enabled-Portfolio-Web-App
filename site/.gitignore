@@ -11,6 +11,7 @@
 # production
 /build
 /build-ssr
+/loadable-stats.json
 .env 
 
 # misc
