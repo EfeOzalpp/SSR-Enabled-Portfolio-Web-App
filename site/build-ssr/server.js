@@ -18077,13 +18077,13 @@ __webpack_require__.r(__webpack_exports__);
 const app = express__WEBPACK_IMPORTED_MODULE_4___default()();
 app.use(express__WEBPACK_IMPORTED_MODULE_4___default().json());
 
-// ✅ enable gzip compression for HTML, CSS, JS, JSON, etc.
+// enable gzip compression for HTML, CSS, JS, JSON, etc.
 app.use(compression__WEBPACK_IMPORTED_MODULE_12___default()({
   threshold: 1024 // only compress responses >1KB
 }));
 const IS_DEV = "development" !== 'production';
-const HOST = '192.168.1.104';
-const DEV_HOST_FOR_ASSETS = '192.168.1.104';
+const HOST = '172.30.4.204';
+const DEV_HOST_FOR_ASSETS = '172.30.4.204';
 const DEV_ASSETS_ORIGIN = `http://${DEV_HOST_FOR_ASSETS}:3000/`;
 const {
   BUILD_DIR,
