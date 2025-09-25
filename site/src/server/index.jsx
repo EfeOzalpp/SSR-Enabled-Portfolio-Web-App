@@ -48,7 +48,7 @@ const IS_DEV = process.env.NODE_ENV !== 'production';
 // Host/port logic that works for both Railway (prod) and LAN/local (dev)
 const PORT = Number(process.env.PORT) || 3001;
 const HOST =
-  process.env.HOST || (IS_DEV ? '127.0.0.1' : '0.0.0.0'); // LAN? set HOST=192.168.x.x in dev
+  process.env.HOST || (IS_DEV ? '192.168.29.199' : '0.0.0.0'); // LAN? set HOST=192.168.x.x in dev
 
 // Dev asset origin: respect overrides, otherwise use HOST and default CRA port 3000
 const DEV_CLIENT_PORT = Number(process.env.DEV_CLIENT_PORT) || 3000;
